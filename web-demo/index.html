@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Floating Guess Assistant - Web Demo</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <section class="card">
+      <h1>AI 猜词助手 Demo</h1>
+      <p class="subtitle">输入线索，系统会给出可能答案。</p>
+
+      <label for="mode">选择模式</label>
+      <select id="mode">
+        <option value="semantic">相似度猜词</option>
+        <option value="masked">揭字猜词</option>
+      </select>
+
+      <label for="clues">输入线索</label>
+      <textarea
+        id="clues"
+        placeholder="例如：四字成语，和时间有关，猜过“光阴”相似度84%"
+      ></textarea>
+
+      <button id="analyzeBtn">分析答案</button>
+
+      <section class="result-box">
+        <h2>可能答案</h2>
+        <ol id="resultList"></ol>
+      </section>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
