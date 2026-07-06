@@ -4,56 +4,27 @@ const guessHistoryInput = document.getElementById("guessHistory");
 const analyzeBtn = document.getElementById("analyzeBtn");
 const resultList = document.getElementById("resultList");
 
-const wordBank = [
-  {
-    word: "光阴似箭",
-    mode: "semantic",
-    keywords: ["时间", "光阴", "快", "流逝", "成语", "岁月", "箭"],
-    reason: "形容时间像箭一样飞快流逝。"
-  },
-  {
-    word: "日月如梭",
-    mode: "semantic",
-    keywords: ["时间", "日月", "快", "流逝", "成语", "岁月", "梭"],
-    reason: "形容时间过得很快。"
-  },
-  {
-    word: "白驹过隙",
-    mode: "semantic",
-    keywords: ["时间", "人生", "短暂", "快", "成语", "缝隙"],
-    reason: "比喻时间过得很快，人生短暂。"
-  },
-  {
-    word: "时光荏苒",
-    mode: "semantic",
-    keywords: ["时间", "时光", "岁月", "流逝", "成语"],
-    reason: "形容时间一点一点流逝。"
-  },
-  {
-    word: "岁月如流",
-    mode: "semantic",
-    keywords: ["时间", "岁月", "流逝", "快", "成语"],
-    reason: "形容岁月像流水一样流逝。"
-  },
-  {
-    word: "短视频",
-    mode: "masked",
-    keywords: ["年轻人", "流行", "娱乐", "软件", "视频", "抖音", "快手"],
-    reason: "常见于年轻人娱乐、软件、视频类线索。"
-  },
-  {
-    word: "直播间",
-    mode: "masked",
-    keywords: ["观众", "弹幕", "主播", "互动", "礼物", "直播"],
-    reason: "和主播、观众、弹幕互动有关。"
-  },
-  {
-    word: "人工智能",
-    mode: "masked",
-    keywords: ["AI", "模型", "生成", "自动", "分析", "算法", "智能"],
-    reason: "和模型、自动分析、生成内容有关。"
+let wordBank = [];
+
+async function loadWordBank() {
+  try {
+    const response = await fetch("data/wordBank.json");
+
+    if (!response.ok) {
+      throw new Error("词库加载失败");
+    }
+
+    wordBank = await response.json();
+    console.log("词库加载成功：", wordBank);
+  } catch (error) {
+    console.error(error);
+
+    resultList.innerHTML = "";
+    const li = document.createElement("li");
+    li.textContent = "词库加载失败，请检查 data/wordBank.json 是否存在。";
+    resultList.appendChild(li);
   }
-];
+}
 
 function parseGuessHistory(text) {
   if (!text.trim()) {
@@ -125,6 +96,13 @@ function analyzeClues() {
 
   resultList.innerHTML = "";
 
+  if (wordBank.length === 0) {
+    const li = document.createElement("li");
+    li.textContent = "词库还没加载完成，请刷新页面再试。";
+    resultList.appendChild(li);
+    return;
+  }
+
   if (clues.length === 0 && guesses.length === 0) {
     const li = document.createElement("li");
     li.textContent = "请先输入线索或历史猜测。";
@@ -150,3 +128,5 @@ function analyzeClues() {
 }
 
 analyzeBtn.addEventListener("click", analyzeClues);
+
+loadWordBank();
