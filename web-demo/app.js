@@ -1,78 +1,150 @@
 const modeSelect = document.getElementById("mode");
 const cluesInput = document.getElementById("clues");
+const guessHistoryInput = document.getElementById("guessHistory");
 const analyzeBtn = document.getElementById("analyzeBtn");
 const resultList = document.getElementById("resultList");
 
-const semanticAnswers = [
+const wordBank = [
   {
     word: "光阴似箭",
-    reason: "和时间流逝有关，也符合“光阴”这个高相似度猜测。"
+    mode: "semantic",
+    keywords: ["时间", "光阴", "快", "流逝", "成语", "岁月", "箭"],
+    reason: "形容时间像箭一样飞快流逝。"
   },
   {
     word: "日月如梭",
-    reason: "四字成语，常用来形容时间过得很快。"
+    mode: "semantic",
+    keywords: ["时间", "日月", "快", "流逝", "成语", "岁月", "梭"],
+    reason: "形容时间过得很快。"
   },
   {
     word: "白驹过隙",
-    reason: "形容时间飞快流逝，语义接近时间类线索。"
+    mode: "semantic",
+    keywords: ["时间", "人生", "短暂", "快", "成语", "缝隙"],
+    reason: "比喻时间过得很快，人生短暂。"
   },
   {
     word: "时光荏苒",
-    reason: "和时间、岁月流逝有关。"
+    mode: "semantic",
+    keywords: ["时间", "时光", "岁月", "流逝", "成语"],
+    reason: "形容时间一点一点流逝。"
   },
   {
     word: "岁月如流",
-    reason: "含有岁月、流逝的含义。"
-  }
-];
-
-const maskedAnswers = [
+    mode: "semantic",
+    keywords: ["时间", "岁月", "流逝", "快", "成语"],
+    reason: "形容岁月像流水一样流逝。"
+  },
   {
     word: "短视频",
-    reason: "如果线索包含年轻人、流行、娱乐、软件等词，可能是短视频。"
+    mode: "masked",
+    keywords: ["年轻人", "流行", "娱乐", "软件", "视频", "抖音", "快手"],
+    reason: "常见于年轻人娱乐、软件、视频类线索。"
   },
   {
     word: "直播间",
-    reason: "如果描述提到观众、互动、弹幕，可能和直播间有关。"
-  },
-  {
-    word: "社交软件",
-    reason: "如果描述中有聊天、好友、消息等内容，可能是社交软件。"
-  },
-  {
-    word: "网络游戏",
-    reason: "如果描述中有玩家、关卡、互动等内容，可能是网络游戏。"
+    mode: "masked",
+    keywords: ["观众", "弹幕", "主播", "互动", "礼物", "直播"],
+    reason: "和主播、观众、弹幕互动有关。"
   },
   {
     word: "人工智能",
-    reason: "如果描述中有模型、生成、自动分析等内容，可能是人工智能。"
+    mode: "masked",
+    keywords: ["AI", "模型", "生成", "自动", "分析", "算法", "智能"],
+    reason: "和模型、自动分析、生成内容有关。"
   }
 ];
+
+function parseGuessHistory(text) {
+  if (!text.trim()) {
+    return [];
+  }
+
+  return text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .map((line) => {
+      const parts = line.split(/\s+/);
+      const word = parts[0];
+      const score = Number(parts[1]);
+
+      return {
+        word,
+        score: Number.isNaN(score) ? 0 : score
+      };
+    });
+}
+
+function calculateScore(clues, guesses, item) {
+  let score = 0;
+
+  item.keywords.forEach((keyword) => {
+    if (clues.includes(keyword)) {
+      score += 10;
+    }
+  });
+
+  guesses.forEach((guess) => {
+    if (guess.score >= 80) {
+      item.keywords.forEach((keyword) => {
+        if (guess.word.includes(keyword) || keyword.includes(guess.word)) {
+          score += 20;
+        }
+      });
+    }
+
+    if (guess.score >= 60 && guess.score < 80) {
+      item.keywords.forEach((keyword) => {
+        if (guess.word.includes(keyword) || keyword.includes(guess.word)) {
+          score += 10;
+        }
+      });
+    }
+
+    if (guess.score < 40) {
+      item.keywords.forEach((keyword) => {
+        if (guess.word.includes(keyword) || keyword.includes(guess.word)) {
+          score -= 5;
+        }
+      });
+    }
+  });
+
+  if (clues.includes(item.word)) {
+    score += 20;
+  }
+
+  return score;
+}
 
 function analyzeClues() {
   const mode = modeSelect.value;
   const clues = cluesInput.value.trim();
+  const guesses = parseGuessHistory(guessHistoryInput.value);
 
   resultList.innerHTML = "";
 
-  if (clues.length === 0) {
+  if (clues.length === 0 && guesses.length === 0) {
     const li = document.createElement("li");
-    li.textContent = "请先输入一些线索。";
+    li.textContent = "请先输入线索或历史猜测。";
     resultList.appendChild(li);
     return;
   }
 
-  let answers;
+  const results = wordBank
+    .filter((item) => item.mode === mode)
+    .map((item) => {
+      return {
+        ...item,
+        score: calculateScore(clues, guesses, item)
+      };
+    })
+    .sort((a, b) => b.score - a.score);
 
-  if (mode === "semantic") {
-    answers = semanticAnswers;
-  } else {
-    answers = maskedAnswers;
-  }
-
-  answers.forEach((answer) => {
+  results.forEach((answer) => {
     const li = document.createElement("li");
-    li.innerHTML = `<strong>${answer.word}</strong>：${answer.reason}`;
+    li.innerHTML = `<strong>${answer.word}</strong>：匹配分 ${answer.score}。${answer.reason}`;
     resultList.appendChild(li);
   });
 }
