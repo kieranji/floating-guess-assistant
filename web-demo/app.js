@@ -1,6 +1,7 @@
 const modeSelect = document.getElementById("mode");
 const cluesInput = document.getElementById("clues");
 const guessHistoryInput = document.getElementById("guessHistory");
+const customWordsInput = document.getElementById("customWords");
 const analyzeBtn = document.getElementById("analyzeBtn");
 const resultList = document.getElementById("resultList");
 
@@ -45,6 +46,35 @@ function parseGuessHistory(text) {
         score: Number.isNaN(score) ? 0 : score
       };
     });
+}
+
+function parseCustomWords(text, mode) {
+  if (!text.trim()) {
+    return [];
+  }
+
+  return text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .map((line) => {
+      const parts = line.split("|").map((part) => part.trim());
+
+      const word = parts[0] || "";
+      const keywords = parts[1]
+        ? parts[1].split(",").map((keyword) => keyword.trim()).filter(Boolean)
+        : [];
+
+      const reason = parts[2] || "用户临时添加的候选词。";
+
+      return {
+        word,
+        mode,
+        keywords,
+        reason
+      };
+    })
+    .filter((item) => item.word.length > 0);
 }
 
 function calculateScore(clues, guesses, item) {
@@ -93,6 +123,7 @@ function analyzeClues() {
   const mode = modeSelect.value;
   const clues = cluesInput.value.trim();
   const guesses = parseGuessHistory(guessHistoryInput.value);
+  const customWords = parseCustomWords(customWordsInput.value, mode);
 
   resultList.innerHTML = "";
 
@@ -103,14 +134,16 @@ function analyzeClues() {
     return;
   }
 
-  if (clues.length === 0 && guesses.length === 0) {
+  if (clues.length === 0 && guesses.length === 0 && customWords.length === 0) {
     const li = document.createElement("li");
-    li.textContent = "请先输入线索或历史猜测。";
+    li.textContent = "请先输入线索、历史猜测或临时候选词。";
     resultList.appendChild(li);
     return;
   }
 
-  const results = wordBank
+  const activeWordBank = [...wordBank, ...customWords];
+
+  const results = activeWordBank
     .filter((item) => item.mode === mode)
     .map((item) => {
       return {
