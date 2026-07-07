@@ -79,6 +79,10 @@ button {
   background: #64748b;
 }
 
+#clearBtn {
+  background: #ef4444;
+}
+
 button:active {
   transform: scale(0.98);
 }

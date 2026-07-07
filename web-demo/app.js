@@ -3,6 +3,7 @@ const cluesInput = document.getElementById("clues");
 const guessHistoryInput = document.getElementById("guessHistory");
 const customWordsInput = document.getElementById("customWords");
 const exampleBtn = document.getElementById("exampleBtn");
+const clearBtn = document.getElementById("clearBtn");
 const analyzeBtn = document.getElementById("analyzeBtn");
 const resultList = document.getElementById("resultList");
 
@@ -200,7 +201,15 @@ function fillExample() {
   analyzeClues();
 }
 
+function clearInputs() {
+  cluesInput.value = "";
+  guessHistoryInput.value = "";
+  customWordsInput.value = "";
+  resultList.innerHTML = "";
+}
+
 exampleBtn.addEventListener("click", fillExample);
+clearBtn.addEventListener("click", clearInputs);
 analyzeBtn.addEventListener("click", analyzeClues);
 
 loadWordBank();
