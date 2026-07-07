@@ -90,3 +90,14 @@ li {
   margin: 10px 0;
   line-height: 1.5;
 }
+
+.tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #e0ecff;
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: bold;
+}

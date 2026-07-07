@@ -153,9 +153,19 @@ function analyzeClues() {
     })
     .sort((a, b) => b.score - a.score);
 
-  results.forEach((answer) => {
+  const topResults = results.slice(0, 5);
+
+  topResults.forEach((answer, index) => {
     const li = document.createElement("li");
-    li.innerHTML = `<strong>${answer.word}</strong>：匹配分 ${answer.score}。${answer.reason}`;
+
+    const label = index === 0 ? " 最可能" : "";
+
+    li.innerHTML = `
+      <strong>${answer.word}</strong>
+      <span class="tag">${label}</span>
+      ：匹配分 ${answer.score}。${answer.reason}
+    `;
+
     resultList.appendChild(li);
   });
 }
