@@ -129,3 +129,9 @@ li {
   color: #64748b;
   font-size: 14px;
 }
+
+.copy-button {
+  width: 100%;
+  margin-top: 12px;
+  background: #16a34a;
+}

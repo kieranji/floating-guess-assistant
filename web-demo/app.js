@@ -5,6 +5,7 @@ const customWordsInput = document.getElementById("customWords");
 const exampleBtn = document.getElementById("exampleBtn");
 const clearBtn = document.getElementById("clearBtn");
 const analyzeBtn = document.getElementById("analyzeBtn");
+const copyBtn = document.getElementById("copyBtn");
 const resultList = document.getElementById("resultList");
 
 let wordBank = [];
@@ -208,8 +209,29 @@ function clearInputs() {
   resultList.innerHTML = "";
 }
 
+async function copyResults() {
+  const items = Array.from(resultList.querySelectorAll("li"));
+
+  if (items.length === 0) {
+    alert("还没有可以复制的结果。");
+    return;
+  }
+
+  const text = items
+    .map((item, index) => `${index + 1}. ${item.innerText}`)
+    .join("\n");
+
+  try {
+    await navigator.clipboard.writeText(text);
+    alert("结果已复制。");
+  } catch (error) {
+    alert("复制失败，请手动复制。");
+  }
+}
+
 exampleBtn.addEventListener("click", fillExample);
 clearBtn.addEventListener("click", clearInputs);
 analyzeBtn.addEventListener("click", analyzeClues);
+copyBtn.addEventListener("click", copyResults);
 
 loadWordBank();
