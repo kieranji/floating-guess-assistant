@@ -82,10 +82,12 @@ function parseCustomWords(text, mode) {
 
 function calculateScore(clues, guesses, item) {
   let score = 0;
+  const logs = [];
 
   item.keywords.forEach((keyword) => {
     if (clues.includes(keyword)) {
       score += 10;
+      logs.push(`线索命中「${keyword}」+10`);
     }
   });
 
@@ -94,6 +96,7 @@ function calculateScore(clues, guesses, item) {
       item.keywords.forEach((keyword) => {
         if (guess.word.includes(keyword) || keyword.includes(guess.word)) {
           score += 20;
+          logs.push(`高相似度猜测「${guess.word}」命中「${keyword}」+20`);
         }
       });
     }
@@ -102,6 +105,7 @@ function calculateScore(clues, guesses, item) {
       item.keywords.forEach((keyword) => {
         if (guess.word.includes(keyword) || keyword.includes(guess.word)) {
           score += 10;
+          logs.push(`中相似度猜测「${guess.word}」命中「${keyword}」+10`);
         }
       });
     }
@@ -110,6 +114,7 @@ function calculateScore(clues, guesses, item) {
       item.keywords.forEach((keyword) => {
         if (guess.word.includes(keyword) || keyword.includes(guess.word)) {
           score -= 5;
+          logs.push(`低相似度猜测「${guess.word}」命中「${keyword}」-5`);
         }
       });
     }
@@ -117,9 +122,13 @@ function calculateScore(clues, guesses, item) {
 
   if (clues.includes(item.word)) {
     score += 20;
+    logs.push(`线索直接包含答案「${item.word}」+20`);
   }
 
-  return score;
+  return {
+    score,
+    logs
+  };
 }
 
 function calculateConfidence(score, maxScore) {
@@ -159,9 +168,12 @@ function analyzeClues() {
   const results = activeWordBank
     .filter((item) => item.mode === mode)
     .map((item) => {
+      const result = calculateScore(clues, guesses, item);
+
       return {
         ...item,
-        score: calculateScore(clues, guesses, item)
+        score: result.score,
+        logs: result.logs
       };
     })
     .sort((a, b) => b.score - a.score);
@@ -175,13 +187,20 @@ function analyzeClues() {
     const label = index === 0 ? "最可能" : "";
     const confidence = calculateConfidence(answer.score, maxScore);
 
-    li.innerHTML = `
-      <strong>${answer.word}</strong>
-      ${label ? `<span class="tag">${label}</span>` : ""}
-      <span class="confidence">置信度 ${confidence}%</span>
-      <br />
-      <span class="reason">${answer.reason}</span>
-    `;
+    const logText =
+    answer.logs.length > 0
+      ? answer.logs.join("；")
+      : "暂无明显命中规则。";
+
+  li.innerHTML = `
+    <strong>${answer.word}</strong>
+    ${label ? `<span class="tag">${label}</span>` : ""}
+    <span class="confidence">置信度 ${confidence}%</span>
+    <br />
+    <span class="reason">${answer.reason}</span>
+    <br />
+    <span class="score-log">得分原因：${logText}</span>
+  `;
 
     resultList.appendChild(li);
   });

@@ -135,3 +135,10 @@ li {
   margin-top: 12px;
   background: #16a34a;
 }
+
+.score-log {
+  display: inline-block;
+  margin-top: 6px;
+  color: #334155;
+  font-size: 13px;
+}
