@@ -2,6 +2,7 @@ const modeSelect = document.getElementById("mode");
 const cluesInput = document.getElementById("clues");
 const guessHistoryInput = document.getElementById("guessHistory");
 const customWordsInput = document.getElementById("customWords");
+const exampleBtn = document.getElementById("exampleBtn");
 const analyzeBtn = document.getElementById("analyzeBtn");
 const resultList = document.getElementById("resultList");
 
@@ -184,6 +185,22 @@ function analyzeClues() {
   });
 }
 
+function fillExample() {
+  modeSelect.value = "semantic";
+
+  cluesInput.value = "四字成语，和时间有关，形容时间过得很快";
+
+  guessHistoryInput.value = `光阴 84
+时间 72
+人生 35
+日月 61`;
+
+  customWordsInput.value = `沧海桑田 | 时间,变化,成语,岁月 | 形容世事变化很大`;
+
+  analyzeClues();
+}
+
+exampleBtn.addEventListener("click", fillExample);
 analyzeBtn.addEventListener("click", analyzeClues);
 
 loadWordBank();

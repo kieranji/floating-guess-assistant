@@ -57,9 +57,14 @@ textarea {
   resize: vertical;
 }
 
-button {
-  width: 100%;
+.button-row {
+  display: flex;
+  gap: 12px;
   margin-top: 20px;
+}
+
+button {
+  flex: 1;
   padding: 14px;
   border: none;
   border-radius: 12px;
@@ -68,6 +73,10 @@ button {
   font-size: 17px;
   font-weight: bold;
   cursor: pointer;
+}
+
+#exampleBtn {
+  background: #64748b;
 }
 
 button:active {
