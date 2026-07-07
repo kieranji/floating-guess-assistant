@@ -155,3 +155,12 @@ li {
   padding-right: 18px;
   background: #7c3aed;
 }
+
+.candidate-input-box {
+  display: grid;
+  gap: 8px;
+}
+
+#addCandidateBtn {
+  background: #0891b2;
+}

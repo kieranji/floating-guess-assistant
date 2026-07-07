@@ -5,8 +5,12 @@ const guessWordInput = document.getElementById("guessWord");
 const guessScoreInput = document.getElementById("guessScore");
 const guessHistoryInput = document.getElementById("guessHistory");
 const customWordsInput = document.getElementById("customWords");
+const candidateWordInput = document.getElementById("candidateWord");
+const candidateKeywordsInput = document.getElementById("candidateKeywords");
+const candidateReasonInput = document.getElementById("candidateReason");
 
 const addGuessBtn = document.getElementById("addGuessBtn");
+const addCandidateBtn = document.getElementById("addCandidateBtn");
 const exampleBtn = document.getElementById("exampleBtn");
 const clearBtn = document.getElementById("clearBtn");
 const analyzeBtn = document.getElementById("analyzeBtn");
@@ -62,6 +66,37 @@ function addGuess() {
 
   guessWordInput.value = "";
   guessScoreInput.value = "";
+
+  analyzeClues();
+}
+
+function addCandidate() {
+  const word = candidateWordInput.value.trim();
+  const keywords = candidateKeywordsInput.value.trim();
+  const reason = candidateReasonInput.value.trim();
+
+  if (!word) {
+    alert("请输入候选词。");
+    return;
+  }
+
+  if (!keywords) {
+    alert("请输入关键词。");
+    return;
+  }
+
+  const finalReason = reason || "用户临时添加的候选词。";
+  const newLine = `${word} | ${keywords} | ${finalReason}`;
+
+  if (customWordsInput.value.trim().length === 0) {
+    customWordsInput.value = newLine;
+  } else {
+    customWordsInput.value += `\n${newLine}`;
+  }
+
+  candidateWordInput.value = "";
+  candidateKeywordsInput.value = "";
+  candidateReasonInput.value = "";
 
   analyzeClues();
 }
@@ -260,6 +295,9 @@ function fillExample() {
 function clearInputs() {
   guessWordInput.value = "";
   guessScoreInput.value = "";
+  candidateWordInput.value = "";
+  candidateKeywordsInput.value = "";
+  candidateReasonInput.value = "";
   cluesInput.value = "";
   guessHistoryInput.value = "";
   customWordsInput.value = "";
@@ -287,6 +325,7 @@ async function copyResults() {
 }
 
 addGuessBtn.addEventListener("click", addGuess);
+addCandidateBtn.addEventListener("click", addCandidate);
 exampleBtn.addEventListener("click", fillExample);
 clearBtn.addEventListener("click", clearInputs);
 analyzeBtn.addEventListener("click", analyzeClues);

@@ -50,7 +50,31 @@
   placeholder="每行一个，例如：&#10;光阴 84&#10;时间 72&#10;人生 35&#10;日月 61"
 ></textarea>
 
-      <label for="customWords">临时添加候选词</label>
+      <label>添加临时候选词</label>
+
+      <div class="candidate-input-box">
+        <input
+          id="candidateWord"
+          type="text"
+          placeholder="候选词，例如：沧海桑田"
+        />
+
+        <input
+          id="candidateKeywords"
+          type="text"
+          placeholder="关键词，用英文逗号分隔，例如：时间,变化,成语,岁月"
+          />
+
+        <input
+          id="candidateReason"
+          type="text"
+          placeholder="解释，例如：形容世事变化很大"
+        />
+
+        <button id="addCandidateBtn" type="button">添加候选词</button>
+      </div>
+
+      <label for="customWords">临时候选词列表</label>
       <textarea
         id="customWords"
         placeholder="每行一个，例如：&#10;沧海桑田 | 时间,变化,成语,岁月 | 形容世事变化很大&#10;短剧 | 视频,娱乐,流行,手机 | 一种短时长剧情视频"
