@@ -15,7 +15,7 @@ const exampleBtn = document.getElementById("exampleBtn");
 const clearBtn = document.getElementById("clearBtn");
 const analyzeBtn = document.getElementById("analyzeBtn");
 const copyBtn = document.getElementById("copyBtn");
-
+const exportBtn = document.getElementById("exportBtn");
 const resultList = document.getElementById("resultList");
 
 let wordBank = [];
@@ -324,11 +324,37 @@ async function copyResults() {
   }
 }
 
+async function exportCurrentData() {
+  const mode = modeSelect.value;
+  const clues = cluesInput.value.trim();
+  const guesses = parseGuessHistory(guessHistoryInput.value);
+  const customWords = parseCustomWords(customWordsInput.value, mode);
+
+  const exportData = {
+    mode,
+    clues,
+    guesses,
+    customWords,
+    exportedAt: new Date().toISOString()
+  };
+
+  const jsonText = JSON.stringify(exportData, null, 2);
+
+  try {
+    await navigator.clipboard.writeText(jsonText);
+    alert("当前题目 JSON 已复制，可以粘贴保存。");
+  } catch (error) {
+    console.log(jsonText);
+    alert("复制失败，JSON 已输出到控制台。");
+  }
+}
+
 addGuessBtn.addEventListener("click", addGuess);
 addCandidateBtn.addEventListener("click", addCandidate);
 exampleBtn.addEventListener("click", fillExample);
 clearBtn.addEventListener("click", clearInputs);
 analyzeBtn.addEventListener("click", analyzeClues);
 copyBtn.addEventListener("click", copyResults);
+exportBtn.addEventListener("click", exportCurrentData);
 
 loadWordBank();
