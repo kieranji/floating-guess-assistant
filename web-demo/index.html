@@ -24,11 +24,31 @@
         placeholder="例如：四字成语，和时间有关，形容时间过得很快"
       ></textarea>
 
-      <label for="guessHistory">历史猜测和相似度</label>
-      <textarea
-        id="guessHistory"
-        placeholder="每行一个，例如：&#10;光阴 84&#10;时间 72&#10;人生 35&#10;日月 61"
-      ></textarea>
+      <label>添加历史猜测</label>
+
+<div class="guess-input-row">
+  <input
+    id="guessWord"
+    type="text"
+    placeholder="猜测词，例如：光阴"
+  />
+
+  <input
+    id="guessScore"
+    type="number"
+    min="0"
+    max="100"
+    placeholder="相似度"
+  />
+
+  <button id="addGuessBtn" type="button">添加</button>
+</div>
+
+<label for="guessHistory">历史猜测和相似度</label>
+<textarea
+  id="guessHistory"
+  placeholder="每行一个，例如：&#10;光阴 84&#10;时间 72&#10;人生 35&#10;日月 61"
+></textarea>
 
       <label for="customWords">临时添加候选词</label>
       <textarea

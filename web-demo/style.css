@@ -44,7 +44,8 @@ label {
 }
 
 select,
-textarea {
+textarea,
+input {
   width: 100%;
   border: 1px solid #d5d9e5;
   border-radius: 12px;
@@ -141,4 +142,16 @@ li {
   margin-top: 6px;
   color: #334155;
   font-size: 13px;
+}
+
+.guess-input-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr auto;
+  gap: 8px;
+}
+
+#addGuessBtn {
+  padding-left: 18px;
+  padding-right: 18px;
+  background: #7c3aed;
 }

@@ -1,11 +1,17 @@
 const modeSelect = document.getElementById("mode");
 const cluesInput = document.getElementById("clues");
+
+const guessWordInput = document.getElementById("guessWord");
+const guessScoreInput = document.getElementById("guessScore");
 const guessHistoryInput = document.getElementById("guessHistory");
 const customWordsInput = document.getElementById("customWords");
+
+const addGuessBtn = document.getElementById("addGuessBtn");
 const exampleBtn = document.getElementById("exampleBtn");
 const clearBtn = document.getElementById("clearBtn");
 const analyzeBtn = document.getElementById("analyzeBtn");
 const copyBtn = document.getElementById("copyBtn");
+
 const resultList = document.getElementById("resultList");
 
 let wordBank = [];
@@ -28,6 +34,36 @@ async function loadWordBank() {
     li.textContent = "词库加载失败，请检查 data/wordBank.json 是否存在。";
     resultList.appendChild(li);
   }
+}
+
+function addGuess() {
+  const word = guessWordInput.value.trim();
+  const score = guessScoreInput.value.trim();
+
+  if (!word || !score) {
+    alert("请输入猜测词和相似度。");
+    return;
+  }
+
+  const scoreNumber = Number(score);
+
+  if (Number.isNaN(scoreNumber) || scoreNumber < 0 || scoreNumber > 100) {
+    alert("相似度必须是 0 到 100 之间的数字。");
+    return;
+  }
+
+  const newLine = `${word} ${scoreNumber}`;
+
+  if (guessHistoryInput.value.trim().length === 0) {
+    guessHistoryInput.value = newLine;
+  } else {
+    guessHistoryInput.value += `\n${newLine}`;
+  }
+
+  guessWordInput.value = "";
+  guessScoreInput.value = "";
+
+  analyzeClues();
 }
 
 function parseGuessHistory(text) {
@@ -222,6 +258,8 @@ function fillExample() {
 }
 
 function clearInputs() {
+  guessWordInput.value = "";
+  guessScoreInput.value = "";
   cluesInput.value = "";
   guessHistoryInput.value = "";
   customWordsInput.value = "";
@@ -248,6 +286,7 @@ async function copyResults() {
   }
 }
 
+addGuessBtn.addEventListener("click", addGuess);
 exampleBtn.addEventListener("click", fillExample);
 clearBtn.addEventListener("click", clearInputs);
 analyzeBtn.addEventListener("click", analyzeClues);
