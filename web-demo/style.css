@@ -101,3 +101,18 @@ li {
   font-size: 13px;
   font-weight: bold;
 }
+
+.confidence {
+  display: inline-block;
+  margin-left: 8px;
+  color: #475569;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.reason {
+  display: inline-block;
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 14px;
+}

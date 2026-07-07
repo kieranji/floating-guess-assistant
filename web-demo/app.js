@@ -119,6 +119,16 @@ function calculateScore(clues, guesses, item) {
   return score;
 }
 
+function calculateConfidence(score, maxScore) {
+  if (maxScore <= 0) {
+    return 0;
+  }
+
+  const confidence = Math.round((score / maxScore) * 100);
+
+  return Math.max(0, Math.min(confidence, 100));
+}
+
 function analyzeClues() {
   const mode = modeSelect.value;
   const clues = cluesInput.value.trim();
@@ -154,16 +164,20 @@ function analyzeClues() {
     .sort((a, b) => b.score - a.score);
 
   const topResults = results.slice(0, 5);
+  const maxScore = topResults.length > 0 ? topResults[0].score : 0;
 
   topResults.forEach((answer, index) => {
     const li = document.createElement("li");
 
-    const label = index === 0 ? " 最可能" : "";
+    const label = index === 0 ? "最可能" : "";
+    const confidence = calculateConfidence(answer.score, maxScore);
 
     li.innerHTML = `
       <strong>${answer.word}</strong>
-      <span class="tag">${label}</span>
-      ：匹配分 ${answer.score}。${answer.reason}
+      ${label ? `<span class="tag">${label}</span>` : ""}
+      <span class="confidence">置信度 ${confidence}%</span>
+      <br />
+      <span class="reason">${answer.reason}</span>
     `;
 
     resultList.appendChild(li);
