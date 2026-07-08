@@ -93,11 +93,20 @@
 
       <button id="promptBtn" type="button" class="prompt-button">生成 AI Prompt</button>
 
-      <label for="aiPrompt">AI Prompt</label>
+      <label for="aiResponse">AI 返回结果</label>
       <textarea
-        id="aiPrompt"
-        placeholder="点击“生成 AI Prompt”后，这里会出现可以复制给 AI 的分析提示词"
+        id="aiResponse"
+        placeholder="把 AI 返回的答案和分析粘贴到这里"
       ></textarea>
+
+      <button id="saveAiResponseBtn" type="button" class="save-ai-button">
+        保存 AI 分析
+      </button>
+
+      <section class="ai-response-box">
+        <h2>已保存的 AI 分析</h2>
+        <div id="savedAiResponse">暂无 AI 分析。</div>
+      </section>
 
       <label for="importJson">导入 JSON</label>
       <textarea

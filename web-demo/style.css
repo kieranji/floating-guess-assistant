@@ -193,3 +193,28 @@ li {
   margin-top: 12px;
   background: #9333ea;
 }
+
+.save-ai-button {
+  width: 100%;
+  margin-top: 12px;
+  background: #4f46e5;
+}
+
+.ai-response-box {
+  margin-top: 24px;
+  padding: 16px;
+  background: #f5f3ff;
+  border-radius: 16px;
+}
+
+.ai-response-box h2 {
+  margin-top: 0;
+  font-size: 20px;
+}
+
+#savedAiResponse {
+  white-space: pre-wrap;
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.6;
+}

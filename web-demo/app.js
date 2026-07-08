@@ -18,6 +18,9 @@ const resultList = document.getElementById("resultList");
 const exportBtn = document.getElementById("exportBtn");
 const promptBtn = document.getElementById("promptBtn");
 const aiPromptInput = document.getElementById("aiPrompt");
+const aiResponseInput = document.getElementById("aiResponse");
+const saveAiResponseBtn = document.getElementById("saveAiResponseBtn");
+const savedAiResponseBox = document.getElementById("savedAiResponse");
 const importJsonInput = document.getElementById("importJson");
 
 let wordBank = [];
@@ -305,6 +308,8 @@ function clearInputs() {
   customWordsInput.value = "";
   importJsonInput.value = "";
   aiPromptInput.value = "";
+  aiResponseInput.value = "";
+  savedAiResponseBox.innerText = "暂无 AI 分析。";
   resultList.innerHTML = "";
 }
 
@@ -413,6 +418,18 @@ ${customWordsText}
     });
 }
 
+function saveAiResponse() {
+  const response = aiResponseInput.value.trim();
+
+  if (!response) {
+    alert("请先粘贴 AI 返回结果。");
+    return;
+  }
+
+  savedAiResponseBox.innerText = response;
+  alert("AI 分析已保存到页面。");
+}
+
 function importCurrentData() {
   const text = importJsonInput.value.trim();
 
@@ -463,6 +480,7 @@ analyzeBtn.addEventListener("click", analyzeClues);
 copyBtn.addEventListener("click", copyResults);
 exportBtn.addEventListener("click", exportCurrentData);
 promptBtn.addEventListener("click", generateAiPrompt);
+saveAiResponseBtn.addEventListener("click", saveAiResponse);
 importBtn.addEventListener("click", importCurrentData);
 
 loadWordBank();
