@@ -15,6 +15,7 @@ const analyzeBtn = document.getElementById("analyzeBtn");
 const copyBtn = document.getElementById("copyBtn");
 const importBtn = document.getElementById("importBtn");
 const resultList = document.getElementById("resultList");
+const saveStatus = document.getElementById("saveStatus");
 const exportBtn = document.getElementById("exportBtn");
 const promptBtn = document.getElementById("promptBtn");
 const aiPromptInput = document.getElementById("aiPrompt");
@@ -316,6 +317,8 @@ function clearInputs() {
   resultList.innerHTML = "";
 
   localStorage.removeItem("floatingGuessAssistantData");
+
+  updateSaveStatus("已清空本地保存");
 }
 
 async function copyResults() {
@@ -442,6 +445,10 @@ function saveAiResponse() {
   alert("AI 分析已保存到页面。");
 }
 
+function updateSaveStatus(message) {
+  saveStatus.textContent = message;
+}
+
 function saveToLocalStorage() {
   const data = {
     mode: modeSelect.value,
@@ -460,6 +467,11 @@ function saveToLocalStorage() {
   };
 
   localStorage.setItem("floatingGuessAssistantData", JSON.stringify(data));
+
+  const now = new Date();
+  const timeText = now.toLocaleTimeString();
+
+  updateSaveStatus(`已自动保存 ${timeText}`);
 }
 
 function loadFromLocalStorage() {
@@ -485,6 +497,8 @@ function loadFromLocalStorage() {
     aiResponseInput.value = data.aiResponse || "";
     savedAiResponseBox.innerText = data.savedAiResponse || "暂无 AI 分析。";
     importJsonInput.value = data.importJson || "";
+
+    updateSaveStatus("已恢复上次保存内容");
   } catch (error) {
     console.error("读取本地保存失败：", error);
   }

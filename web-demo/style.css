@@ -218,3 +218,10 @@ li {
   font-size: 14px;
   line-height: 1.6;
 }
+
+.save-status {
+  margin-top: -12px;
+  margin-bottom: 20px;
+  color: #64748b;
+  font-size: 13px;
+}
