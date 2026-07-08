@@ -470,26 +470,20 @@ async function analyzeWithBackend() {
 
     aiPromptInput.value = data.prompt || "";
 
-    if (Array.isArray(data.mockResult)) {
-      const text = data.mockResult
-        .map((item, index) => {
-          return `${index + 1}. ${item.word}：${item.confidence}%\n原因：${item.reason}`;
-        })
-        .join("\n\n");
-
-      aiResponseInput.value = text;
-      savedAiResponseBox.innerText = text;
+    if (data.aiText) {
+      aiResponseInput.value = data.aiText;
+      savedAiResponseBox.innerText = data.aiText;
     }
 
-    saveToLocalStorage();
-    alert("后端分析完成。");
-  } catch (error) {
-    alert(`调用后端失败：${error.message}`);
-  } finally {
-    backendAnalyzeBtn.textContent = "后端 AI 分析";
-    backendAnalyzeBtn.disabled = false;
-  }
-}
+        saveToLocalStorage();
+        alert("后端分析完成。");
+      } catch (error) {
+        alert(`调用后端失败：${error.message}`);
+      } finally {
+        backendAnalyzeBtn.textContent = "后端 AI 分析";
+        backendAnalyzeBtn.disabled = false;
+      }
+    }
 
 function saveAiResponse() {
   const response = aiResponseInput.value.trim();

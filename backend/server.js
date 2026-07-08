@@ -1,11 +1,16 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import OpenAI from "openai";
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+const client = new OpenAI({
+  apiKey: process.env.AI_API_KEY
+});
 
 app.use(cors());
 app.use(express.json());
@@ -49,23 +54,41 @@ ${JSON.stringify(customWords || [], null, 2)}
 5. 不确定性说明
 `;
 
-  // 目前先不真正调用 AI，先返回 prompt。
-  // 下一步我们再把这里接到真正的 AI API。
-  res.json({
-    prompt,
-    mockResult: [
-      {
-        word: "光阴似箭",
-        confidence: 92,
-        reason: "线索和“时间过得很快”高度相关。"
-      },
-      {
-        word: "日月如梭",
-        confidence: 86,
-        reason: "同样是时间流逝类成语。"
-      }
-    ]
-  });
+    if (!process.env.AI_API_KEY) {
+    return res.status(500).json({
+      error: "Missing AI_API_KEY in backend environment."
+    });
+  }
+
+  try {
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "你是一个猜词游戏分析助手。你需要根据线索、历史猜测和候选词，给出清晰、谨慎的答案推测。"
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.7
+    });
+
+    const aiText = completion.choices[0]?.message?.content || "AI 没有返回内容。";
+
+    res.json({
+      prompt,
+      aiText
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      error: "AI request failed."
+    });
+  }
 });
 
 app.listen(port, () => {
