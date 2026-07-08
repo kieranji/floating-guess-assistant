@@ -24,7 +24,7 @@ const importJsonInput = document.getElementById("importJson");
 const promptBtn = document.getElementById("promptBtn");
 const backendAnalyzeBtn = document.getElementById("backendAnalyzeBtn");
 const aiPromptInput = document.getElementById("aiPrompt");
-const BACKEND_URL = "http://localhost:3000";
+const BACKEND_URL = "https://effective-fishstick-v64pg6p565wghwg7v-3000.app.github.dev/";
 
 let wordBank = [];
 
