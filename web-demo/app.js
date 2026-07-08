@@ -338,12 +338,18 @@ async function exportCurrentData() {
   const clues = cluesInput.value.trim();
   const guesses = parseGuessHistory(guessHistoryInput.value);
   const customWords = parseCustomWords(customWordsInput.value, mode);
+  const aiPrompt = aiPromptInput.value.trim();
+  const aiResponse = aiResponseInput.value.trim();
+  const savedAiResponse = savedAiResponseBox.innerText.trim();
 
   const exportData = {
     mode,
     clues,
     guesses,
     customWords,
+    aiPrompt,
+    aiResponse,
+    savedAiResponse,
     exportedAt: new Date().toISOString()
   };
 
@@ -351,7 +357,7 @@ async function exportCurrentData() {
 
   try {
     await navigator.clipboard.writeText(jsonText);
-    alert("当前题目 JSON 已复制，可以粘贴保存。");
+    alert("完整 JSON 已复制，包含 AI Prompt 和 AI 返回结果。");
   } catch (error) {
     console.log(jsonText);
     alert("复制失败，JSON 已输出到控制台。");
@@ -446,6 +452,14 @@ function importCurrentData() {
     }
 
     cluesInput.value = data.clues || "";
+    aiPromptInput.value = data.aiPrompt || "";
+    aiResponseInput.value = data.aiResponse || "";
+
+    if (data.savedAiResponse) {
+      savedAiResponseBox.innerText = data.savedAiResponse;
+    } else {
+      savedAiResponseBox.innerText = "暂无 AI 分析。";
+    }
 
     if (Array.isArray(data.guesses)) {
       guessHistoryInput.value = data.guesses
