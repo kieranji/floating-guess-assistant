@@ -13,10 +13,12 @@ const exampleBtn = document.getElementById("exampleBtn");
 const clearBtn = document.getElementById("clearBtn");
 const analyzeBtn = document.getElementById("analyzeBtn");
 const copyBtn = document.getElementById("copyBtn");
-const exportBtn = document.getElementById("exportBtn");
-const importJsonInput = document.getElementById("importJson");
 const importBtn = document.getElementById("importBtn");
 const resultList = document.getElementById("resultList");
+const exportBtn = document.getElementById("exportBtn");
+const promptBtn = document.getElementById("promptBtn");
+const aiPromptInput = document.getElementById("aiPrompt");
+const importJsonInput = document.getElementById("importJson");
 
 let wordBank = [];
 
@@ -302,6 +304,7 @@ function clearInputs() {
   guessHistoryInput.value = "";
   customWordsInput.value = "";
   importJsonInput.value = "";
+  aiPromptInput.value = "";
   resultList.innerHTML = "";
 }
 
@@ -348,6 +351,66 @@ async function exportCurrentData() {
     console.log(jsonText);
     alert("复制失败，JSON 已输出到控制台。");
   }
+}
+
+function generateAiPrompt() {
+  const mode = modeSelect.value;
+  const clues = cluesInput.value.trim();
+  const guesses = parseGuessHistory(guessHistoryInput.value);
+  const customWords = parseCustomWords(customWordsInput.value, mode);
+
+  const modeName = mode === "semantic" ? "相似度猜词" : "揭字猜词";
+
+  const guessesText =
+    guesses.length > 0
+      ? guesses.map((guess) => `- ${guess.word}：${guess.score}`).join("\n")
+      : "暂无历史猜测";
+
+  const customWordsText =
+    customWords.length > 0
+      ? customWords
+          .map((item) => {
+            const keywords = item.keywords.join("、");
+            return `- ${item.word}：关键词 ${keywords}。解释：${item.reason}`;
+          })
+          .join("\n")
+      : "暂无临时候选词";
+
+  const prompt = `你是一个猜词游戏分析助手。请根据下面的信息，推测最可能的答案。
+
+游戏模式：${modeName}
+
+已知线索：
+${clues || "暂无线索"}
+
+历史猜测和相似度：
+${guessesText}
+
+临时候选词：
+${customWordsText}
+
+请输出：
+1. 最可能答案 Top 10
+2. 每个答案的可能性百分比
+3. 每个答案的推理理由
+4. 下一步最值得尝试的 5 个词
+5. 你不确定的地方
+
+要求：
+- 不要只给一个答案，要给多个候选。
+- 如果信息不足，请说明还需要什么线索。
+- 输出格式清晰，适合直接给玩家参考。`;
+
+  aiPromptInput.value = prompt;
+
+  navigator.clipboard
+    .writeText(prompt)
+    .then(() => {
+      alert("AI Prompt 已生成并复制。");
+    })
+    .catch(() => {
+      alert("AI Prompt 已生成，但复制失败，请手动复制。");
+    });
 }
 
 function importCurrentData() {
@@ -399,6 +462,7 @@ clearBtn.addEventListener("click", clearInputs);
 analyzeBtn.addEventListener("click", analyzeClues);
 copyBtn.addEventListener("click", copyResults);
 exportBtn.addEventListener("click", exportCurrentData);
+promptBtn.addEventListener("click", generateAiPrompt);
 importBtn.addEventListener("click", importCurrentData);
 
 loadWordBank();
