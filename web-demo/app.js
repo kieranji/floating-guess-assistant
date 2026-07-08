@@ -1,6 +1,5 @@
 const modeSelect = document.getElementById("mode");
 const cluesInput = document.getElementById("clues");
-
 const guessWordInput = document.getElementById("guessWord");
 const guessScoreInput = document.getElementById("guessScore");
 const guessHistoryInput = document.getElementById("guessHistory");
@@ -8,7 +7,6 @@ const customWordsInput = document.getElementById("customWords");
 const candidateWordInput = document.getElementById("candidateWord");
 const candidateKeywordsInput = document.getElementById("candidateKeywords");
 const candidateReasonInput = document.getElementById("candidateReason");
-
 const addGuessBtn = document.getElementById("addGuessBtn");
 const addCandidateBtn = document.getElementById("addCandidateBtn");
 const exampleBtn = document.getElementById("exampleBtn");
@@ -16,6 +14,8 @@ const clearBtn = document.getElementById("clearBtn");
 const analyzeBtn = document.getElementById("analyzeBtn");
 const copyBtn = document.getElementById("copyBtn");
 const exportBtn = document.getElementById("exportBtn");
+const importJsonInput = document.getElementById("importJson");
+const importBtn = document.getElementById("importBtn");
 const resultList = document.getElementById("resultList");
 
 let wordBank = [];
@@ -301,6 +301,7 @@ function clearInputs() {
   cluesInput.value = "";
   guessHistoryInput.value = "";
   customWordsInput.value = "";
+  importJsonInput.value = "";
   resultList.innerHTML = "";
 }
 
@@ -349,6 +350,48 @@ async function exportCurrentData() {
   }
 }
 
+function importCurrentData() {
+  const text = importJsonInput.value.trim();
+
+  if (!text) {
+    alert("请先粘贴 JSON。");
+    return;
+  }
+
+  try {
+    const data = JSON.parse(text);
+
+    if (data.mode) {
+      modeSelect.value = data.mode;
+    }
+
+    cluesInput.value = data.clues || "";
+
+    if (Array.isArray(data.guesses)) {
+      guessHistoryInput.value = data.guesses
+        .map((guess) => `${guess.word} ${guess.score}`)
+        .join("\n");
+    }
+
+    if (Array.isArray(data.customWords)) {
+      customWordsInput.value = data.customWords
+        .map((item) => {
+          const keywords = Array.isArray(item.keywords)
+            ? item.keywords.join(",")
+            : "";
+
+          return `${item.word} | ${keywords} | ${item.reason || "用户临时添加的候选词。"}`;
+        })
+        .join("\n");
+    }
+
+    analyzeClues();
+    alert("导入成功。");
+  } catch (error) {
+    alert("JSON 格式错误，请检查后再试。");
+  }
+}
+
 addGuessBtn.addEventListener("click", addGuess);
 addCandidateBtn.addEventListener("click", addCandidate);
 exampleBtn.addEventListener("click", fillExample);
@@ -356,5 +399,6 @@ clearBtn.addEventListener("click", clearInputs);
 analyzeBtn.addEventListener("click", analyzeClues);
 copyBtn.addEventListener("click", copyResults);
 exportBtn.addEventListener("click", exportCurrentData);
+importBtn.addEventListener("click", importCurrentData);
 
 loadWordBank();

@@ -181,3 +181,9 @@ li {
 .export-button {
   background: #f97316;
 }
+
+.import-button {
+  width: 100%;
+  margin-top: 12px;
+  background: #0f766e;
+}
