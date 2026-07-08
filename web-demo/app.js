@@ -73,6 +73,7 @@ function addGuess() {
   guessScoreInput.value = "";
 
   analyzeClues();
+  saveToLocalStorage();
 }
 
 function addCandidate() {
@@ -104,6 +105,7 @@ function addCandidate() {
   candidateReasonInput.value = "";
 
   analyzeClues();
+  saveToLocalStorage();
 }
 
 function parseGuessHistory(text) {
@@ -295,6 +297,7 @@ function fillExample() {
   customWordsInput.value = `沧海桑田 | 时间,变化,成语,岁月 | 形容世事变化很大`;
 
   analyzeClues();
+  saveToLocalStorage();
 }
 
 function clearInputs() {
@@ -311,6 +314,8 @@ function clearInputs() {
   aiResponseInput.value = "";
   savedAiResponseBox.innerText = "暂无 AI 分析。";
   resultList.innerHTML = "";
+
+  localStorage.removeItem("floatingGuessAssistantData");
 }
 
 async function copyResults() {
@@ -433,7 +438,56 @@ function saveAiResponse() {
   }
 
   savedAiResponseBox.innerText = response;
+  saveToLocalStorage();
   alert("AI 分析已保存到页面。");
+}
+
+function saveToLocalStorage() {
+  const data = {
+    mode: modeSelect.value,
+    clues: cluesInput.value,
+    guessWord: guessWordInput.value,
+    guessScore: guessScoreInput.value,
+    guessHistory: guessHistoryInput.value,
+    candidateWord: candidateWordInput.value,
+    candidateKeywords: candidateKeywordsInput.value,
+    candidateReason: candidateReasonInput.value,
+    customWords: customWordsInput.value,
+    aiPrompt: aiPromptInput.value,
+    aiResponse: aiResponseInput.value,
+    savedAiResponse: savedAiResponseBox.innerText,
+    importJson: importJsonInput.value
+  };
+
+  localStorage.setItem("floatingGuessAssistantData", JSON.stringify(data));
+}
+
+function loadFromLocalStorage() {
+  const saved = localStorage.getItem("floatingGuessAssistantData");
+
+  if (!saved) {
+    return;
+  }
+
+  try {
+    const data = JSON.parse(saved);
+
+    modeSelect.value = data.mode || "semantic";
+    cluesInput.value = data.clues || "";
+    guessWordInput.value = data.guessWord || "";
+    guessScoreInput.value = data.guessScore || "";
+    guessHistoryInput.value = data.guessHistory || "";
+    candidateWordInput.value = data.candidateWord || "";
+    candidateKeywordsInput.value = data.candidateKeywords || "";
+    candidateReasonInput.value = data.candidateReason || "";
+    customWordsInput.value = data.customWords || "";
+    aiPromptInput.value = data.aiPrompt || "";
+    aiResponseInput.value = data.aiResponse || "";
+    savedAiResponseBox.innerText = data.savedAiResponse || "暂无 AI 分析。";
+    importJsonInput.value = data.importJson || "";
+  } catch (error) {
+    console.error("读取本地保存失败：", error);
+  }
 }
 
 function importCurrentData() {
@@ -480,6 +534,7 @@ function importCurrentData() {
     }
 
     analyzeClues();
+    saveToLocalStorage();
     alert("导入成功。");
   } catch (error) {
     alert("JSON 格式错误，请检查后再试。");
@@ -497,4 +552,25 @@ promptBtn.addEventListener("click", generateAiPrompt);
 saveAiResponseBtn.addEventListener("click", saveAiResponse);
 importBtn.addEventListener("click", importCurrentData);
 
+const autoSaveInputs = [
+  modeSelect,
+  cluesInput,
+  guessWordInput,
+  guessScoreInput,
+  guessHistoryInput,
+  candidateWordInput,
+  candidateKeywordsInput,
+  candidateReasonInput,
+  customWordsInput,
+  aiPromptInput,
+  aiResponseInput,
+  importJsonInput
+];
+
+autoSaveInputs.forEach((input) => {
+  input.addEventListener("input", saveToLocalStorage);
+  input.addEventListener("change", saveToLocalStorage);
+});
+
+loadFromLocalStorage();
 loadWordBank();
