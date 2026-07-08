@@ -17,12 +17,14 @@ const importBtn = document.getElementById("importBtn");
 const resultList = document.getElementById("resultList");
 const saveStatus = document.getElementById("saveStatus");
 const exportBtn = document.getElementById("exportBtn");
-const promptBtn = document.getElementById("promptBtn");
-const aiPromptInput = document.getElementById("aiPrompt");
 const aiResponseInput = document.getElementById("aiResponse");
 const saveAiResponseBtn = document.getElementById("saveAiResponseBtn");
 const savedAiResponseBox = document.getElementById("savedAiResponse");
 const importJsonInput = document.getElementById("importJson");
+const promptBtn = document.getElementById("promptBtn");
+const backendAnalyzeBtn = document.getElementById("backendAnalyzeBtn");
+const aiPromptInput = document.getElementById("aiPrompt");
+const BACKEND_URL = "http://localhost:3000";
 
 let wordBank = [];
 
@@ -432,6 +434,63 @@ ${customWordsText}
     });
 }
 
+async function analyzeWithBackend() {
+  const mode = modeSelect.value;
+  const clues = cluesInput.value.trim();
+  const guesses = parseGuessHistory(guessHistoryInput.value);
+  const customWords = parseCustomWords(customWordsInput.value, mode);
+
+  if (!clues && guesses.length === 0 && customWords.length === 0) {
+    alert("请先输入线索、历史猜测或临时候选词。");
+    return;
+  }
+
+  backendAnalyzeBtn.textContent = "分析中...";
+  backendAnalyzeBtn.disabled = true;
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/analyze`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        mode,
+        clues,
+        guesses,
+        customWords
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "后端分析失败");
+    }
+
+    aiPromptInput.value = data.prompt || "";
+
+    if (Array.isArray(data.mockResult)) {
+      const text = data.mockResult
+        .map((item, index) => {
+          return `${index + 1}. ${item.word}：${item.confidence}%\n原因：${item.reason}`;
+        })
+        .join("\n\n");
+
+      aiResponseInput.value = text;
+      savedAiResponseBox.innerText = text;
+    }
+
+    saveToLocalStorage();
+    alert("后端分析完成。");
+  } catch (error) {
+    alert(`调用后端失败：${error.message}`);
+  } finally {
+    backendAnalyzeBtn.textContent = "后端 AI 分析";
+    backendAnalyzeBtn.disabled = false;
+  }
+}
+
 function saveAiResponse() {
   const response = aiResponseInput.value.trim();
 
@@ -563,6 +622,7 @@ analyzeBtn.addEventListener("click", analyzeClues);
 copyBtn.addEventListener("click", copyResults);
 exportBtn.addEventListener("click", exportCurrentData);
 promptBtn.addEventListener("click", generateAiPrompt);
+backendAnalyzeBtn.addEventListener("click", analyzeWithBackend);
 saveAiResponseBtn.addEventListener("click", saveAiResponse);
 importBtn.addEventListener("click", importCurrentData);
 
