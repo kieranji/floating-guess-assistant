@@ -53,17 +53,26 @@ ${JSON.stringify(guesses || [], null, 2)}
 临时候选词：
 ${JSON.stringify(customWords || [], null, 2)}
 
-请输出：
-1. 最可能答案 Top 10
-2. 每个答案的可能性百分比
-3. 每个答案的推理理由
-4. 下一步最值得尝试的 5 个词
-5. 不确定性说明
+请严格输出 JSON，不要输出 Markdown，不要输出解释性前后缀。
+
+JSON 格式必须是：
+{
+  "candidates": [
+    {
+      "word": "候选答案",
+      "confidence": 0到100之间的数字,
+      "reason": "推理理由"
+    }
+  ],
+  "nextGuesses": ["下一步建议词1", "下一步建议词2", "下一步建议词3", "下一步建议词4", "下一步建议词5"],
+  "uncertainty": "不确定性说明"
+}
 
 要求：
-- 不要只给一个答案，要给多个候选。
-- 如果信息不足，请说明还需要什么线索。
-- 输出格式清晰，适合直接给玩家参考。
+- candidates 最多 10 个。
+- confidence 必须是数字，不要带百分号。
+- reason 要简短清晰。
+- 只返回 JSON 本身。
 `;
 
   try {
@@ -89,10 +98,26 @@ ${JSON.stringify(customWords || [], null, 2)}
     const aiText =
       completion.choices?.[0]?.message?.content || "DeepSeek 没有返回内容。";
 
+    let aiJson = null;
+
+    try {
+      const cleanedText = aiText
+        .replace(/^```json/i, "")
+        .replace(/^```/i, "")
+        .replace(/```$/i, "")
+        .trim();
+
+      aiJson = JSON.parse(cleanedText);
+    } catch (parseError) {
+      console.error("AI JSON parse failed:", parseError);
+    }
+
     res.json({
       prompt,
-      aiText
+      aiText,
+      aiJson
     });
+    
   } catch (error) {
     console.error("DeepSeek error:", error);
 

@@ -21,6 +21,7 @@ const aiResponseInput = document.getElementById("aiResponse");
 const saveAiResponseBtn = document.getElementById("saveAiResponseBtn");
 const copyAiResponseBtn = document.getElementById("copyAiResponseBtn");
 const savedAiResponseBox = document.getElementById("savedAiResponse");
+const aiCandidateCardsBox = document.getElementById("aiCandidateCards");
 const importJsonInput = document.getElementById("importJson");
 const promptBtn = document.getElementById("promptBtn");
 const backendAnalyzeBtn = document.getElementById("backendAnalyzeBtn");
@@ -322,6 +323,10 @@ function clearInputs() {
   localStorage.removeItem("floatingGuessAssistantData");
 
   updateSaveStatus("已清空本地保存");
+
+  if (aiCandidateCardsBox) {
+    aiCandidateCardsBox.innerText = "暂无结构化 AI 结果。";
+  } 
 }
 
 async function copyResults() {
@@ -487,13 +492,17 @@ async function analyzeWithBackend() {
 
       if (savedAiResponseBox) {
         savedAiResponseBox.innerText = data.aiText;
-        savedAiResponseBox.scrollIntoView({
+      }
+
+      renderAiCards(data.aiJson);
+
+      if (aiCandidateCardsBox) {
+        aiCandidateCardsBox.scrollIntoView({
           behavior: "smooth",
           block: "start"
-    });
-  }
-}
-
+        });
+      }
+    }
         saveToLocalStorage();
         alert("后端分析完成。");
       } catch (error) {
@@ -515,6 +524,54 @@ function saveAiResponse() {
   savedAiResponseBox.innerText = response;
   saveToLocalStorage();
   alert("AI 分析已保存到页面。");
+}
+
+function renderAiCards(aiJson) {
+  if (!aiCandidateCardsBox) {
+    return;
+  }
+
+  aiCandidateCardsBox.innerHTML = "";
+
+  if (!aiJson || !Array.isArray(aiJson.candidates)) {
+    aiCandidateCardsBox.innerText = "暂无结构化 AI 结果。";
+    return;
+  }
+
+  aiJson.candidates.forEach((item, index) => {
+    const card = document.createElement("div");
+    card.className = "ai-candidate-card";
+
+    card.innerHTML = `
+      <div class="ai-card-header">
+        <strong>${index + 1}. ${item.word}</strong>
+        <span class="ai-confidence">${item.confidence}%</span>
+      </div>
+      <p>${item.reason || "暂无理由。"}</p>
+    `;
+
+    aiCandidateCardsBox.appendChild(card);
+  });
+
+  if (Array.isArray(aiJson.nextGuesses) && aiJson.nextGuesses.length > 0) {
+    const nextBox = document.createElement("div");
+    nextBox.className = "ai-next-box";
+    nextBox.innerHTML = `
+      <strong>下一步建议：</strong>
+      ${aiJson.nextGuesses.join("、")}
+    `;
+    aiCandidateCardsBox.appendChild(nextBox);
+  }
+
+  if (aiJson.uncertainty) {
+    const uncertaintyBox = document.createElement("div");
+    uncertaintyBox.className = "ai-uncertainty-box";
+    uncertaintyBox.innerHTML = `
+      <strong>不确定性：</strong>
+      ${aiJson.uncertainty}
+    `;
+    aiCandidateCardsBox.appendChild(uncertaintyBox);
+  }
 }
 
 async function copyAiResponse() {

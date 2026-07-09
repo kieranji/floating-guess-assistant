@@ -242,3 +242,52 @@ li {
   margin-top: 12px;
   background: #22c55e;
 }
+
+.ai-cards-box {
+  margin-top: 24px;
+  padding: 16px;
+  background: #ecfeff;
+  border-radius: 16px;
+}
+
+.ai-cards-box h2 {
+  margin-top: 0;
+  font-size: 20px;
+}
+
+.ai-candidate-card {
+  margin-top: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #bae6fd;
+}
+
+.ai-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ai-confidence {
+  font-weight: bold;
+  color: #0369a1;
+}
+
+.ai-candidate-card p {
+  margin-bottom: 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ai-next-box,
+.ai-uncertainty-box {
+  margin-top: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 12px;
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.5;
+}
