@@ -236,3 +236,9 @@ li {
   background: #94a3b8;
   cursor: not-allowed;
 }
+
+.copy-ai-button {
+  width: 100%;
+  margin-top: 12px;
+  background: #22c55e;
+}

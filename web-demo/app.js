@@ -19,6 +19,7 @@ const saveStatus = document.getElementById("saveStatus");
 const exportBtn = document.getElementById("exportBtn");
 const aiResponseInput = document.getElementById("aiResponse");
 const saveAiResponseBtn = document.getElementById("saveAiResponseBtn");
+const copyAiResponseBtn = document.getElementById("copyAiResponseBtn");
 const savedAiResponseBox = document.getElementById("savedAiResponse");
 const importJsonInput = document.getElementById("importJson");
 const promptBtn = document.getElementById("promptBtn");
@@ -480,9 +481,18 @@ async function analyzeWithBackend() {
     aiPromptInput.value = data.prompt || "";
 
     if (data.aiText) {
-      aiResponseInput.value = data.aiText;
-      savedAiResponseBox.innerText = data.aiText;
-    }
+      if (aiResponseInput) {
+        aiResponseInput.value = data.aiText;
+      }
+
+      if (savedAiResponseBox) {
+        savedAiResponseBox.innerText = data.aiText;
+        savedAiResponseBox.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+    });
+  }
+}
 
         saveToLocalStorage();
         alert("后端分析完成。");
@@ -505,6 +515,22 @@ function saveAiResponse() {
   savedAiResponseBox.innerText = response;
   saveToLocalStorage();
   alert("AI 分析已保存到页面。");
+}
+
+async function copyAiResponse() {
+  const text = savedAiResponseBox.innerText.trim();
+
+  if (!text || text === "暂无 AI 分析。") {
+    alert("还没有可以复制的 AI 分析。");
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(text);
+    alert("AI 分析已复制。");
+  } catch (error) {
+    alert("复制失败，请手动复制。");
+  }
 }
 
 function updateSaveStatus(message) {
@@ -628,6 +654,7 @@ promptBtn.addEventListener("click", generateAiPrompt);
 backendAnalyzeBtn.addEventListener("click", analyzeWithBackend);
 saveAiResponseBtn.addEventListener("click", saveAiResponse);
 importBtn.addEventListener("click", importCurrentData);
+copyAiResponseBtn.addEventListener("click", copyAiResponse);
 
 const autoSaveInputs = [
   modeSelect,
