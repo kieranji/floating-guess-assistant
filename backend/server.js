@@ -78,10 +78,11 @@ ${JSON.stringify(customWords || [], null, 2)}
       aiText
     });
   } catch (error) {
-    console.error(error);
+    console.error("Gemini error:", error);
 
     res.status(500).json({
-      error: "Gemini request failed."
+      error: "Gemini request failed.",
+      details: error.message || String(error)
     });
   }
 });

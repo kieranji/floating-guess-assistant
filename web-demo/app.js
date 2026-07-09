@@ -474,7 +474,7 @@ async function analyzeWithBackend() {
     }
 
     if (!response.ok) {
-      throw new Error(data.error || "后端分析失败");
+      throw new Error(data.details || data.error || "后端分析失败");
     }
 
     aiPromptInput.value = data.prompt || "";
