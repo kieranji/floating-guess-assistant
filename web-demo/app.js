@@ -556,7 +556,16 @@ function renderAiCards(aiJson) {
         <span class="ai-confidence">${item.confidence}%</span>
       </div>
       <p>${item.reason || "暂无理由。"}</p>
+      <button type="button" class="add-ai-candidate-btn">
+        加入临时候选词
+      </button>
     `;
+
+    const addButton = card.querySelector(".add-ai-candidate-btn");
+
+    addButton.addEventListener("click", () => {
+      addAiCandidateToCustomWords(item);
+    });
 
     aiCandidateCardsBox.appendChild(card);
   });
@@ -580,6 +589,45 @@ function renderAiCards(aiJson) {
     `;
     aiCandidateCardsBox.appendChild(uncertaintyBox);
   }
+}
+
+function addAiCandidateToCustomWords(item) {
+  if (!item || !item.word) {
+    return;
+  }
+
+  const reason = item.reason || "AI 推荐的候选词。";
+  const keywords = item.word
+    .split("")
+    .filter((char) => char.trim().length > 0)
+    .join(",");
+
+  const newLine = `${item.word} | ${keywords} | ${reason}`;
+
+  const existingLines = customWordsInput.value
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const alreadyExists = existingLines.some((line) =>
+    line.startsWith(`${item.word} |`)
+  );
+
+  if (alreadyExists) {
+    alert("这个候选词已经在临时候选词列表里了。");
+    return;
+  }
+
+  if (customWordsInput.value.trim().length === 0) {
+    customWordsInput.value = newLine;
+  } else {
+    customWordsInput.value += `\n${newLine}`;
+  }
+
+  analyzeClues();
+  saveToLocalStorage();
+
+  alert(`已加入临时候选词：${item.word}`);
 }
 
 async function copyAiResponse() {

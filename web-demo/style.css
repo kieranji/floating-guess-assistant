@@ -291,3 +291,11 @@ li {
   font-size: 14px;
   line-height: 1.5;
 }
+
+.add-ai-candidate-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  background: #0284c7;
+  font-size: 14px;
+}
