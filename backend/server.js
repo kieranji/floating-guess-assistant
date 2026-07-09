@@ -1,15 +1,15 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import OpenAI from "openai";
+import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-const client = new OpenAI({
-  apiKey: process.env.AI_API_KEY
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY
 });
 
 app.use(cors());
@@ -17,16 +17,22 @@ app.use(express.json());
 
 app.get("/", (req, res) => {
   res.json({
-    message: "Floating Guess Assistant backend is running."
+    message: "Floating Guess Assistant backend is running with Gemini."
   });
 });
 
 app.post("/api/analyze", async (req, res) => {
   const { mode, clues, guesses, customWords } = req.body;
 
-  if (!clues && (!guesses || guesses.length === 0)) {
+  if (!clues && (!guesses || guesses.length === 0) && (!customWords || customWords.length === 0)) {
     return res.status(400).json({
-      error: "Please provide clues or guesses."
+      error: "Please provide clues, guesses, or custom words."
+    });
+  }
+
+  if (!process.env.GEMINI_API_KEY) {
+    return res.status(500).json({
+      error: "Missing GEMINI_API_KEY in backend environment."
     });
   }
 
@@ -52,31 +58,20 @@ ${JSON.stringify(customWords || [], null, 2)}
 3. 每个答案的推理理由
 4. 下一步最值得尝试的 5 个词
 5. 不确定性说明
+
+要求：
+- 不要只给一个答案，要给多个候选。
+- 如果信息不足，请说明还需要什么线索。
+- 输出格式清晰，适合直接给玩家参考。
 `;
 
-    if (!process.env.AI_API_KEY) {
-    return res.status(500).json({
-      error: "Missing AI_API_KEY in backend environment."
-    });
-  }
-
   try {
-    const completion = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: "你是一个猜词游戏分析助手。你需要根据线索、历史猜测和候选词，给出清晰、谨慎的答案推测。"
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      temperature: 0.7
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash",
+      contents: prompt
     });
 
-    const aiText = completion.choices[0]?.message?.content || "AI 没有返回内容。";
+    const aiText = response.text || "Gemini 没有返回内容。";
 
     res.json({
       prompt,
@@ -86,7 +81,7 @@ ${JSON.stringify(customWords || [], null, 2)}
     console.error(error);
 
     res.status(500).json({
-      error: "AI request failed."
+      error: "Gemini request failed."
     });
   }
 });
