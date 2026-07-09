@@ -29,6 +29,7 @@ const aiPromptInput = document.getElementById("aiPrompt");
 const BACKEND_URL = "https://effective-fishstick-v64pg6p565wghwg7v-3000.app.github.dev";
 
 let wordBank = [];
+let latestAiJson = null;
 
 async function loadWordBank() {
   try {
@@ -324,6 +325,8 @@ function clearInputs() {
 
   updateSaveStatus("已清空本地保存");
 
+  latestAiJson = null;
+
   if (aiCandidateCardsBox) {
     aiCandidateCardsBox.innerText = "暂无结构化 AI 结果。";
   } 
@@ -359,15 +362,16 @@ async function exportCurrentData() {
   const savedAiResponse = savedAiResponseBox.innerText.trim();
 
   const exportData = {
-    mode,
-    clues,
-    guesses,
-    customWords,
-    aiPrompt,
-    aiResponse,
-    savedAiResponse,
-    exportedAt: new Date().toISOString()
-  };
+  mode,
+  clues,
+  guesses,
+  customWords,
+  aiPrompt,
+  aiResponse,
+  savedAiResponse,
+  latestAiJson,
+  exportedAt: new Date().toISOString()
+};
 
   const jsonText = JSON.stringify(exportData, null, 2);
 
@@ -496,6 +500,8 @@ async function analyzeWithBackend() {
 
       renderAiCards(data.aiJson);
 
+      latestAiJson = data.aiJson || null;
+
       if (aiCandidateCardsBox) {
         aiCandidateCardsBox.scrollIntoView({
           behavior: "smooth",
@@ -527,6 +533,8 @@ function saveAiResponse() {
 }
 
 function renderAiCards(aiJson) {
+  latestAiJson = aiJson;
+
   if (!aiCandidateCardsBox) {
     return;
   }
@@ -608,6 +616,7 @@ function saveToLocalStorage() {
     aiPrompt: aiPromptInput.value,
     aiResponse: aiResponseInput.value,
     savedAiResponse: savedAiResponseBox.innerText,
+    latestAiJson,
     importJson: importJsonInput.value
   };
 
@@ -641,6 +650,12 @@ function loadFromLocalStorage() {
     aiPromptInput.value = data.aiPrompt || "";
     aiResponseInput.value = data.aiResponse || "";
     savedAiResponseBox.innerText = data.savedAiResponse || "暂无 AI 分析。";
+
+    if (data.latestAiJson) {
+      latestAiJson = data.latestAiJson;
+      renderAiCards(latestAiJson);
+    }
+
     importJsonInput.value = data.importJson || "";
 
     updateSaveStatus("已恢复上次保存内容");
@@ -672,6 +687,14 @@ function importCurrentData() {
       savedAiResponseBox.innerText = data.savedAiResponse;
     } else {
       savedAiResponseBox.innerText = "暂无 AI 分析。";
+    }
+
+    if (data.latestAiJson) {
+      latestAiJson = data.latestAiJson;
+      renderAiCards(latestAiJson);
+    } else {
+      latestAiJson = null;
+     renderAiCards(null);
     }
 
     if (Array.isArray(data.guesses)) {
