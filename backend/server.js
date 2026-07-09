@@ -1,15 +1,16 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { GoogleGenAI } from "@google/genai";
+import OpenAI from "openai";
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY
+const client = new OpenAI({
+  apiKey: process.env.DEEPSEEK_API_KEY,
+  baseURL: "https://api.deepseek.com"
 });
 
 app.use(cors());
@@ -17,7 +18,7 @@ app.use(express.json());
 
 app.get("/", (req, res) => {
   res.json({
-    message: "Floating Guess Assistant backend is running with Gemini."
+    message: "Floating Guess Assistant backend is running with DeepSeek."
   });
 });
 
@@ -30,9 +31,9 @@ app.post("/api/analyze", async (req, res) => {
     });
   }
 
-  if (!process.env.GEMINI_API_KEY) {
+  if (!process.env.DEEPSEEK_API_KEY) {
     return res.status(500).json({
-      error: "Missing GEMINI_API_KEY in backend environment."
+      error: "Missing DEEPSEEK_API_KEY in backend environment."
     });
   }
 
@@ -66,22 +67,37 @@ ${JSON.stringify(customWords || [], null, 2)}
 `;
 
   try {
-    const response = await ai.models.generateContent({
-      model: process.env.GEMINI_MODEL||"gemini-1.5-flash",
-      contents: prompt
+    const modelName = process.env.DEEPSEEK_MODEL || "deepseek-chat";
+
+    console.log("Using DeepSeek model:", modelName);
+
+    const completion = await client.chat.completions.create({
+      model: modelName,
+      messages: [
+        {
+          role: "system",
+          content: "你是一个猜词游戏分析助手。你需要根据线索、历史猜测和候选词，给出清晰、谨慎的答案推测。"
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.7
     });
 
-    const aiText = response.text || "Gemini 没有返回内容。";
+    const aiText =
+      completion.choices?.[0]?.message?.content || "DeepSeek 没有返回内容。";
 
     res.json({
       prompt,
       aiText
     });
   } catch (error) {
-    console.error("Gemini error:", error);
+    console.error("DeepSeek error:", error);
 
     res.status(500).json({
-      error: "Gemini request failed.",
+      error: "DeepSeek request failed.",
       details: error.message || String(error)
     });
   }
