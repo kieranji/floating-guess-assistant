@@ -462,7 +462,16 @@ async function analyzeWithBackend() {
       })
     });
 
-    const data = await response.json();
+    const rawText = await response.text();
+
+    let data;
+
+    try {
+      data = JSON.parse(rawText);
+    } catch (error) {
+      console.error("后端返回的不是 JSON：", rawText);
+      throw new Error("后端返回的不是 JSON，可能是 BACKEND_URL 写错或 3000 端口不是 Public。");
+    }
 
     if (!response.ok) {
       throw new Error(data.error || "后端分析失败");
