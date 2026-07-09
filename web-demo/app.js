@@ -556,12 +556,26 @@ function renderAiCards(aiJson) {
         <span class="ai-confidence">${item.confidence}%</span>
       </div>
       <p>${item.reason || "暂无理由。"}</p>
-      <button type="button" class="add-ai-candidate-btn">
-        加入临时候选词
-      </button>
+      <div class="ai-card-buttons">
+        <button type="button" class="add-ai-candidate-btn">
+          加入临时候选词
+        </button>
+        <button type="button" class="use-as-guess-btn">
+          填到猜测词
+        </button>
+      </div>
     `;
 
     const addButton = card.querySelector(".add-ai-candidate-btn");
+    const useAsGuessButton = card.querySelector(".use-as-guess-btn");
+
+    addButton.addEventListener("click", () => {
+      addAiCandidateToCustomWords(item);
+    });
+
+    useAsGuessButton.addEventListener("click", () => {
+      useAiCandidateAsGuess(item);
+    });
 
     addButton.addEventListener("click", () => {
       addAiCandidateToCustomWords(item);
@@ -628,6 +642,20 @@ function addAiCandidateToCustomWords(item) {
   saveToLocalStorage();
 
   alert(`已加入临时候选词：${item.word}`);
+}
+
+function useAiCandidateAsGuess(item) {
+  if (!item || !item.word) {
+    return;
+  }
+
+  guessWordInput.value = item.word;
+  guessScoreInput.value = "";
+  guessScoreInput.focus();
+
+  saveToLocalStorage();
+
+  alert(`已填入猜测词：${item.word}，请补充相似度。`);
 }
 
 async function copyAiResponse() {
