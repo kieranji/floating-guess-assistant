@@ -67,7 +67,7 @@ ${JSON.stringify(customWords || [], null, 2)}
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: process.env.GEMINI_MODEL||"gemini-1.5-flash",
       contents: prompt
     });
 
