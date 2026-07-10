@@ -208,6 +208,9 @@ function parseOcrGuessText(rawText) {
   let wordType = "";
   let answerLength = "";
 
+  const hintParts = [];
+  let expectingHintText = false;
+
   const noiseKeywords = [
     "用户名",
     "段位",
@@ -244,6 +247,13 @@ function parseOcrGuessText(rawText) {
 
     const compactLine = normalizedLine.replace(/\s+/g, "");
 
+    const hintLabelMatch = compactLine.match(/提示([1-9])\/([1-9])/);
+
+    if (hintLabelMatch || compactLine === "提示") {
+      expectingHintText = true;
+      return;
+    }
+
     if (
       compactLine === "动词" ||
       compactLine === "名词" ||
@@ -261,6 +271,19 @@ function parseOcrGuessText(rawText) {
       wordType = compactLine;
       return;
     }
+
+    if (expectingHintText) {
+      const isBadHint =
+        /^[0-9:.\s%]+$/.test(normalizedLine) ||
+        normalizedLine.length > 40;
+
+      if (!isBadHint) {
+        hintParts.push(normalizedLine);
+      }
+
+      expectingHintText = false;
+      return;
+    }   
 
     const lengthMatch = compactLine.match(/答案?([0-9一二三四五六七八九十])字/);
 
@@ -343,6 +366,11 @@ function parseOcrGuessText(rawText) {
 
   if (answerLength) {
     structuredClues.push(`答案字数：${answerLength} 字`);
+  }
+
+  if (hintParts.length > 0) {
+    const uniqueHints = [...new Set(hintParts)];
+    structuredClues.push(`提示：${uniqueHints.join(" / ")}`);
   }
 
   const uniqueClues = [...new Set([...structuredClues, ...clues])];
