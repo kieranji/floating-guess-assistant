@@ -38,6 +38,7 @@ const ocrCropYInput = document.getElementById("ocrCropY");
 const ocrCropWidthInput = document.getElementById("ocrCropWidth");
 const ocrCropHeightInput = document.getElementById("ocrCropHeight");
 const clearOcrCropBtn = document.getElementById("clearOcrCropBtn");
+const ocrCropInfo = document.getElementById("ocrCropInfo");
 const ocrBtn = document.getElementById("ocrBtn");
 const ocrStatus = document.getElementById("ocrStatus");
 const ocrResultInput = document.getElementById("ocrResult");
@@ -216,10 +217,26 @@ function finishOcrAreaSelection(event) {
   if (ocrCropHeightInput) ocrCropHeightInput.value = realHeight;
 
   if (ocrStatus) {
-    ocrStatus.textContent = `已选择 OCR 区域：x=${realX}, y=${realY}, 宽=${realWidth}, 高=${realHeight}`;
+    ocrStatus.textContent = `已选择 OCR 区域：x=${realX}, y=${realY}, 宽=${realWidth}, 高=${realHeight}`; 
   }
 
+  updateOcrCropInfo();
   saveToLocalStorage();
+}
+
+function updateOcrCropInfo() {
+  if (!ocrCropInfo) {
+    return;
+  }
+
+  const crop = getOcrCropSettings();
+
+  if (!crop) {
+    ocrCropInfo.textContent = "当前识别区域：整张图片";
+    return;
+  }
+
+  ocrCropInfo.textContent = `当前识别区域：x=${crop.x}, y=${crop.y}, 宽=${crop.width}, 高=${crop.height}`;
 }
 
 function getOcrCropSettings() {
@@ -266,6 +283,7 @@ function clearOcrCropSettings() {
   }
 
   saveToLocalStorage();
+  updateOcrCropInfo();
 }
 
 async function createCroppedOcrImage(file, crop) {
@@ -1915,6 +1933,8 @@ function loadFromLocalStorage() {
     if (ocrCropWidthInput) ocrCropWidthInput.value = data.ocrCropWidth || "";
     if (ocrCropHeightInput) ocrCropHeightInput.value = data.ocrCropHeight || "";
 
+    updateOcrCropInfo();
+
     savedAiResponseBox.innerText = data.savedAiResponse || "暂无 AI 分析。";
 
     if (aiCardLimitSelect) {
@@ -2090,6 +2110,22 @@ if (ocrImageWrapper) {
     }
   });
 }
+
+[
+  ocrCropXInput,
+  ocrCropYInput,
+  ocrCropWidthInput,
+  ocrCropHeightInput
+].forEach((input) => {
+  if (!input) {
+    return;
+  }
+
+  input.addEventListener("input", () => {
+    updateOcrCropInfo();
+    saveToLocalStorage();
+  });
+});
 
 copyAiResponseBtn.addEventListener("click", copyAiResponse);
 
