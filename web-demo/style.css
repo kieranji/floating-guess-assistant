@@ -366,3 +366,15 @@ li {
   margin-top: 12px;
   margin-bottom: 8px;
 }
+
+.ask-about-candidate-btn {
+  background: #f59e0b;
+}
+
+.ai-card-buttons {
+  flex-wrap: wrap;
+}
+
+.ai-card-buttons button {
+  min-width: 90px;
+}

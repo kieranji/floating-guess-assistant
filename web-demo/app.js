@@ -622,11 +622,15 @@ card.innerHTML = `
     <button type="button" class="use-as-guess-btn">
       填到猜测词
     </button>
+    <button type="button" class="ask-about-candidate-btn">
+      追问
+    </button>
   </div>
 `;
 
     const addButton = card.querySelector(".add-ai-candidate-btn");
     const useAsGuessButton = card.querySelector(".use-as-guess-btn");
+    const askButton = card.querySelector(".ask-about-candidate-btn");
 
     addButton.addEventListener("click", () => {
       addAiCandidateToCustomWords(item);
@@ -634,6 +638,10 @@ card.innerHTML = `
 
     useAsGuessButton.addEventListener("click", () => {
       useAiCandidateAsGuess(item);
+    });
+
+    askButton.addEventListener("click", () => {
+      generateCandidateFollowupPrompt(item);
     });
 
     addButton.addEventListener("click", () => {
@@ -717,6 +725,81 @@ function useAiCandidateAsGuess(item) {
   saveToLocalStorage();
 
   alert(`已填入猜测词：${item.word}，请补充相似度。`);
+}
+
+function generateCandidateFollowupPrompt(item) {
+  if (!item || !item.word) {
+    return;
+  }
+
+  const mode = modeSelect.value;
+  const clues = cluesInput.value.trim();
+  const guesses = parseGuessHistory(guessHistoryInput.value);
+  const customWords = parseCustomWords(customWordsInput.value, mode);
+
+  const modeName = mode === "semantic" ? "相似度猜词" : "揭字猜词";
+
+  const guessesText =
+    guesses.length > 0
+      ? guesses.map((guess) => `- ${guess.word}：${guess.score}`).join("\n")
+      : "暂无历史猜测";
+
+  const customWordsText =
+    customWords.length > 0
+      ? customWords
+          .map((wordItem) => {
+            const keywords = wordItem.keywords.join("、");
+            return `- ${wordItem.word}：关键词 ${keywords}。解释：${wordItem.reason}`;
+          })
+          .join("\n")
+      : "暂无临时候选词";
+
+  const prompt = `你是一个猜词游戏分析助手。请专门分析下面这个候选答案是否可能是正确答案。
+
+游戏模式：${modeName}
+
+候选答案：
+${item.word}
+
+候选答案当前置信度：
+${item.confidence || "未知"}%
+
+候选答案理由：
+${item.reason || "暂无"}
+
+已知线索：
+${clues || "暂无线索"}
+
+历史猜测和相似度：
+${guessesText}
+
+临时候选词：
+${customWordsText}
+
+请输出：
+1. 这个候选答案为什么可能是正确答案
+2. 这个候选答案为什么可能不是正确答案
+3. 如果它不是答案，最接近的 5 个替代答案
+4. 下一步最应该尝试的 3 个猜测词
+5. 还需要什么线索才能判断
+
+要求：
+- 输出清晰
+- 不要过度确定
+- 根据相似度分数谨慎推理`;
+
+  aiPromptInput.value = prompt;
+
+  navigator.clipboard
+    .writeText(prompt)
+    .then(() => {
+      alert(`已生成关于「${item.word}」的追问 Prompt，并复制。`);
+    })
+    .catch(() => {
+      alert(`已生成关于「${item.word}」的追问 Prompt，请手动复制。`);
+    });
+
+  saveToLocalStorage();
 }
 
 async function copyAiResponse() {
