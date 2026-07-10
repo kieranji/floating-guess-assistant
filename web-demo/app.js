@@ -22,6 +22,7 @@ const saveAiResponseBtn = document.getElementById("saveAiResponseBtn");
 const copyAiResponseBtn = document.getElementById("copyAiResponseBtn");
 const savedAiResponseBox = document.getElementById("savedAiResponse");
 const aiCandidateCardsBox = document.getElementById("aiCandidateCards");
+const followupHistoryBox = document.getElementById("followupHistory");
 const aiCardLimitSelect = document.getElementById("aiCardLimit");
 const aiCardSearchInput = document.getElementById("aiCardSearch");
 const importJsonInput = document.getElementById("importJson");
@@ -32,6 +33,7 @@ const BACKEND_URL = "https://effective-fishstick-v64pg6p565wghwg7v-3000.app.gith
 
 let wordBank = [];
 let latestAiJson = null;
+let followupHistory = [];
 
 async function loadWordBank() {
   try {
@@ -322,6 +324,8 @@ function clearInputs() {
   aiResponseInput.value = "";
   savedAiResponseBox.innerText = "暂无 AI 分析。";
   resultList.innerHTML = "";
+  followupHistory = [];
+  renderFollowupHistory();
 
   localStorage.removeItem("floatingGuessAssistantData");
 
@@ -376,6 +380,7 @@ async function exportCurrentData() {
   aiResponse,
   savedAiResponse,
   latestAiJson,
+  followupHistory,
   exportedAt: new Date().toISOString()
 };
 
@@ -680,6 +685,34 @@ card.innerHTML = `
   }
 }
 
+function renderFollowupHistory() {
+  if (!followupHistoryBox) {
+    return;
+  }
+
+  followupHistoryBox.innerHTML = "";
+
+  if (followupHistory.length === 0) {
+    followupHistoryBox.innerText = "暂无追问历史。";
+    return;
+  }
+
+  followupHistory.forEach((item, index) => {
+    const box = document.createElement("div");
+    box.className = "followup-history-item";
+
+    box.innerHTML = `
+      <div class="followup-history-header">
+        <strong>${index + 1}. ${item.word}</strong>
+        <span>${item.time}</span>
+      </div>
+      <p>${item.response}</p>
+    `;
+
+    followupHistoryBox.appendChild(box);
+  });
+}
+
 function addAiCandidateToCustomWords(item) {
   if (!item || !item.word) {
     return;
@@ -883,16 +916,22 @@ ${item.confidence || "未知"}%
         savedAiResponseBox.innerText = data.aiText;
       }
 
+      followupHistory.unshift({
+        word: item.word,
+        response: data.aiText,
+        time: new Date().toLocaleString()
+      });
+
+      renderFollowupHistory();
       renderAiCards(data.aiJson);
 
-      if (savedAiResponseBox) {
-        savedAiResponseBox.scrollIntoView({
+      if (followupHistoryBox) {
+        followupHistoryBox.scrollIntoView({
           behavior: "smooth",
           block: "start"
         });
       }
     }
-
     saveToLocalStorage();
     alert(`已完成对「${item.word}」的追问分析。`);
   } catch (error) {
@@ -938,6 +977,7 @@ function saveToLocalStorage() {
     aiResponse: aiResponseInput.value,
     savedAiResponse: savedAiResponseBox.innerText,
     latestAiJson,
+    followupHistory,
     aiCardSearch: aiCardSearchInput ? aiCardSearchInput.value : "",
     aiCardLimit: aiCardLimitSelect ? aiCardLimitSelect.value : "5",
     importJson: importJsonInput.value
@@ -985,6 +1025,11 @@ function loadFromLocalStorage() {
     if (data.latestAiJson) {
       latestAiJson = data.latestAiJson;
       renderAiCards(latestAiJson);
+    }
+
+    if (Array.isArray(data.followupHistory)) {
+      followupHistory = data.followupHistory;
+      renderFollowupHistory();
     }
 
     importJsonInput.value = data.importJson || "";
@@ -1051,6 +1096,14 @@ function importCurrentData() {
     alert("导入成功。");
   } catch (error) {
     alert("JSON 格式错误，请检查后再试。");
+  }
+
+  if (Array.isArray(data.followupHistory)) {
+    followupHistory = data.followupHistory;
+    renderFollowupHistory();
+  } else {
+    followupHistory = [];
+    renderFollowupHistory();
   }
 }
 

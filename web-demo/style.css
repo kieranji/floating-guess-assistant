@@ -382,3 +382,37 @@ li {
 .ask-backend-candidate-btn {
   background: #dc2626;
 }
+
+.followup-history-box {
+  margin-top: 24px;
+  padding: 16px;
+  background: #fff7ed;
+  border-radius: 16px;
+}
+
+.followup-history-box h2 {
+  margin-top: 0;
+  font-size: 20px;
+}
+
+.followup-history-item {
+  margin-top: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #fed7aa;
+}
+
+.followup-history-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #9a3412;
+}
+
+.followup-history-item p {
+  white-space: pre-wrap;
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.6;
+}
