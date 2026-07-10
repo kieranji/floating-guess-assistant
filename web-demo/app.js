@@ -161,6 +161,30 @@ function cleanOcrText() {
   alert(`清洗完成：提取到 ${parsed.clues.length} 条线索，${parsed.guesses.length} 条历史猜测。请检查预览后点击“应用 OCR 清洗结果”。`);
 }
 
+function mergeUniqueLines(existingText, newText) {
+  const existingLines = existingText
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const newLines = newText
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const seen = new Set(existingLines);
+  const mergedLines = [...existingLines];
+
+  newLines.forEach((line) => {
+    if (!seen.has(line)) {
+      seen.add(line);
+      mergedLines.push(line);
+    }
+  });
+
+  return mergedLines.join("\n");
+}
+
 function applyOcrParsedResult() {
   if (!ocrCluePreview || !ocrGuessPreview) {
     alert("OCR 预览区域不存在。");
@@ -176,24 +200,17 @@ function applyOcrParsedResult() {
   }
 
   if (clueText) {
-    if (cluesInput.value.trim().length === 0) {
-      cluesInput.value = clueText;
-    } else {
-      cluesInput.value += `\n${clueText}`;
-    }
+    cluesInput.value = mergeUniqueLines(cluesInput.value, clueText);
   }
 
   if (guessText) {
-    if (guessHistoryInput.value.trim().length === 0) {
-      guessHistoryInput.value = guessText;
-    } else {
-      guessHistoryInput.value += `\n${guessText}`;
-    }
+    guessHistoryInput.value = mergeUniqueLines(guessHistoryInput.value, guessText);
   }
 
+  analyzeClues();
   saveToLocalStorage();
 
-  alert("已应用 OCR 清洗结果。");
+  alert("已应用 OCR 清洗结果，并已自动更新本地分析。");
 }
 
 function parseOcrGuessText(rawText) {
