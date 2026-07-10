@@ -254,14 +254,14 @@ function parseOcrGuessText(rawText) {
       return;
     }
 
-    const guessMatches = [
+    const guessMatchesWithPercent = [
       ...normalizedLine.matchAll(
         /([\u4e00-\u9fa5A-Za-z0-9]{1,12})\s*([0-9]{1,3}(?:\.[0-9]+)?)\s*%/g
       )
     ];
 
-    if (guessMatches.length > 0) {
-      guessMatches.forEach((match) => {
+    if (guessMatchesWithPercent.length > 0) {
+      guessMatchesWithPercent.forEach((match) => {
         const word = match[1];
         const score = Number(match[2]);
 
@@ -274,6 +274,24 @@ function parseOcrGuessText(rawText) {
       });
 
       return;
+    }
+
+    const guessMatchWithoutPercent = normalizedLine.match(
+      /^([\u4e00-\u9fa5A-Za-z0-9]{1,12})\s*([0-9]{1,3}(?:\.[0-9]+)?)$/
+    );
+
+    if (guessMatchWithoutPercent) {
+      const word = guessMatchWithoutPercent[1];
+      const score = Number(guessMatchWithoutPercent[2]);
+
+      if (!Number.isNaN(score) && score >= 0 && score <= 100) {
+        guesses.push({
+          word,
+          score
+        });
+
+        return;
+      }
     }
 
     const lengthMatch = compactLine.match(/答案?([0-9一二三四五六七八九十])字/);
