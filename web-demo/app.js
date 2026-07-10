@@ -546,17 +546,28 @@ function renderAiCards(aiJson) {
     return;
   }
 
-  aiJson.candidates.forEach((item, index) => {
+  const sortedCandidates = [...aiJson.candidates].sort((a, b) => {
+    const scoreA = Number(a.confidence) || 0;
+    const scoreB = Number(b.confidence) || 0;
+    return scoreB - scoreA;
+  });
+
+  sortedCandidates.forEach((item, index) => {
     const card = document.createElement("div");
     card.className = "ai-candidate-card";
 
     const confidence = Number(item.confidence) || 0;
 const safeConfidence = Math.max(0, Math.min(confidence, 100));
 
+const topLabel = index === 0 ? `<span class="ai-top-tag">AI 最可能</span>` : "";
+
 card.innerHTML = `
   <div class="ai-card-header">
     <strong>${index + 1}. ${item.word}</strong>
-    <span class="ai-confidence">${safeConfidence}%</span>
+    <div>
+      ${topLabel}
+      <span class="ai-confidence">${safeConfidence}%</span>
+    </div>
   </div>
 
   <div class="confidence-bar">
