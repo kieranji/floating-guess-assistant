@@ -61,7 +61,8 @@ JSON 格式必须是：
     {
       "word": "候选答案",
       "confidence": 0到100之间的数字,
-      "reason": "推理理由"
+      "reason": "推理理由",
+      "keywords": ["关键词1", "关键词2", "关键词3", "关键词4"]
     }
   ],
   "nextGuesses": ["下一步建议词1", "下一步建议词2", "下一步建议词3", "下一步建议词4", "下一步建议词5"],
@@ -73,6 +74,7 @@ JSON 格式必须是：
 - confidence 必须是数字，不要带百分号。
 - reason 要简短清晰。
 - 只返回 JSON 本身。
+- 每个 candidate 必须包含 keywords，keywords 用于本地规则匹配。
 `;
 
   try {

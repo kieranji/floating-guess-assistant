@@ -556,6 +556,12 @@ function renderAiCards(aiJson) {
         <span class="ai-confidence">${item.confidence}%</span>
       </div>
       <p>${item.reason || "暂无理由。"}</p>
+      ${
+        Array.isArray(item.keywords) && item.keywords.length > 0
+          ? `<p class="ai-keywords">关键词：${item.keywords.join("、")}</p>`
+          : ""
+      }
+      
       <div class="ai-card-buttons">
         <button type="button" class="add-ai-candidate-btn">
           加入临时候选词
@@ -611,10 +617,12 @@ function addAiCandidateToCustomWords(item) {
   }
 
   const reason = item.reason || "AI 推荐的候选词。";
-  const keywords = item.word
-    .split("")
-    .filter((char) => char.trim().length > 0)
-    .join(",");
+  const keywords = Array.isArray(item.keywords) && item.keywords.length > 0
+    ? item.keywords.join(",")
+    : item.word
+        .split("")
+        .filter((char) => char.trim().length > 0)
+        .join(",");
 
   const newLine = `${item.word} | ${keywords} | ${reason}`;
 

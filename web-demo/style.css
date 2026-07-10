@@ -311,3 +311,9 @@ li {
 .use-as-guess-btn {
   background: #7c3aed;
 }
+
+.ai-keywords {
+  margin-top: 6px;
+  color: #0f766e;
+  font-size: 13px;
+}
