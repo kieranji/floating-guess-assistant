@@ -40,6 +40,7 @@ const ocrGuessPreview = document.getElementById("ocrGuessPreview");
 const ocrNoisePreview = document.getElementById("ocrNoisePreview");
 const applyOcrParsedBtn = document.getElementById("applyOcrParsedBtn");
 const ocrPromptBtn = document.getElementById("ocrPromptBtn");
+const ocrBackendAnalyzeBtn = document.getElementById("ocrBackendAnalyzeBtn");
 const BACKEND_URL = "https://effective-fishstick-v64pg6p565wghwg7v-3000.app.github.dev";
 
 let wordBank = [];
@@ -277,6 +278,101 @@ JSON 格式：
     });
 
   saveToLocalStorage();
+}
+
+async function analyzeOcrWithBackend() {
+  const rawOcrText = ocrResultInput ? ocrResultInput.value.trim() : "";
+  const clueText = ocrCluePreview ? ocrCluePreview.value.trim() : "";
+  const guessText = ocrGuessPreview ? ocrGuessPreview.value.trim() : "";
+  const noiseText = ocrNoisePreview ? ocrNoisePreview.textContent.trim() : "";
+
+  if (!rawOcrText && !clueText && !guessText) {
+    alert("请先进行 OCR 识别或清洗 OCR 文本。");
+    return;
+  }
+
+  const guesses = parseGuessHistory(guessText);
+
+  const ocrClues = `这是直播猜词截图 OCR 清洗结果，OCR 可能有错字、漏字或顺序错乱。
+
+可能线索：
+${clueText || "暂无"}
+
+原始 OCR 文本：
+${rawOcrText || "暂无"}
+
+被过滤内容，可能包含 OCR 噪声，也可能包含少量有用信息：
+${noiseText || "暂无"}
+
+请结合 OCR 内容、题目线索、历史猜测和相似度推测答案。`;
+
+  if (ocrBackendAnalyzeBtn) {
+    ocrBackendAnalyzeBtn.textContent = "OCR AI 分析中...";
+    ocrBackendAnalyzeBtn.disabled = true;
+  }
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/analyze`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        mode: modeSelect.value,
+        clues: ocrClues,
+        guesses,
+        customWords: parseCustomWords(customWordsInput.value, modeSelect.value)
+      })
+    });
+
+    const rawText = await response.text();
+
+    let data;
+
+    try {
+      data = JSON.parse(rawText);
+    } catch (error) {
+      console.error("后端返回的不是 JSON：", rawText);
+      throw new Error("后端返回的不是 JSON。");
+    }
+
+    if (!response.ok) {
+      throw new Error(data.details || data.error || "OCR 后端分析失败");
+    }
+
+    if (aiPromptInput) {
+      aiPromptInput.value = data.prompt || "";
+    }
+
+    if (data.aiText) {
+      if (aiResponseInput) {
+        aiResponseInput.value = data.aiText;
+      }
+
+      if (savedAiResponseBox) {
+        savedAiResponseBox.innerText = data.aiText;
+      }
+
+      renderAiCards(data.aiJson);
+
+      if (aiCandidateCardsBox) {
+        aiCandidateCardsBox.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      }
+    }
+
+    saveToLocalStorage();
+    alert("OCR 后端 AI 分析完成。");
+  } catch (error) {
+    alert(`OCR 后端分析失败：${error.message}`);
+  } finally {
+    if (ocrBackendAnalyzeBtn) {
+      ocrBackendAnalyzeBtn.textContent = "用 OCR 结果直接 AI 分析";
+      ocrBackendAnalyzeBtn.disabled = false;
+    }
+  }
 }
 
 function parseOcrGuessText(rawText) {
@@ -1611,6 +1707,10 @@ if (applyOcrParsedBtn) {
 
 if (ocrPromptBtn) {
   ocrPromptBtn.addEventListener("click", generateOcrLivePrompt);
+}
+
+if (ocrBackendAnalyzeBtn) {
+  ocrBackendAnalyzeBtn.addEventListener("click", analyzeOcrWithBackend);
 }
 
 if (aiCardLimitSelect) {
