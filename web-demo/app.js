@@ -30,6 +30,7 @@ const promptBtn = document.getElementById("promptBtn");
 const backendAnalyzeBtn = document.getElementById("backendAnalyzeBtn");
 const aiPromptInput = document.getElementById("aiPrompt");
 const ocrImageInput = document.getElementById("ocrImageInput");
+const ocrImagePreview = document.getElementById("ocrImagePreview");
 const ocrBtn = document.getElementById("ocrBtn");
 const ocrStatus = document.getElementById("ocrStatus");
 const ocrResultInput = document.getElementById("ocrResult");
@@ -66,6 +67,30 @@ async function loadWordBank() {
     const li = document.createElement("li");
     li.textContent = "词库加载失败，请检查 data/wordBank.json 是否存在。";
     resultList.appendChild(li);
+  }
+}
+
+function previewOcrImage() {
+  if (!ocrImageInput || !ocrImageInput.files || ocrImageInput.files.length === 0) {
+    return;
+  }
+
+  const file = ocrImageInput.files[0];
+
+  if (!file.type.startsWith("image/")) {
+    alert("请选择图片文件。");
+    return;
+  }
+
+  const imageUrl = URL.createObjectURL(file);
+
+  if (ocrImagePreview) {
+    ocrImagePreview.src = imageUrl;
+    ocrImagePreview.style.display = "block";
+  }
+
+  if (ocrStatus) {
+    ocrStatus.textContent = "图片已加载，可以开始 OCR 识别。";
   }
 }
 
@@ -945,6 +970,11 @@ function clearInputs() {
   if (ocrModePreview) {
     ocrModePreview.textContent = "模式判断：暂无";
   }
+
+  if (ocrImagePreview) {
+    ocrImagePreview.src = "";
+    ocrImagePreview.style.display = "none";
+  }
 }
 
 async function copyResults() {
@@ -1754,6 +1784,10 @@ promptBtn.addEventListener("click", generateAiPrompt);
 backendAnalyzeBtn.addEventListener("click", analyzeWithBackend);
 saveAiResponseBtn.addEventListener("click", saveAiResponse);
 importBtn.addEventListener("click", importCurrentData);
+
+if (ocrImageInput) {
+  ocrImageInput.addEventListener("change", previewOcrImage);
+}
 
 if (ocrBtn) {
   ocrBtn.addEventListener("click", recognizeImageText);
