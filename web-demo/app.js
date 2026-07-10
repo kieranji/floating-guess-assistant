@@ -205,6 +205,7 @@ function parseOcrGuessText(rawText) {
   const clues = [];
   const guesses = [];
   const noiseLines = [];
+  const consumedLineIndexes = new Set();
 
   const hintParts = [];
   let expectingHintText = false;
@@ -233,6 +234,10 @@ function parseOcrGuessText(rawText) {
   ];
 
   lines.forEach((line, index) => {
+    if (consumedLineIndexes.has(index)) {
+      return;
+    }
+
     const normalizedLine = line
       .replace(/％/g, "%")
       .replace(/，/g, ",")
@@ -262,14 +267,16 @@ function parseOcrGuessText(rawText) {
       const score = Number(nextScoreMatch[1]);
 
       if (!Number.isNaN(score) && score >= 0 && score <= 100) {
-        guesses.push({
+       guesses.push({
           word: compactLine,
           score
         });
 
+        consumedLineIndexes.add(index + 1);
+
         return;
       }
-    } 
+    }
 
     const hintLabelMatch = compactLine.match(/提示([1-9])\/([1-9])/);
 
