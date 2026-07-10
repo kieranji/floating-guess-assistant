@@ -22,6 +22,7 @@ const saveAiResponseBtn = document.getElementById("saveAiResponseBtn");
 const copyAiResponseBtn = document.getElementById("copyAiResponseBtn");
 const savedAiResponseBox = document.getElementById("savedAiResponse");
 const aiCandidateCardsBox = document.getElementById("aiCandidateCards");
+const aiCardLimitSelect = document.getElementById("aiCardLimit");
 const importJsonInput = document.getElementById("importJson");
 const promptBtn = document.getElementById("promptBtn");
 const backendAnalyzeBtn = document.getElementById("backendAnalyzeBtn");
@@ -552,7 +553,10 @@ function renderAiCards(aiJson) {
     return scoreB - scoreA;
   });
 
-  sortedCandidates.forEach((item, index) => {
+  const limit = aiCardLimitSelect ? Number(aiCardLimitSelect.value) : 5;
+  const visibleCandidates = sortedCandidates.slice(0, limit);
+
+  visibleCandidates.forEach((item, index) => {
     const card = document.createElement("div");
     card.className = "ai-candidate-card";
 
@@ -720,6 +724,7 @@ function saveToLocalStorage() {
     aiResponse: aiResponseInput.value,
     savedAiResponse: savedAiResponseBox.innerText,
     latestAiJson,
+    aiCardLimit: aiCardLimitSelect ? aiCardLimitSelect.value : "5",
     importJson: importJsonInput.value
   };
 
@@ -753,6 +758,10 @@ function loadFromLocalStorage() {
     aiPromptInput.value = data.aiPrompt || "";
     aiResponseInput.value = data.aiResponse || "";
     savedAiResponseBox.innerText = data.savedAiResponse || "暂无 AI 分析。";
+
+    if (aiCardLimitSelect) {
+      aiCardLimitSelect.value = data.aiCardLimit || "5";
+    }
 
     if (data.latestAiJson) {
       latestAiJson = data.latestAiJson;
@@ -837,6 +846,14 @@ promptBtn.addEventListener("click", generateAiPrompt);
 backendAnalyzeBtn.addEventListener("click", analyzeWithBackend);
 saveAiResponseBtn.addEventListener("click", saveAiResponse);
 importBtn.addEventListener("click", importCurrentData);
+
+if (aiCardLimitSelect) {
+  aiCardLimitSelect.addEventListener("change", () => {
+    renderAiCards(latestAiJson);
+    saveToLocalStorage();
+  });
+}
+
 copyAiResponseBtn.addEventListener("click", copyAiResponse);
 
 const autoSaveInputs = [

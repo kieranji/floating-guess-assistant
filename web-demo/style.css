@@ -343,3 +343,21 @@ li {
   font-size: 12px;
   font-weight: bold;
 }
+
+.ai-cards-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.ai-cards-header h2 {
+  margin: 0;
+}
+
+#aiCardLimit {
+  width: auto;
+  min-width: 100px;
+  padding: 8px;
+  font-size: 14px;
+}
