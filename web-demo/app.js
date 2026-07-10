@@ -31,6 +31,11 @@ const backendAnalyzeBtn = document.getElementById("backendAnalyzeBtn");
 const aiPromptInput = document.getElementById("aiPrompt");
 const ocrImageInput = document.getElementById("ocrImageInput");
 const ocrImagePreview = document.getElementById("ocrImagePreview");
+const ocrCropXInput = document.getElementById("ocrCropX");
+const ocrCropYInput = document.getElementById("ocrCropY");
+const ocrCropWidthInput = document.getElementById("ocrCropWidth");
+const ocrCropHeightInput = document.getElementById("ocrCropHeight");
+const clearOcrCropBtn = document.getElementById("clearOcrCropBtn");
 const ocrBtn = document.getElementById("ocrBtn");
 const ocrStatus = document.getElementById("ocrStatus");
 const ocrResultInput = document.getElementById("ocrResult");
@@ -94,6 +99,88 @@ function previewOcrImage() {
   }
 }
 
+function getOcrCropSettings() {
+  const x = ocrCropXInput ? Number(ocrCropXInput.value) : 0;
+  const y = ocrCropYInput ? Number(ocrCropYInput.value) : 0;
+  const width = ocrCropWidthInput ? Number(ocrCropWidthInput.value) : 0;
+  const height = ocrCropHeightInput ? Number(ocrCropHeightInput.value) : 0;
+
+  if (
+    Number.isNaN(x) ||
+    Number.isNaN(y) ||
+    Number.isNaN(width) ||
+    Number.isNaN(height) ||
+    width <= 0 ||
+    height <= 0
+  ) {
+    return null;
+  }
+
+  return {
+    x,
+    y,
+    width,
+    height
+  };
+}
+
+function clearOcrCropSettings() {
+  if (ocrCropXInput) ocrCropXInput.value = "";
+  if (ocrCropYInput) ocrCropYInput.value = "";
+  if (ocrCropWidthInput) ocrCropWidthInput.value = "";
+  if (ocrCropHeightInput) ocrCropHeightInput.value = "";
+
+  if (ocrStatus) {
+    ocrStatus.textContent = "已清除裁剪区域，将识别整张图片。";
+  }
+
+  saveToLocalStorage();
+}
+
+async function createCroppedOcrImage(file, crop) {
+  if (!crop) {
+    return file;
+  }
+
+  const image = new Image();
+  const imageUrl = URL.createObjectURL(file);
+
+  await new Promise((resolve, reject) => {
+    image.onload = resolve;
+    image.onerror = reject;
+    image.src = imageUrl;
+  });
+
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+
+  const safeX = Math.max(0, Math.min(crop.x, image.naturalWidth));
+  const safeY = Math.max(0, Math.min(crop.y, image.naturalHeight));
+  const safeWidth = Math.max(1, Math.min(crop.width, image.naturalWidth - safeX));
+  const safeHeight = Math.max(1, Math.min(crop.height, image.naturalHeight - safeY));
+
+  canvas.width = safeWidth;
+  canvas.height = safeHeight;
+
+  context.drawImage(
+    image,
+    safeX,
+    safeY,
+    safeWidth,
+    safeHeight,
+    0,
+    0,
+    safeWidth,
+    safeHeight
+  );
+
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => {
+      resolve(blob || file);
+    }, "image/png");
+  });
+}
+
 async function recognizeImageText() {
   if (!ocrImageInput || !ocrImageInput.files || ocrImageInput.files.length === 0) {
     alert("请先选择一张图片。");
@@ -101,13 +188,18 @@ async function recognizeImageText() {
   }
 
   const file = ocrImageInput.files[0];
+  const crop = getOcrCropSettings();
 
   ocrBtn.disabled = true;
   ocrBtn.textContent = "识别中...";
-  ocrStatus.textContent = "OCR 正在识别，请稍等。";
+  ocrStatus.textContent = crop
+    ? "OCR 正在识别裁剪区域，请稍等。"
+    : "OCR 正在识别整张图片，请稍等。";
 
   try {
-    const result = await Tesseract.recognize(file, "chi_sim+eng", {
+    const imageForOcr = await createCroppedOcrImage(file, crop);
+
+    const result = await Tesseract.recognize(imageForOcr, "chi_sim+eng", {
       logger: (message) => {
         if (message.status === "recognizing text") {
           const progress = Math.round(message.progress * 100);
@@ -975,6 +1067,11 @@ function clearInputs() {
     ocrImagePreview.src = "";
     ocrImagePreview.style.display = "none";
   }
+
+  if (ocrCropXInput) ocrCropXInput.value = "";
+  if (ocrCropYInput) ocrCropYInput.value = "";
+  if (ocrCropWidthInput) ocrCropWidthInput.value = "";
+  if (ocrCropHeightInput) ocrCropHeightInput.value = "";
 }
 
 async function copyResults() {
@@ -1641,7 +1738,11 @@ function saveToLocalStorage() {
     followupHistory,
     aiCardSearch: aiCardSearchInput ? aiCardSearchInput.value : "",
     aiCardLimit: aiCardLimitSelect ? aiCardLimitSelect.value : "5",
-    importJson: importJsonInput.value
+    importJson: importJsonInput.value,
+    ocrCropX: ocrCropXInput ? ocrCropXInput.value : "",
+    ocrCropY: ocrCropYInput ? ocrCropYInput.value : "",
+    ocrCropWidth: ocrCropWidthInput ? ocrCropWidthInput.value : "",
+    ocrCropHeight: ocrCropHeightInput ? ocrCropHeightInput.value : ""
   };
 
   localStorage.setItem("floatingGuessAssistantData", JSON.stringify(data));
@@ -1677,6 +1778,11 @@ function loadFromLocalStorage() {
     if (ocrResultInput) {
       ocrResultInput.value = data.ocrResult || "";
     }
+
+    if (ocrCropXInput) ocrCropXInput.value = data.ocrCropX || "";
+    if (ocrCropYInput) ocrCropYInput.value = data.ocrCropY || "";  
+    if (ocrCropWidthInput) ocrCropWidthInput.value = data.ocrCropWidth || "";
+    if (ocrCropHeightInput) ocrCropHeightInput.value = data.ocrCropHeight || "";
 
     savedAiResponseBox.innerText = data.savedAiResponse || "暂无 AI 分析。";
 
@@ -1827,6 +1933,10 @@ if (aiCardSearchInput) {
   });
 }
 
+if (clearOcrCropBtn) {
+  clearOcrCropBtn.addEventListener("click", clearOcrCropSettings);
+}
+
 copyAiResponseBtn.addEventListener("click", copyAiResponse);
 
 const autoSaveInputs = [
@@ -1842,6 +1952,10 @@ const autoSaveInputs = [
   aiPromptInput,
   aiResponseInput,
   ocrResultInput,
+  ocrCropXInput,
+  ocrCropYInput,
+  ocrCropWidthInput,
+  ocrCropHeightInput,
   importJsonInput
 ];
 

@@ -39,6 +39,25 @@
           <img id="ocrImagePreview" alt="OCR 图片预览" />
         </div>
 
+        <div class="ocr-crop-box">
+          <h3>OCR 区域裁剪，可选</h3>
+
+          <div class="ocr-crop-grid">
+            <input id="ocrCropX" type="number" min="0" placeholder="x，例如 0" />
+            <input id="ocrCropY" type="number" min="0" placeholder="y，例如 200" />
+            <input id="ocrCropWidth" type="number" min="1" placeholder="宽，例如 500" />
+            <input id="ocrCropHeight" type="number" min="1" placeholder="高，例如 600" />
+          </div>
+
+          <button id="clearOcrCropBtn" type="button" class="clear-ocr-crop-button">
+            清除裁剪区域
+          </button>
+
+          <p class="ocr-crop-help">
+            不填则识别整张图片。填写后只识别指定区域。
+          </p>
+        </div>
+
         <button id="ocrBtn" type="button" class="ocr-button">
           识别图片文字
         </button>
