@@ -34,6 +34,7 @@ const ocrBtn = document.getElementById("ocrBtn");
 const ocrStatus = document.getElementById("ocrStatus");
 const ocrResultInput = document.getElementById("ocrResult");
 const useOcrTextBtn = document.getElementById("useOcrTextBtn");
+const cleanOcrBtn = document.getElementById("cleanOcrBtn");
 const BACKEND_URL = "https://effective-fishstick-v64pg6p565wghwg7v-3000.app.github.dev";
 
 let wordBank = [];
@@ -116,6 +117,117 @@ function useOcrTextAsClues() {
 
   saveToLocalStorage();
   alert("OCR 文字已填入线索。");
+}
+
+function cleanOcrText() {
+  if (!ocrResultInput) {
+    return;
+  }
+
+  const rawText = ocrResultInput.value.trim();
+
+  if (!rawText) {
+    alert("请先进行 OCR 识别，或把 OCR 文本粘贴到识别结果框。");
+    return;
+  }
+
+  const parsed = parseOcrGuessText(rawText);
+
+  if (parsed.clues.length > 0) {
+    const clueText = parsed.clues.join("\n");
+
+    if (cluesInput.value.trim().length === 0) {
+      cluesInput.value = clueText;
+    } else {
+      cluesInput.value += `\n${clueText}`;
+    }
+  }
+
+  if (parsed.guesses.length > 0) {
+    const guessText = parsed.guesses
+      .map((guess) => `${guess.word} ${guess.score}`)
+      .join("\n");
+
+    if (guessHistoryInput.value.trim().length === 0) {
+      guessHistoryInput.value = guessText;
+    } else {
+      guessHistoryInput.value += `\n${guessText}`;
+    }
+  }
+
+  saveToLocalStorage();
+
+  alert(`清洗完成：提取到 ${parsed.clues.length} 条线索，${parsed.guesses.length} 条历史猜测。`);
+}
+
+function parseOcrGuessText(rawText) {
+  const lines = rawText
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const clues = [];
+  const guesses = [];
+
+  lines.forEach((line) => {
+    const normalizedLine = line
+      .replace(/％/g, "%")
+      .replace(/，/g, ",")
+      .replace(/：/g, ":")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const guessMatch = normalizedLine.match(
+      /([\u4e00-\u9fa5A-Za-z0-9]{1,10})\s*([0-9]{1,3}(?:\.[0-9]+)?)\s*%/
+    );
+
+    if (guessMatch) {
+      const word = guessMatch[1];
+      const score = Number(guessMatch[2]);
+
+      if (!Number.isNaN(score) && score >= 0 && score <= 100) {
+        guesses.push({
+          word,
+          score
+        });
+      }
+
+      return;
+    }
+
+    if (
+      normalizedLine.includes("动词") ||
+      normalizedLine.includes("名词") ||
+      normalizedLine.includes("形容词") ||
+      normalizedLine.includes("答案") ||
+      normalizedLine.includes("提示") ||
+      normalizedLine.includes("字") ||
+      normalizedLine.includes("文娱") ||
+      normalizedLine.includes("休闲") ||
+      normalizedLine.includes("赏景") ||
+      normalizedLine.includes("关联度") ||
+      normalizedLine.includes("相似度")
+    ) {
+      clues.push(normalizedLine);
+    }
+  });
+
+  const uniqueGuesses = [];
+  const seenWords = new Set();
+
+  guesses.forEach((guess) => {
+    if (!seenWords.has(guess.word)) {
+      seenWords.add(guess.word);
+      uniqueGuesses.push(guess);
+    }
+  });
+
+  const uniqueClues = [...new Set(clues)];
+
+  return {
+    clues: uniqueClues,
+    guesses: uniqueGuesses
+  };
 }
 
 function addGuess() {
@@ -1227,6 +1339,10 @@ if (ocrBtn) {
 
 if (useOcrTextBtn) {
   useOcrTextBtn.addEventListener("click", useOcrTextAsClues);
+}
+
+if (cleanOcrBtn) {
+  cleanOcrBtn.addEventListener("click", cleanOcrText);
 }
 
 if (aiCardLimitSelect) {
