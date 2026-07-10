@@ -205,8 +205,6 @@ function parseOcrGuessText(rawText) {
   const clues = [];
   const guesses = [];
   const noiseLines = [];
-  let wordType = "";
-  let answerLength = "";
 
   const hintParts = [];
   let expectingHintText = false;
@@ -214,7 +212,6 @@ function parseOcrGuessText(rawText) {
   const noiseKeywords = [
     "用户名",
     "段位",
-    "猜词",
     "排行榜",
     "随机词",
     "点赞",
@@ -229,7 +226,10 @@ function parseOcrGuessText(rawText) {
     "下载",
     "电量",
     "排名",
-    "进入直播间"
+    "进入直播间",
+    "发送",
+    "评论",
+    "弹幕"
   ];
 
   lines.forEach((line) => {
@@ -251,44 +251,6 @@ function parseOcrGuessText(rawText) {
 
     if (hintLabelMatch || compactLine === "提示") {
       expectingHintText = true;
-      return;
-    }
-
-    if (
-      compactLine === "动词" ||
-      compactLine === "名词" ||
-      compactLine === "形容词" ||
-      compactLine === "成语" ||
-      compactLine === "地名" ||
-      compactLine === "人名" ||
-      compactLine === "物品" ||
-      compactLine === "动物" ||
-      compactLine === "植物" ||
-      compactLine === "品牌" ||
-      compactLine === "影视" ||
-      compactLine === "游戏"
-    ) {
-      wordType = compactLine;
-      return;
-    }
-
-    if (expectingHintText) {
-      const isBadHint =
-        /^[0-9:.\s%]+$/.test(normalizedLine) ||
-        normalizedLine.length > 40;
-
-      if (!isBadHint) {
-        hintParts.push(normalizedLine);
-      }
-
-      expectingHintText = false;
-      return;
-    }   
-
-    const lengthMatch = compactLine.match(/答案?([0-9一二三四五六七八九十])字/);
-
-    if (lengthMatch) {
-      answerLength = lengthMatch[1];
       return;
     }
 
@@ -314,16 +276,16 @@ function parseOcrGuessText(rawText) {
       return;
     }
 
-    const isMostlyNumber = /^[0-9:.\s%]+$/.test(normalizedLine);
+    const lengthMatch = compactLine.match(/答案?([0-9一二三四五六七八九十])字/);
 
-    if (isMostlyNumber) {
-      noiseLines.push(normalizedLine);
+    if (lengthMatch) {
+      clues.push(`答案字数：${lengthMatch[1]} 字`);
       return;
     }
 
-    const isTooLong = normalizedLine.length > 40;
+    const isMostlyNumber = /^[0-9:.\s%]+$/.test(normalizedLine);
 
-    if (isTooLong) {
+    if (isMostlyNumber) {
       noiseLines.push(normalizedLine);
       return;
     }
@@ -337,14 +299,32 @@ function parseOcrGuessText(rawText) {
       return;
     }
 
+    const isTooLong = normalizedLine.length > 40;
+
+    if (isTooLong) {
+      noiseLines.push(normalizedLine);
+      return;
+    }
+
     const hasUsefulChinese = /[\u4e00-\u9fa5]/.test(normalizedLine);
 
-    if (hasUsefulChinese) {
-      clues.push(normalizedLine);
-    } else {
+    if (!hasUsefulChinese) {
       noiseLines.push(normalizedLine);
+      return;
     }
+
+    if (expectingHintText) {
+      hintParts.push(normalizedLine);
+      expectingHintText = false;
+      return;
+    }
+
+    clues.push(normalizedLine);
   });
+
+  if (hintParts.length > 0) {
+    clues.push(`提示：${[...new Set(hintParts)].join(" / ")}`);
+  }
 
   const uniqueGuesses = [];
   const seenGuessKeys = new Set();
@@ -358,25 +338,8 @@ function parseOcrGuessText(rawText) {
     }
   });
 
-  const structuredClues = [];
-
-  if (wordType) {
-    structuredClues.push(`题型/词性：${wordType}`);
-  }
-
-  if (answerLength) {
-    structuredClues.push(`答案字数：${answerLength} 字`);
-  }
-
-  if (hintParts.length > 0) {
-    const uniqueHints = [...new Set(hintParts)];
-    structuredClues.push(`提示：${uniqueHints.join(" / ")}`);
-  }
-
-  const uniqueClues = [...new Set([...structuredClues, ...clues])];
-
   return {
-    clues: uniqueClues,
+    clues: [...new Set(clues)],
     guesses: uniqueGuesses,
     noiseLines: [...new Set(noiseLines)]
   };
