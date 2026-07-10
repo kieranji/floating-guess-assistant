@@ -550,27 +550,35 @@ function renderAiCards(aiJson) {
     const card = document.createElement("div");
     card.className = "ai-candidate-card";
 
-    card.innerHTML = `
-      <div class="ai-card-header">
-        <strong>${index + 1}. ${item.word}</strong>
-        <span class="ai-confidence">${item.confidence}%</span>
-      </div>
-      <p>${item.reason || "暂无理由。"}</p>
-      ${
-        Array.isArray(item.keywords) && item.keywords.length > 0
-          ? `<p class="ai-keywords">关键词：${item.keywords.join("、")}</p>`
-          : ""
-      }
-      
-      <div class="ai-card-buttons">
-        <button type="button" class="add-ai-candidate-btn">
-          加入临时候选词
-        </button>
-        <button type="button" class="use-as-guess-btn">
-          填到猜测词
-        </button>
-      </div>
-    `;
+    const confidence = Number(item.confidence) || 0;
+const safeConfidence = Math.max(0, Math.min(confidence, 100));
+
+card.innerHTML = `
+  <div class="ai-card-header">
+    <strong>${index + 1}. ${item.word}</strong>
+    <span class="ai-confidence">${safeConfidence}%</span>
+  </div>
+
+  <div class="confidence-bar">
+    <div class="confidence-fill" style="width: ${safeConfidence}%"></div>
+  </div>
+
+  <p>${item.reason || "暂无理由。"}</p>
+  ${
+    Array.isArray(item.keywords) && item.keywords.length > 0
+      ? `<p class="ai-keywords">关键词：${item.keywords.join("、")}</p>`
+      : ""
+  }
+
+  <div class="ai-card-buttons">
+    <button type="button" class="add-ai-candidate-btn">
+      加入临时候选词
+    </button>
+    <button type="button" class="use-as-guess-btn">
+      填到猜测词
+    </button>
+  </div>
+`;
 
     const addButton = card.querySelector(".add-ai-candidate-btn");
     const useAsGuessButton = card.querySelector(".use-as-guess-btn");
