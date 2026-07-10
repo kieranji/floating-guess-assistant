@@ -361,3 +361,8 @@ li {
   padding: 8px;
   font-size: 14px;
 }
+
+#aiCardSearch {
+  margin-top: 12px;
+  margin-bottom: 8px;
+}

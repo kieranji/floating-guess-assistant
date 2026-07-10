@@ -23,6 +23,7 @@ const copyAiResponseBtn = document.getElementById("copyAiResponseBtn");
 const savedAiResponseBox = document.getElementById("savedAiResponse");
 const aiCandidateCardsBox = document.getElementById("aiCandidateCards");
 const aiCardLimitSelect = document.getElementById("aiCardLimit");
+const aiCardSearchInput = document.getElementById("aiCardSearch");
 const importJsonInput = document.getElementById("importJson");
 const promptBtn = document.getElementById("promptBtn");
 const backendAnalyzeBtn = document.getElementById("backendAnalyzeBtn");
@@ -331,6 +332,10 @@ function clearInputs() {
   if (aiCandidateCardsBox) {
     aiCandidateCardsBox.innerText = "暂无结构化 AI 结果。";
   } 
+
+  if (aiCardSearchInput) {
+    aiCardSearchInput.value = "";
+  }
 }
 
 async function copyResults() {
@@ -553,8 +558,33 @@ function renderAiCards(aiJson) {
     return scoreB - scoreA;
   });
 
+  const searchText = aiCardSearchInput
+    ? aiCardSearchInput.value.trim()
+    : "";
+
+  const filteredCandidates = searchText
+    ? sortedCandidates.filter((item) => {
+        const word = item.word || "";
+        const reason = item.reason || "";
+        const keywords = Array.isArray(item.keywords)
+          ? item.keywords.join(" ")
+          : "";
+
+        return (
+          word.includes(searchText) ||
+          reason.includes(searchText) ||
+          keywords.includes(searchText)
+        );
+      })
+    : sortedCandidates;
+
   const limit = aiCardLimitSelect ? Number(aiCardLimitSelect.value) : 5;
-  const visibleCandidates = sortedCandidates.slice(0, limit);
+  const visibleCandidates = filteredCandidates.slice(0, limit);
+
+  if (visibleCandidates.length === 0) {
+    aiCandidateCardsBox.innerText = "没有匹配的 AI 候选结果。";
+    return;
+  }
 
   visibleCandidates.forEach((item, index) => {
     const card = document.createElement("div");
@@ -724,6 +754,7 @@ function saveToLocalStorage() {
     aiResponse: aiResponseInput.value,
     savedAiResponse: savedAiResponseBox.innerText,
     latestAiJson,
+    aiCardSearch: aiCardSearchInput ? aiCardSearchInput.value : "",
     aiCardLimit: aiCardLimitSelect ? aiCardLimitSelect.value : "5",
     importJson: importJsonInput.value
   };
@@ -761,6 +792,10 @@ function loadFromLocalStorage() {
 
     if (aiCardLimitSelect) {
       aiCardLimitSelect.value = data.aiCardLimit || "5";
+    }
+
+    if (aiCardSearchInput) {
+      aiCardSearchInput.value = data.aiCardSearch || "";
     }
 
     if (data.latestAiJson) {
@@ -849,6 +884,13 @@ importBtn.addEventListener("click", importCurrentData);
 
 if (aiCardLimitSelect) {
   aiCardLimitSelect.addEventListener("change", () => {
+    renderAiCards(latestAiJson);
+    saveToLocalStorage();
+  });
+}
+
+if (aiCardSearchInput) {
+  aiCardSearchInput.addEventListener("input", () => {
     renderAiCards(latestAiJson);
     saveToLocalStorage();
   });
