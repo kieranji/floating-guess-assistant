@@ -39,6 +39,7 @@ const ocrCluePreview = document.getElementById("ocrCluePreview");
 const ocrGuessPreview = document.getElementById("ocrGuessPreview");
 const ocrNoisePreview = document.getElementById("ocrNoisePreview");
 const applyOcrParsedBtn = document.getElementById("applyOcrParsedBtn");
+const ocrPromptBtn = document.getElementById("ocrPromptBtn");
 const BACKEND_URL = "https://effective-fishstick-v64pg6p565wghwg7v-3000.app.github.dev";
 
 let wordBank = [];
@@ -211,6 +212,71 @@ function applyOcrParsedResult() {
   saveToLocalStorage();
 
   alert("已应用 OCR 清洗结果，并已自动更新本地分析。");
+}
+
+function generateOcrLivePrompt() {
+  const rawOcrText = ocrResultInput ? ocrResultInput.value.trim() : "";
+  const clueText = ocrCluePreview ? ocrCluePreview.value.trim() : "";
+  const guessText = ocrGuessPreview ? ocrGuessPreview.value.trim() : "";
+  const noiseText = ocrNoisePreview ? ocrNoisePreview.textContent.trim() : "";
+
+  if (!rawOcrText && !clueText && !guessText) {
+    alert("请先进行 OCR 识别或清洗 OCR 文本。");
+    return;
+  }
+
+  const prompt = `你是一个直播猜词截图分析助手。下面内容来自直播间截图 OCR，可能存在错字、漏字、顺序错乱。
+
+请根据 OCR 结果、可能线索、历史猜测和相似度，推测当前题目的最可能答案。
+
+原始 OCR 文本：
+${rawOcrText || "暂无"}
+
+可能线索：
+${clueText || "暂无"}
+
+历史猜测和相似度：
+${guessText || "暂无"}
+
+被过滤内容，可能包含 OCR 噪声，也可能有少量有用信息：
+${noiseText || "暂无"}
+
+请输出严格 JSON，不要输出 Markdown，不要输出解释性前后缀。
+
+JSON 格式：
+{
+  "candidates": [
+    {
+      "word": "候选答案",
+      "confidence": 0到100之间的数字,
+      "reason": "为什么可能是这个答案",
+      "keywords": ["关键词1", "关键词2", "关键词3"]
+    }
+  ],
+  "nextGuesses": ["下一步建议猜测词1", "下一步建议猜测词2", "下一步建议猜测词3", "下一步建议猜测词4", "下一步建议猜测词5"],
+  "uncertainty": "不确定性说明"
+}
+
+要求：
+- candidates 最多 10 个。
+- confidence 必须是数字，不要带百分号。
+- 如果 OCR 内容疑似有错，请在 reason 或 uncertainty 里说明。
+- 不要只看最高分猜测，要结合题目线索和相似度分布。
+- 如果历史猜测分数较低，说明这些方向可能不是答案。
+- 如果信息不足，请说明还需要什么线索。`;
+
+  aiPromptInput.value = prompt;
+
+  navigator.clipboard
+    .writeText(prompt)
+    .then(() => {
+      alert("直播截图分析 Prompt 已生成并复制。");
+    })
+    .catch(() => {
+      alert("直播截图分析 Prompt 已生成，请手动复制。");
+    });
+
+  saveToLocalStorage();
 }
 
 function parseOcrGuessText(rawText) {
@@ -1541,6 +1607,10 @@ if (cleanOcrBtn) {
 
 if (applyOcrParsedBtn) {
   applyOcrParsedBtn.addEventListener("click", applyOcrParsedResult);
+}
+
+if (ocrPromptBtn) {
+  ocrPromptBtn.addEventListener("click", generateOcrLivePrompt);
 }
 
 if (aiCardLimitSelect) {
