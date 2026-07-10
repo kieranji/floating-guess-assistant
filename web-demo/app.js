@@ -286,25 +286,39 @@ async function analyzeOcrWithBackend() {
   const guessText = ocrGuessPreview ? ocrGuessPreview.value.trim() : "";
   const noiseText = ocrNoisePreview ? ocrNoisePreview.textContent.trim() : "";
 
+  if (clueText) {
+    cluesInput.value = mergeUniqueLines(cluesInput.value, clueText);
+  }
+
+  if (guessText) {
+    guessHistoryInput.value = mergeUniqueLines(guessHistoryInput.value, guessText);
+  }
+
+  analyzeClues();
+  saveToLocalStorage();
+
   if (!rawOcrText && !clueText && !guessText) {
     alert("请先进行 OCR 识别或清洗 OCR 文本。");
     return;
   }
 
-  const guesses = parseGuessHistory(guessText);
+  const guesses = parseGuessHistory(guessHistoryInput.value);
 
   const ocrClues = `这是直播猜词截图 OCR 清洗结果，OCR 可能有错字、漏字或顺序错乱。
 
-可能线索：
-${clueText || "暂无"}
+  页面当前线索：
+  ${cluesInput.value.trim() || "暂无"}
 
-原始 OCR 文本：
-${rawOcrText || "暂无"}
+  本次 OCR 可能线索：
+  ${clueText || "暂无"}
 
-被过滤内容，可能包含 OCR 噪声，也可能包含少量有用信息：
-${noiseText || "暂无"}
+  原始 OCR 文本：
+  ${rawOcrText || "暂无"}
 
-请结合 OCR 内容、题目线索、历史猜测和相似度推测答案。`;
+  被过滤内容，可能包含 OCR 噪声，也可能包含少量有用信息：
+  ${noiseText || "暂无"}
+
+  请结合 OCR 内容、题目线索、历史猜测和相似度推测答案。`;
 
   if (ocrBackendAnalyzeBtn) {
     ocrBackendAnalyzeBtn.textContent = "OCR AI 分析中...";
