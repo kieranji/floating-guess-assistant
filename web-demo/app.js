@@ -703,14 +703,39 @@ function renderFollowupHistory() {
 
     box.innerHTML = `
       <div class="followup-history-header">
-        <strong>${index + 1}. ${item.word}</strong>
-        <span>${item.time}</span>
+        <div>
+          <strong>${index + 1}. ${item.word}</strong>
+          <span>${item.time}</span>
+        </div>
+
+        <button type="button" class="delete-followup-btn">
+          删除
+        </button>
       </div>
+
       <p>${item.response}</p>
     `;
 
+    const deleteButton = box.querySelector(".delete-followup-btn");
+
+    deleteButton.addEventListener("click", () => {
+      deleteFollowupHistoryItem(index);
+    });
+
     followupHistoryBox.appendChild(box);
   });
+}
+
+function deleteFollowupHistoryItem(index) {
+  const confirmed = confirm("确定要删除这条追问历史吗？");
+
+  if (!confirmed) {
+    return;
+  }
+
+  followupHistory.splice(index, 1);
+  renderFollowupHistory();
+  saveToLocalStorage();
 }
 
 function addAiCandidateToCustomWords(item) {
