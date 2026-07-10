@@ -35,6 +35,9 @@ const ocrStatus = document.getElementById("ocrStatus");
 const ocrResultInput = document.getElementById("ocrResult");
 const useOcrTextBtn = document.getElementById("useOcrTextBtn");
 const cleanOcrBtn = document.getElementById("cleanOcrBtn");
+const ocrCluePreview = document.getElementById("ocrCluePreview");
+const ocrGuessPreview = document.getElementById("ocrGuessPreview");
+const ocrNoisePreview = document.getElementById("ocrNoisePreview");
 const BACKEND_URL = "https://effective-fishstick-v64pg6p565wghwg7v-3000.app.github.dev";
 
 let wordBank = [];
@@ -133,6 +136,23 @@ function cleanOcrText() {
 
   const parsed = parseOcrGuessText(rawText);
 
+  if (ocrCluePreview) {
+  ocrCluePreview.textContent =
+    parsed.clues.length > 0 ? parsed.clues.join("\n") : "暂无";
+}
+
+if (ocrGuessPreview) {
+  ocrGuessPreview.textContent =
+    parsed.guesses.length > 0
+      ? parsed.guesses.map((guess) => `${guess.word} ${guess.score}`).join("\n")
+      : "暂无";
+}
+
+if (ocrNoisePreview) {
+  ocrNoisePreview.textContent =
+    parsed.noiseLines.length > 0 ? parsed.noiseLines.join("\n") : "暂无";
+}
+
   if (parsed.clues.length > 0) {
     const clueText = parsed.clues.join("\n");
 
@@ -168,65 +188,112 @@ function parseOcrGuessText(rawText) {
 
   const clues = [];
   const guesses = [];
+  const noiseLines = [];
+
+  const noiseKeywords = [
+    "用户名",
+    "段位",
+    "猜词",
+    "排行榜",
+    "随机词",
+    "点赞",
+    "礼物",
+    "全局加倍",
+    "上局",
+    "赢家",
+    "剩余",
+    "直播",
+    "关注",
+    "分享",
+    "下载",
+    "电量",
+    "排名",
+    "进入直播间"
+  ];
 
   lines.forEach((line) => {
     const normalizedLine = line
       .replace(/％/g, "%")
       .replace(/，/g, ",")
       .replace(/：/g, ":")
+      .replace(/[|｜]/g, " ")
       .replace(/\s+/g, " ")
       .trim();
 
-    const guessMatch = normalizedLine.match(
-      /([\u4e00-\u9fa5A-Za-z0-9]{1,10})\s*([0-9]{1,3}(?:\.[0-9]+)?)\s*%/
-    );
+    if (!normalizedLine) {
+      return;
+    }
 
-    if (guessMatch) {
-      const word = guessMatch[1];
-      const score = Number(guessMatch[2]);
+    const guessMatches = [
+      ...normalizedLine.matchAll(
+        /([\u4e00-\u9fa5A-Za-z0-9]{1,12})\s*([0-9]{1,3}(?:\.[0-9]+)?)\s*%/g
+      )
+    ];
 
-      if (!Number.isNaN(score) && score >= 0 && score <= 100) {
-        guesses.push({
-          word,
-          score
-        });
-      }
+    if (guessMatches.length > 0) {
+      guessMatches.forEach((match) => {
+        const word = match[1];
+        const score = Number(match[2]);
+
+        if (!Number.isNaN(score) && score >= 0 && score <= 100) {
+          guesses.push({
+            word,
+            score
+          });
+        }
+      });
 
       return;
     }
 
-    if (
-      normalizedLine.includes("动词") ||
-      normalizedLine.includes("名词") ||
-      normalizedLine.includes("形容词") ||
-      normalizedLine.includes("答案") ||
-      normalizedLine.includes("提示") ||
-      normalizedLine.includes("字") ||
-      normalizedLine.includes("文娱") ||
-      normalizedLine.includes("休闲") ||
-      normalizedLine.includes("赏景") ||
-      normalizedLine.includes("关联度") ||
-      normalizedLine.includes("相似度")
-    ) {
+    const isMostlyNumber = /^[0-9:.\s%]+$/.test(normalizedLine);
+
+    if (isMostlyNumber) {
+      noiseLines.push(normalizedLine);
+      return;
+    }
+
+    const isTooLong = normalizedLine.length > 40;
+
+    if (isTooLong) {
+      noiseLines.push(normalizedLine);
+      return;
+    }
+
+    const hasNoiseKeyword = noiseKeywords.some((keyword) =>
+      normalizedLine.includes(keyword)
+    );
+
+    if (hasNoiseKeyword) {
+      noiseLines.push(normalizedLine);
+      return;
+    }
+
+    const hasUsefulChinese = /[\u4e00-\u9fa5]/.test(normalizedLine);
+
+    if (hasUsefulChinese) {
       clues.push(normalizedLine);
+    } else {
+      noiseLines.push(normalizedLine);
     }
   });
 
   const uniqueGuesses = [];
-  const seenWords = new Set();
+  const seenGuessKeys = new Set();
 
   guesses.forEach((guess) => {
-    if (!seenWords.has(guess.word)) {
-      seenWords.add(guess.word);
+    const key = `${guess.word}-${guess.score}`;
+
+    if (!seenGuessKeys.has(key)) {
+      seenGuessKeys.add(key);
       uniqueGuesses.push(guess);
     }
   });
 
-  const uniqueClues = [...new Set(clues)];
-
   return {
-    clues: uniqueClues,
-    guesses: uniqueGuesses
+    clues: [...new Set(clues)],
+    guesses: uniqueGuesses,
+    noiseLines: [...new Set(noiseLines)]
   };
 }
 
@@ -522,6 +589,18 @@ function clearInputs() {
 
   if (ocrStatus) {
     ocrStatus.textContent = "尚未识别图片。";
+  }
+
+  if (ocrCluePreview) {
+    ocrCluePreview.textContent = "暂无";
+  } 
+
+  if (ocrGuessPreview) {
+    ocrGuessPreview.textContent = "暂无";
+  }
+
+  if (ocrNoisePreview) {
+    ocrNoisePreview.textContent = "暂无";
   }
 }
 
