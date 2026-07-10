@@ -589,3 +589,31 @@ li {
   font-size: 13px;
   margin-bottom: 0;
 }
+
+.ocr-image-wrapper {
+  position: relative;
+  width: 100%;
+  max-height: 360px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #f8fafc;
+  touch-action: none;
+}
+
+#ocrImagePreview {
+  display: none;
+  width: 100%;
+  max-height: 360px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: #f8fafc;
+  user-select: none;
+}
+
+.ocr-selection-box {
+  display: none;
+  position: absolute;
+  border: 2px solid #2563eb;
+  background: rgba(37, 99, 235, 0.18);
+  pointer-events: none;
+}

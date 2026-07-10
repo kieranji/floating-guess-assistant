@@ -35,8 +35,12 @@
         />
 
         <div class="ocr-image-preview-box">
-          <p>图片预览</p>
-          <img id="ocrImagePreview" alt="OCR 图片预览" />
+          <p>图片预览，拖拽选择 OCR 区域</p>
+
+          <div id="ocrImageWrapper" class="ocr-image-wrapper">
+            <img id="ocrImagePreview" alt="OCR 图片预览" />
+            <div id="ocrSelectionBox" class="ocr-selection-box"></div>
+          </div>
         </div>
 
         <div class="ocr-crop-box">

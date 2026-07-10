@@ -31,6 +31,8 @@ const backendAnalyzeBtn = document.getElementById("backendAnalyzeBtn");
 const aiPromptInput = document.getElementById("aiPrompt");
 const ocrImageInput = document.getElementById("ocrImageInput");
 const ocrImagePreview = document.getElementById("ocrImagePreview");
+const ocrImageWrapper = document.getElementById("ocrImageWrapper");
+const ocrSelectionBox = document.getElementById("ocrSelectionBox");
 const ocrCropXInput = document.getElementById("ocrCropX");
 const ocrCropYInput = document.getElementById("ocrCropY");
 const ocrCropWidthInput = document.getElementById("ocrCropWidth");
@@ -53,6 +55,8 @@ const BACKEND_URL = "https://effective-fishstick-v64pg6p565wghwg7v-3000.app.gith
 let wordBank = [];
 let latestAiJson = null;
 let latestOcrParsed = null;
+let isSelectingOcrArea = false;
+let ocrSelectionStart = null;
 let followupHistory = [];
 
 async function loadWordBank() {
@@ -99,6 +103,125 @@ function previewOcrImage() {
   }
 }
 
+function getPointerPositionInImage(event) {
+  if (!ocrImagePreview) {
+    return null;
+  }
+
+  const rect = ocrImagePreview.getBoundingClientRect();
+
+  const clientX = event.clientX;
+  const clientY = event.clientY;
+
+  const x = clientX - rect.left;
+  const y = clientY - rect.top;
+
+  if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
+    return null;
+  }
+
+  return {
+    x,
+    y,
+    rect
+  };
+}
+
+function startOcrAreaSelection(event) {
+  const position = getPointerPositionInImage(event);
+
+  if (!position) {
+    return;
+  }
+
+  isSelectingOcrArea = true;
+  ocrSelectionStart = position;
+
+  if (ocrSelectionBox) {
+    ocrSelectionBox.style.display = "block";
+    ocrSelectionBox.style.left = `${position.x}px`;
+    ocrSelectionBox.style.top = `${position.y}px`;
+    ocrSelectionBox.style.width = "0px";
+    ocrSelectionBox.style.height = "0px";
+  }
+}
+
+function updateOcrAreaSelection(event) {
+  if (!isSelectingOcrArea || !ocrSelectionStart || !ocrSelectionBox) {
+    return;
+  }
+
+  const position = getPointerPositionInImage(event);
+
+  if (!position) {
+    return;
+  }
+
+  const x1 = ocrSelectionStart.x;
+  const y1 = ocrSelectionStart.y;
+  const x2 = position.x;
+  const y2 = position.y;
+
+  const left = Math.min(x1, x2);
+  const top = Math.min(y1, y2);
+  const width = Math.abs(x2 - x1);
+  const height = Math.abs(y2 - y1);
+
+  ocrSelectionBox.style.left = `${left}px`;
+  ocrSelectionBox.style.top = `${top}px`;
+  ocrSelectionBox.style.width = `${width}px`;
+  ocrSelectionBox.style.height = `${height}px`;
+}
+
+function finishOcrAreaSelection(event) {
+  if (!isSelectingOcrArea || !ocrSelectionStart) {
+    return;
+  }
+
+  const position = getPointerPositionInImage(event);
+
+  isSelectingOcrArea = false;
+
+  if (!position || !ocrImagePreview) {
+    return;
+  }
+
+  const rect = position.rect;
+
+  const x1 = ocrSelectionStart.x;
+  const y1 = ocrSelectionStart.y;
+  const x2 = position.x;
+  const y2 = position.y;
+
+  const displayLeft = Math.min(x1, x2);
+  const displayTop = Math.min(y1, y2);
+  const displayWidth = Math.abs(x2 - x1);
+  const displayHeight = Math.abs(y2 - y1);
+
+  if (displayWidth < 10 || displayHeight < 10) {
+    return;
+  }
+
+  const scaleX = ocrImagePreview.naturalWidth / rect.width;
+  const scaleY = ocrImagePreview.naturalHeight / rect.height;
+
+  const realX = Math.round(displayLeft * scaleX);
+  const realY = Math.round(displayTop * scaleY);
+  const realWidth = Math.round(displayWidth * scaleX);
+  const realHeight = Math.round(displayHeight * scaleY);
+
+  if (ocrCropXInput) ocrCropXInput.value = realX;
+  if (ocrCropYInput) ocrCropYInput.value = realY;
+  if (ocrCropWidthInput) ocrCropWidthInput.value = realWidth;
+  if (ocrCropHeightInput) ocrCropHeightInput.value = realHeight;
+
+  if (ocrStatus) {
+    ocrStatus.textContent = `已选择 OCR 区域：x=${realX}, y=${realY}, 宽=${realWidth}, 高=${realHeight}`;
+  }
+
+  saveToLocalStorage();
+}
+
 function getOcrCropSettings() {
   const x = ocrCropXInput ? Number(ocrCropXInput.value) : 0;
   const y = ocrCropYInput ? Number(ocrCropYInput.value) : 0;
@@ -129,6 +252,14 @@ function clearOcrCropSettings() {
   if (ocrCropYInput) ocrCropYInput.value = "";
   if (ocrCropWidthInput) ocrCropWidthInput.value = "";
   if (ocrCropHeightInput) ocrCropHeightInput.value = "";
+
+  if (ocrSelectionBox) {
+    ocrSelectionBox.style.display = "none";
+    ocrSelectionBox.style.left = "0px";
+    ocrSelectionBox.style.top = "0px";
+    ocrSelectionBox.style.width = "0px";
+    ocrSelectionBox.style.height = "0px";
+  }
 
   if (ocrStatus) {
     ocrStatus.textContent = "已清除裁剪区域，将识别整张图片。";
@@ -1935,6 +2066,29 @@ if (aiCardSearchInput) {
 
 if (clearOcrCropBtn) {
   clearOcrCropBtn.addEventListener("click", clearOcrCropSettings);
+}
+
+if (ocrImageWrapper) {
+  ocrImageWrapper.addEventListener("mousedown", startOcrAreaSelection);
+  ocrImageWrapper.addEventListener("mousemove", updateOcrAreaSelection);
+  window.addEventListener("mouseup", finishOcrAreaSelection);
+}
+
+if (ocrImageWrapper) {
+  ocrImageWrapper.addEventListener("touchstart", (event) => {
+    startOcrAreaSelection(event.touches[0]);
+  });
+
+  ocrImageWrapper.addEventListener("touchmove", (event) => {
+    event.preventDefault();
+    updateOcrAreaSelection(event.touches[0]);
+  });
+
+  ocrImageWrapper.addEventListener("touchend", (event) => {
+    if (event.changedTouches.length > 0) {
+      finishOcrAreaSelection(event.changedTouches[0]);
+    }
+  });
 }
 
 copyAiResponseBtn.addEventListener("click", copyAiResponse);
