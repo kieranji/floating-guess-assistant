@@ -496,3 +496,9 @@ li {
   font-size: 13px;
   color: #334155;
 }
+
+.apply-ocr-button {
+  width: 100%;
+  margin-top: 12px;
+  background: #2563eb;
+}

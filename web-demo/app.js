@@ -38,10 +38,12 @@ const cleanOcrBtn = document.getElementById("cleanOcrBtn");
 const ocrCluePreview = document.getElementById("ocrCluePreview");
 const ocrGuessPreview = document.getElementById("ocrGuessPreview");
 const ocrNoisePreview = document.getElementById("ocrNoisePreview");
+const applyOcrParsedBtn = document.getElementById("applyOcrParsedBtn");
 const BACKEND_URL = "https://effective-fishstick-v64pg6p565wghwg7v-3000.app.github.dev";
 
 let wordBank = [];
 let latestAiJson = null;
+let latestOcrParsed = null;
 let followupHistory = [];
 
 async function loadWordBank() {
@@ -135,6 +137,7 @@ function cleanOcrText() {
   }
 
   const parsed = parseOcrGuessText(rawText);
+  latestOcrParsed = parsed;
 
   if (ocrCluePreview) {
   ocrCluePreview.textContent =
@@ -152,6 +155,19 @@ if (ocrNoisePreview) {
   ocrNoisePreview.textContent =
     parsed.noiseLines.length > 0 ? parsed.noiseLines.join("\n") : "暂无";
 }
+
+  saveToLocalStorage();
+
+  alert(`清洗完成：提取到 ${parsed.clues.length} 条线索，${parsed.guesses.length} 条历史猜测。请检查预览后点击“应用 OCR 清洗结果”。`);
+}
+
+function applyOcrParsedResult() {
+  if (!latestOcrParsed) {
+    alert("请先点击“清洗 OCR 文本”。");
+    return;
+  }
+
+  const parsed = latestOcrParsed;
 
   if (parsed.clues.length > 0) {
     const clueText = parsed.clues.join("\n");
@@ -177,7 +193,7 @@ if (ocrNoisePreview) {
 
   saveToLocalStorage();
 
-  alert(`清洗完成：提取到 ${parsed.clues.length} 条线索，${parsed.guesses.length} 条历史猜测。`);
+  alert(`已应用 OCR 清洗结果：${parsed.clues.length} 条线索，${parsed.guesses.length} 条历史猜测。`);
 }
 
 function parseOcrGuessText(rawText) {
@@ -574,6 +590,7 @@ function clearInputs() {
   updateSaveStatus("已清空本地保存");
 
   latestAiJson = null;
+  latestOcrParsed = null;
 
   if (aiCandidateCardsBox) {
     aiCandidateCardsBox.innerText = "暂无结构化 AI 结果。";
@@ -1422,6 +1439,10 @@ if (useOcrTextBtn) {
 
 if (cleanOcrBtn) {
   cleanOcrBtn.addEventListener("click", cleanOcrText);
+}
+
+if (applyOcrParsedBtn) {
+  applyOcrParsedBtn.addEventListener("click", applyOcrParsedResult);
 }
 
 if (aiCardLimitSelect) {
