@@ -623,7 +623,10 @@ card.innerHTML = `
       填到猜测词
     </button>
     <button type="button" class="ask-about-candidate-btn">
-      追问
+      生成追问
+    </button>
+    <button type="button" class="ask-backend-candidate-btn">
+      直接追问
     </button>
   </div>
 `;
@@ -631,6 +634,7 @@ card.innerHTML = `
     const addButton = card.querySelector(".add-ai-candidate-btn");
     const useAsGuessButton = card.querySelector(".use-as-guess-btn");
     const askButton = card.querySelector(".ask-about-candidate-btn");
+    const askBackendButton = card.querySelector(".ask-backend-candidate-btn");
 
     addButton.addEventListener("click", () => {
       addAiCandidateToCustomWords(item);
@@ -642,6 +646,10 @@ card.innerHTML = `
 
     askButton.addEventListener("click", () => {
       generateCandidateFollowupPrompt(item);
+    });
+
+    askBackendButton.addEventListener("click", () => {
+      askBackendAboutCandidate(item);
     });
 
     addButton.addEventListener("click", () => {
@@ -800,6 +808,99 @@ ${customWordsText}
     });
 
   saveToLocalStorage();
+}
+
+async function askBackendAboutCandidate(item) {
+  if (!item || !item.word) {
+    return;
+  }
+
+  const mode = modeSelect.value;
+  const clues = cluesInput.value.trim();
+  const guesses = parseGuessHistory(guessHistoryInput.value);
+  const customWords = parseCustomWords(customWordsInput.value, mode);
+
+  const followupClues = `
+请重点分析候选答案「${item.word}」是否可能是正确答案。
+
+原始线索：
+${clues || "暂无线索"}
+
+候选答案当前理由：
+${item.reason || "暂无"}
+
+候选答案当前置信度：
+${item.confidence || "未知"}%
+
+请说明：
+1. 它为什么可能是答案
+2. 它为什么可能不是答案
+3. 如果不是它，最接近的替代答案有哪些
+`;
+
+  backendAnalyzeBtn.textContent = "追问中...";
+  backendAnalyzeBtn.disabled = true;
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/analyze`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        mode,
+        clues: followupClues,
+        guesses,
+        customWords
+      })
+    });
+
+    const rawText = await response.text();
+
+    let data;
+
+    try {
+      data = JSON.parse(rawText);
+    } catch (error) {
+      console.error("后端返回的不是 JSON：", rawText);
+      throw new Error("后端返回的不是 JSON。");
+    }
+
+    if (!response.ok) {
+      throw new Error(data.details || data.error || "后端追问失败");
+    }
+
+    if (aiPromptInput) {
+      aiPromptInput.value = data.prompt || "";
+    }
+
+    if (data.aiText) {
+      if (aiResponseInput) {
+        aiResponseInput.value = data.aiText;
+      }
+
+      if (savedAiResponseBox) {
+        savedAiResponseBox.innerText = data.aiText;
+      }
+
+      renderAiCards(data.aiJson);
+
+      if (savedAiResponseBox) {
+        savedAiResponseBox.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      }
+    }
+
+    saveToLocalStorage();
+    alert(`已完成对「${item.word}」的追问分析。`);
+  } catch (error) {
+    alert(`追问失败：${error.message}`);
+  } finally {
+    backendAnalyzeBtn.textContent = "后端 AI 分析";
+    backendAnalyzeBtn.disabled = false;
+  }
 }
 
 async function copyAiResponse() {
