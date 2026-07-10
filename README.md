@@ -1,62 +1,227 @@
-Floating Guess Assistant
+# Floating Guess Assistant
 
-A personal CS learning project for experimenting with floating windows, OCR, clue parsing, and word-guessing algorithms.
+Floating Guess Assistant is a personal CS learning project for building an AI-assisted word guessing tool.
 
-What is this?
+The project started as a simple web demo and is gradually evolving into a complete assistant with local rule-based scoring, AI analysis, structured candidate cards, follow-up analysis, and future OCR / Android support.
 
-Floating Guess Assistant is an educational demo project. The final goal is to build a mobile assistant that can analyze text clues from word-guessing games and show possible answers in a floating window.
+## Current Status
 
-The first version will be a simple web demo. Later versions may include Android overlay windows, screen capture, OCR, and local word banks.
+The current version is a web-based AI guessing assistant.
 
-Project Goals
+It supports:
 
-* Learn GitHub and open-source project structure
-* Build a simple word-guessing assistant
-* Practice HTML, CSS, and JavaScript
-* Later explore Android development with Kotlin
-* Later explore OCR and AI-based text reasoning
+- Manual clue input
+- Guess history with similarity scores
+- Temporary candidate word list
+- Local rule-based scoring
+- Top 5 local candidate results
+- Confidence percentage
+- Scoring explanation logs
+- JSON import and export
+- Browser localStorage autosave
+- AI prompt generation
+- Backend AI analysis through DeepSeek API
+- Structured AI candidate cards
+- AI candidate keywords
+- Confidence bars
+- Top 5 / Top 10 AI card display
+- AI card search
+- Add AI candidate to temporary word list
+- Use AI candidate as a guess
+- Candidate follow-up prompt generation
+- Direct backend follow-up analysis
+- Follow-up history
+- Delete follow-up history records
 
-Current Version
+## Project Structure
 
-v0.1 Web Demo
-
-The first version allows the user to manually type clues and get possible candidate answers.
-
-Planned files:
-
-web-demo/
+```text
+floating-guess-assistant/
   index.html
-  style.css
-  app.js
+  README.md
 
-Roadmap
+  web-demo/
+    index.html
+    style.css
+    app.js
+    data/
+      wordBank.json
 
-* v0.1: Create GitHub repository and README
-* v0.2: Build a simple web-based guessing assistant
-* v0.3: Add word bank and scoring logic
-* v0.4: Add history of guesses
-* v0.5: Design Android floating window prototype
-* v1.0: Android APK with manual input
-* v1.1: Optional OCR experiment for selected screen regions
+  backend/
+    package.json
+    package-lock.json
+    server.js
+    .env.example
+    .gitignore
+```
 
-Intended Use
+## Web Demo
 
-This project is for personal learning, coursework, and open-source experimentation only. It is not intended to interfere with third-party platforms, violate platform rules, or provide unfair advantages in live interactive events.
+The web demo is located in:
 
-Tech Stack
+```text
+web-demo/
+```
 
-First stage:
+It includes:
 
-* HTML
-* CSS
-* JavaScript
-* GitHub
+```text
+index.html
+style.css
+app.js
+data/wordBank.json
+```
 
-Later stage:
+The frontend can be deployed with GitHub Pages.
 
-* Kotlin
-* Android
-* MediaProjection
-* OCR
-* Local word bank
-* Optional AI API
+## Backend
+
+The backend is located in:
+
+```text
+backend/
+```
+
+It provides:
+
+```text
+POST /api/analyze
+```
+
+The frontend sends clues, guess history, and temporary candidates to the backend. The backend calls the AI model and returns:
+
+```json
+{
+  "prompt": "...",
+  "aiText": "...",
+  "aiJson": {
+    "candidates": [
+      {
+        "word": "光阴似箭",
+        "confidence": 92,
+        "reason": "和时间飞逝高度相关",
+        "keywords": ["时间", "光阴", "飞逝", "成语"]
+      }
+    ],
+    "nextGuesses": ["时光", "岁月", "日月"],
+    "uncertainty": "当前线索较少，需要更多相似度反馈。"
+  }
+}
+```
+
+## Environment Variables
+
+Create a local file:
+
+```text
+backend/.env
+```
+
+Example:
+
+```env
+DEEPSEEK_API_KEY=your_deepseek_api_key_here
+DEEPSEEK_MODEL=deepseek-chat
+PORT=3000
+```
+
+Do not commit `.env` to GitHub.
+
+The safe example file is:
+
+```text
+backend/.env.example
+```
+
+## Run Backend in Codespaces
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+If port 3000 is already in use:
+
+```bash
+pkill node
+npm run dev
+```
+
+## Intended Use
+
+This project is for personal learning, coursework, and open-source experimentation.
+
+It is intended to help practice:
+
+- HTML
+- CSS
+- JavaScript
+- GitHub
+- Node.js
+- Express
+- API integration
+- Prompt engineering
+- JSON parsing
+- Local storage
+- Basic AI product design
+
+It is not intended to violate platform rules, interfere with third-party services, or provide unfair advantages in live interactive events.
+
+## Roadmap
+
+### Phase 1: Web + Rules
+
+Completed:
+
+- Basic web UI
+- Manual clue input
+- Guess history
+- Candidate word bank
+- Local scoring
+- JSON import/export
+
+### Phase 2: Web + AI
+
+Completed:
+
+- AI prompt generation
+- Backend API
+- DeepSeek integration
+- Structured AI candidate cards
+- Follow-up analysis
+- Follow-up history
+
+### Phase 3: Web OCR
+
+Planned:
+
+- Upload screenshot
+- OCR text recognition
+- Fill recognized text into clue input
+- Clean OCR text
+- Extract guesses and similarity scores
+
+### Phase 4: Android App
+
+Planned:
+
+- Android manual input version
+- Android floating window
+- Screen capture permission
+- OCR on selected screen region
+- Floating AI candidate display
+
+## Next Milestone
+
+The next milestone is:
+
+```text
+Web OCR v0.1
+```
+
+Goal:
+
+```text
+Upload image → OCR recognize text → fill clue input → AI analyze
+```
