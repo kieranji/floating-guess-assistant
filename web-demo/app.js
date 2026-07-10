@@ -140,21 +140,21 @@ function cleanOcrText() {
   latestOcrParsed = parsed;
 
   if (ocrCluePreview) {
-  ocrCluePreview.textContent =
-    parsed.clues.length > 0 ? parsed.clues.join("\n") : "暂无";
-}
+    ocrCluePreview.value =
+      parsed.clues.length > 0 ? parsed.clues.join("\n") : "";
+  }
 
-if (ocrGuessPreview) {
-  ocrGuessPreview.textContent =
-    parsed.guesses.length > 0
-      ? parsed.guesses.map((guess) => `${guess.word} ${guess.score}`).join("\n")
-      : "暂无";
-}
+  if (ocrGuessPreview) {
+    ocrGuessPreview.value =
+      parsed.guesses.length > 0
+        ? parsed.guesses.map((guess) => `${guess.word} ${guess.score}`).join("\n")
+        : "";
+  }
 
-if (ocrNoisePreview) {
-  ocrNoisePreview.textContent =
-    parsed.noiseLines.length > 0 ? parsed.noiseLines.join("\n") : "暂无";
-}
+  if (ocrNoisePreview) {
+    ocrNoisePreview.textContent =
+      parsed.noiseLines.length > 0 ? parsed.noiseLines.join("\n") : "暂无";
+  }
 
   saveToLocalStorage();
 
@@ -162,16 +162,20 @@ if (ocrNoisePreview) {
 }
 
 function applyOcrParsedResult() {
-  if (!latestOcrParsed) {
-    alert("请先点击“清洗 OCR 文本”。");
+  if (!ocrCluePreview || !ocrGuessPreview) {
+    alert("OCR 预览区域不存在。");
     return;
   }
 
-  const parsed = latestOcrParsed;
+  const clueText = ocrCluePreview.value.trim();
+  const guessText = ocrGuessPreview.value.trim();
 
-  if (parsed.clues.length > 0) {
-    const clueText = parsed.clues.join("\n");
+  if (!clueText && !guessText) {
+    alert("没有可应用的 OCR 清洗结果。");
+    return;
+  }
 
+  if (clueText) {
     if (cluesInput.value.trim().length === 0) {
       cluesInput.value = clueText;
     } else {
@@ -179,11 +183,7 @@ function applyOcrParsedResult() {
     }
   }
 
-  if (parsed.guesses.length > 0) {
-    const guessText = parsed.guesses
-      .map((guess) => `${guess.word} ${guess.score}`)
-      .join("\n");
-
+  if (guessText) {
     if (guessHistoryInput.value.trim().length === 0) {
       guessHistoryInput.value = guessText;
     } else {
@@ -193,7 +193,7 @@ function applyOcrParsedResult() {
 
   saveToLocalStorage();
 
-  alert(`已应用 OCR 清洗结果：${parsed.clues.length} 条线索，${parsed.guesses.length} 条历史猜测。`);
+  alert("已应用 OCR 清洗结果。");
 }
 
 function parseOcrGuessText(rawText) {
@@ -609,11 +609,11 @@ function clearInputs() {
   }
 
   if (ocrCluePreview) {
-    ocrCluePreview.textContent = "暂无";
+    ocrCluePreview.value = "";
   } 
 
   if (ocrGuessPreview) {
-    ocrGuessPreview.textContent = "暂无";
+    ocrGuessPreview.value = "";
   }
 
   if (ocrNoisePreview) {

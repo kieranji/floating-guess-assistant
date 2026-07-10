@@ -57,21 +57,25 @@
         <section class="ocr-preview-box">
           <h3>OCR 清洗预览</h3>
 
-          <div class="ocr-preview-grid">
-            <div>
-              <h4>可能线索</h4>
-              <pre id="ocrCluePreview">暂无</pre>
-            </div>
+          <div>
+            <h4>可能线索，可编辑</h4>
+            <textarea
+              id="ocrCluePreview"
+              placeholder="清洗出的线索会显示在这里，你可以手动修改"
+            ></textarea>
+          </div>
 
-            <div>
-              <h4>历史猜测</h4>
-              <pre id="ocrGuessPreview">暂无</pre>
-            </div>
+          <div>
+            <h4>历史猜测，可编辑</h4>
+            <textarea
+              id="ocrGuessPreview"
+              placeholder="清洗出的历史猜测会显示在这里，例如：听歌 48.4"
+            ></textarea>
+          </div>
 
-            <div>
-              <h4>被过滤内容</h4>
-              <pre id="ocrNoisePreview">暂无</pre>
-            </div>
+          <div>
+            <h4>被过滤内容</h4>
+            <pre id="ocrNoisePreview">暂无</pre>
           </div>
         </section>
         <button id="applyOcrParsedBtn" type="button" class="apply-ocr-button">
