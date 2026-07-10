@@ -527,3 +527,9 @@ li {
   background: #fca5a5;
   cursor: not-allowed;
 }
+
+.ocr-mode-preview {
+  color: #166534;
+  font-size: 14px;
+  font-weight: bold;
+}

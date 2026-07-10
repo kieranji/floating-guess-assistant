@@ -38,6 +38,7 @@ const cleanOcrBtn = document.getElementById("cleanOcrBtn");
 const ocrCluePreview = document.getElementById("ocrCluePreview");
 const ocrGuessPreview = document.getElementById("ocrGuessPreview");
 const ocrNoisePreview = document.getElementById("ocrNoisePreview");
+const ocrModePreview = document.getElementById("ocrModePreview");
 const applyOcrParsedBtn = document.getElementById("applyOcrParsedBtn");
 const ocrPromptBtn = document.getElementById("ocrPromptBtn");
 const ocrBackendAnalyzeBtn = document.getElementById("ocrBackendAnalyzeBtn");
@@ -139,6 +140,7 @@ function cleanOcrText() {
   }
 
   const parsed = parseOcrGuessText(rawText);
+  latestOcrParsed = parsed;
   latestOcrParsed = parsed;
 
   if (ocrCluePreview) {
@@ -587,6 +589,52 @@ function parseOcrGuessText(rawText) {
   };
 }
 
+function autoSelectModeFromOcr(parsed) {
+  if (!parsed) {
+    return;
+  }
+
+  const hasSimilarityScores =
+    Array.isArray(parsed.guesses) && parsed.guesses.length >= 2;
+
+  const clueText = Array.isArray(parsed.clues)
+    ? parsed.clues.join("\n")
+    : "";
+
+  const looksLikeMaskedText =
+    clueText.includes("____") ||
+    clueText.includes("□□□□") ||
+    clueText.includes("空格") ||
+    clueText.includes("填字") ||
+    clueText.includes("猜字") ||
+    clueText.includes("已揭示") ||
+    clueText.includes("隐藏");
+
+  if (hasSimilarityScores) {
+    modeSelect.value = "semantic";
+
+    if (ocrModePreview) {
+      ocrModePreview.textContent = "模式判断：相似度猜词";
+    }
+
+    return;
+  }
+
+  if (looksLikeMaskedText) {
+    modeSelect.value = "masked";
+
+    if (ocrModePreview) {
+      ocrModePreview.textContent = "模式判断：揭字猜词";
+    }
+
+    return;
+  }
+
+  if (ocrModePreview) {
+    ocrModePreview.textContent = "模式判断：暂不确定";
+  }
+}
+
 function addGuess() {
   const word = guessWordInput.value.trim();
   const score = guessScoreInput.value.trim();
@@ -892,6 +940,10 @@ function clearInputs() {
 
   if (ocrNoisePreview) {
     ocrNoisePreview.textContent = "暂无";
+  }
+
+  if (ocrModePreview) {
+    ocrModePreview.textContent = "模式判断：暂无";
   }
 }
 
