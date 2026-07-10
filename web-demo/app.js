@@ -232,7 +232,7 @@ function parseOcrGuessText(rawText) {
     "弹幕"
   ];
 
-  lines.forEach((line) => {
+  lines.forEach((line, index) => {
     const normalizedLine = line
       .replace(/％/g, "%")
       .replace(/，/g, ",")
@@ -246,6 +246,30 @@ function parseOcrGuessText(rawText) {
     }
 
     const compactLine = normalizedLine.replace(/\s+/g, "");
+
+    const nextLine = lines[index + 1]
+      ? lines[index + 1]
+          .trim()
+          .replace(/％/g, "%")
+          .replace(/\s+/g, " ")
+     : "";
+
+    const isCurrentLineWord = /^[\u4e00-\u9fa5A-Za-z0-9]{1,12}$/.test(compactLine);
+
+    const nextScoreMatch = nextLine.match(/^([0-9]{1,3}(?:\.[0-9]+)?)\s*%?$/);
+
+    if (isCurrentLineWord && nextScoreMatch) {
+      const score = Number(nextScoreMatch[1]);
+
+      if (!Number.isNaN(score) && score >= 0 && score <= 100) {
+        guesses.push({
+          word: compactLine,
+          score
+        });
+
+        return;
+      }
+    } 
 
     const hintLabelMatch = compactLine.match(/提示([1-9])\/([1-9])/);
 
