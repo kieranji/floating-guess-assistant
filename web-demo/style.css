@@ -420,3 +420,38 @@ li {
 .followup-history-header {
   align-items: center;
 }
+
+.ocr-box {
+  margin-top: 24px;
+  padding: 16px;
+  background: #f0fdf4;
+  border-radius: 16px;
+}
+
+.ocr-box h2 {
+  margin-top: 0;
+  font-size: 20px;
+}
+
+.ocr-button {
+  width: 100%;
+  margin-top: 12px;
+  background: #15803d;
+}
+
+.ocr-button:disabled {
+  background: #86efac;
+  cursor: not-allowed;
+}
+
+.ocr-status {
+  color: #166534;
+  font-size: 14px;
+  margin-top: 12px;
+}
+
+.use-ocr-button {
+  width: 100%;
+  margin-top: 12px;
+  background: #16a34a;
+}

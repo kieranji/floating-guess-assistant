@@ -29,6 +29,11 @@ const importJsonInput = document.getElementById("importJson");
 const promptBtn = document.getElementById("promptBtn");
 const backendAnalyzeBtn = document.getElementById("backendAnalyzeBtn");
 const aiPromptInput = document.getElementById("aiPrompt");
+const ocrImageInput = document.getElementById("ocrImageInput");
+const ocrBtn = document.getElementById("ocrBtn");
+const ocrStatus = document.getElementById("ocrStatus");
+const ocrResultInput = document.getElementById("ocrResult");
+const useOcrTextBtn = document.getElementById("useOcrTextBtn");
 const BACKEND_URL = "https://effective-fishstick-v64pg6p565wghwg7v-3000.app.github.dev";
 
 let wordBank = [];
@@ -53,6 +58,64 @@ async function loadWordBank() {
     li.textContent = "词库加载失败，请检查 data/wordBank.json 是否存在。";
     resultList.appendChild(li);
   }
+}
+
+async function recognizeImageText() {
+  if (!ocrImageInput || !ocrImageInput.files || ocrImageInput.files.length === 0) {
+    alert("请先选择一张图片。");
+    return;
+  }
+
+  const file = ocrImageInput.files[0];
+
+  ocrBtn.disabled = true;
+  ocrBtn.textContent = "识别中...";
+  ocrStatus.textContent = "OCR 正在识别，请稍等。";
+
+  try {
+    const result = await Tesseract.recognize(file, "chi_sim+eng", {
+      logger: (message) => {
+        if (message.status === "recognizing text") {
+          const progress = Math.round(message.progress * 100);
+          ocrStatus.textContent = `正在识别文字：${progress}%`;
+        } else {
+          ocrStatus.textContent = `OCR 状态：${message.status}`;
+        }
+      }
+    });
+
+    const text = result.data.text.trim();
+
+    ocrResultInput.value = text || "没有识别到文字。";
+    ocrStatus.textContent = "OCR 识别完成。";
+
+    saveToLocalStorage();
+  } catch (error) {
+    console.error(error);
+    ocrStatus.textContent = "OCR 识别失败。";
+    alert("OCR 识别失败，请换一张更清晰的图片。");
+  } finally {
+    ocrBtn.disabled = false;
+    ocrBtn.textContent = "识别图片文字";
+  }
+}
+
+function useOcrTextAsClues() {
+  const text = ocrResultInput.value.trim();
+
+  if (!text) {
+    alert("没有可填入的 OCR 文字。");
+    return;
+  }
+
+  if (cluesInput.value.trim().length === 0) {
+    cluesInput.value = text;
+  } else {
+    cluesInput.value += `\n${text}`;
+  }
+
+  saveToLocalStorage();
+  alert("OCR 文字已填入线索。");
 }
 
 function addGuess() {
@@ -339,6 +402,14 @@ function clearInputs() {
 
   if (aiCardSearchInput) {
     aiCardSearchInput.value = "";
+  }
+
+  if (ocrResultInput) {
+    ocrResultInput.value = "";
+  }
+
+  if (ocrStatus) {
+    ocrStatus.textContent = "尚未识别图片。";
   }
 }
 
@@ -1000,6 +1071,7 @@ function saveToLocalStorage() {
     customWords: customWordsInput.value,
     aiPrompt: aiPromptInput.value,
     aiResponse: aiResponseInput.value,
+    ocrResult: ocrResultInput ? ocrResultInput.value : "",
     savedAiResponse: savedAiResponseBox.innerText,
     latestAiJson,
     followupHistory,
@@ -1037,6 +1109,11 @@ function loadFromLocalStorage() {
     customWordsInput.value = data.customWords || "";
     aiPromptInput.value = data.aiPrompt || "";
     aiResponseInput.value = data.aiResponse || "";
+
+    if (ocrResultInput) {
+      ocrResultInput.value = data.ocrResult || "";
+    }
+
     savedAiResponseBox.innerText = data.savedAiResponse || "暂无 AI 分析。";
 
     if (aiCardLimitSelect) {
@@ -1144,6 +1221,14 @@ backendAnalyzeBtn.addEventListener("click", analyzeWithBackend);
 saveAiResponseBtn.addEventListener("click", saveAiResponse);
 importBtn.addEventListener("click", importCurrentData);
 
+if (ocrBtn) {
+  ocrBtn.addEventListener("click", recognizeImageText);
+}
+
+if (useOcrTextBtn) {
+  useOcrTextBtn.addEventListener("click", useOcrTextAsClues);
+}
+
 if (aiCardLimitSelect) {
   aiCardLimitSelect.addEventListener("change", () => {
     renderAiCards(latestAiJson);
@@ -1172,10 +1257,15 @@ const autoSaveInputs = [
   customWordsInput,
   aiPromptInput,
   aiResponseInput,
+  ocrResultInput,
   importJsonInput
 ];
 
 autoSaveInputs.forEach((input) => {
+  if (!input) {
+    return;
+  }
+
   input.addEventListener("input", saveToLocalStorage);
   input.addEventListener("change", saveToLocalStorage);
 });

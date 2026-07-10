@@ -25,6 +25,32 @@
         placeholder="例如：四字成语，和时间有关，形容时间过得很快"
       ></textarea>
 
+      <section class="ocr-box">
+        <h2>截图 OCR 识别</h2>
+
+        <input
+          id="ocrImageInput"
+          type="file"
+          accept="image/*"
+        />
+
+        <button id="ocrBtn" type="button" class="ocr-button">
+          识别图片文字
+        </button>
+
+        <p id="ocrStatus" class="ocr-status">尚未识别图片。</p>
+
+        <label for="ocrResult">OCR 识别结果</label>
+        <textarea
+          id="ocrResult"
+          placeholder="识别出的文字会显示在这里"
+        ></textarea>
+
+        <button id="useOcrTextBtn" type="button" class="use-ocr-button">
+          填入线索
+        </button>
+      </section>
+
       <label>添加历史猜测</label>
 
 <div class="guess-input-row">
@@ -162,6 +188,7 @@
     </section>
   </main>
 
-  <script src="app.js?v=2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
