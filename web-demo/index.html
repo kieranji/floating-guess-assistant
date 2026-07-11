@@ -234,31 +234,34 @@
 
       </details>
 
-      <label>添加历史猜测</label>
+      <details class="section-details" open>
+        <summary>手动输入 / 本地分析</summary>
 
-<div class="guess-input-row">
-  <input
-    id="guessWord"
-    type="text"
-    placeholder="猜测词，例如：光阴"
-  />
+        <label>添加历史猜测</label>
 
-  <input
-    id="guessScore"
-    type="number"
-    min="0"
-    max="100"
-    placeholder="相似度"
-  />
+        <div class="guess-input-row">
+          <input
+            id="guessWord"
+            type="text"
+            placeholder="猜测词，例如：光阴"
+          />
 
-  <button id="addGuessBtn" type="button">添加</button>
-</div>
+          <input
+            id="guessScore"
+            type="number"
+            min="0"
+            max="100"
+            placeholder="相似度"
+          />
 
-<label for="guessHistory">历史猜测和相似度</label>
-<textarea
-  id="guessHistory"
-  placeholder="每行一个，例如：&#10;光阴 84&#10;时间 72&#10;人生 35&#10;日月 61"
-></textarea>
+          <button id="addGuessBtn" type="button">添加</button>
+        </div>
+
+        <label for="guessHistory">历史猜测和相似度</label>
+        <textarea
+          id="guessHistory"
+          placeholder="每行一个，例如：&#10;光阴 84&#10;时间 72&#10;人生 35&#10;日月 61"
+        ></textarea>
 
       <label>添加临时候选词</label>
 
@@ -301,6 +304,11 @@
         <ol id="resultList"></ol>
       </section>
 
+      </details>
+
+      <details class="section-details" open>
+      <summary>AI 操作 / Prompt</summary>
+
       <div class="extra-button-row">
         <button id="copyBtn" type="button" class="copy-button">复制结果</button>
         <button id="exportBtn" type="button" class="export-button">导出 JSON</button>
@@ -332,6 +340,8 @@
         复制 AI 分析
       </button>
 
+      </details>
+      
       <details class="section-details" open>
         <summary>AI 分析结果</summary>
 
