@@ -25,8 +25,10 @@
         placeholder="例如：四字成语，和时间有关，形容时间过得很快"
       ></textarea>
 
-      <section class="ocr-box">
-        <h2>截图 OCR 识别</h2>
+      <details class="section-details" open>
+        <summary>截图 OCR 识别</summary>
+
+        <section class="ocr-box">
 
         <input
           id="ocrImageInput"
@@ -230,6 +232,8 @@
         </section>
       </section>
 
+      </details>
+
       <label>添加历史猜测</label>
 
 <div class="guess-input-row">
@@ -323,6 +327,9 @@
         复制 AI 分析
       </button>
 
+      <details class="section-details" open>
+        <summary>AI 分析结果</summary>
+
       <section class="ai-response-box">
         <h2>已保存的 AI 分析</h2>
         <div id="savedAiResponse">暂无 AI 分析。</div>
@@ -352,18 +359,24 @@
         <div id="followupHistory">暂无追问历史。</div>
       </section>
 
-      <label for="importJson">导入 JSON</label>
-      <textarea
-        id="importJson"
-        placeholder="把导出的 JSON 粘贴到这里，然后点击“导入 JSON”"
-      ></textarea>
+      </details>
 
-      <button id="importBtn" type="button" class="import-button">导入 JSON</button>
+      <details class="section-details">
+        <summary>导入导出 / Prompt</summary>
 
-      <section class="result-box">
-        <h2>可能答案</h2>
-        <ol id="resultList"></ol>
-      </section>
+        <label for="importJson">导入 JSON</label>
+        <textarea
+          id="importJson"
+          placeholder="把导出的 JSON 粘贴到这里，然后点击“导入 JSON”"
+        ></textarea>
+
+        <button id="importBtn" type="button" class="import-button">导入 JSON</button>
+
+        <section class="result-box">
+          <h2>可能答案</h2>
+          <ol id="resultList"></ol>
+        </section>
+      </details>
     </section>
   </main>
 
