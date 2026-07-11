@@ -765,3 +765,14 @@ li {
   font-size: 13px;
   line-height: 1.5;
 }
+
+.auto-ocr-button {
+  width: 100%;
+  margin-top: 12px;
+  background: #be123c;
+}
+
+.auto-ocr-button:disabled {
+  background: #fda4af;
+  cursor: not-allowed;
+}

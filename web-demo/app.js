@@ -61,6 +61,7 @@ const ocrModePreview = document.getElementById("ocrModePreview");
 const applyOcrParsedBtn = document.getElementById("applyOcrParsedBtn");
 const ocrPromptBtn = document.getElementById("ocrPromptBtn");
 const ocrBackendAnalyzeBtn = document.getElementById("ocrBackendAnalyzeBtn");
+const autoOcrAnalyzeBtn = document.getElementById("autoOcrAnalyzeBtn");
 const ocrHintRegionBtn = document.getElementById("ocrHintRegionBtn");
 const ocrGuessRegionBtn = document.getElementById("ocrGuessRegionBtn");
 const ocrHintTextInput = document.getElementById("ocrHintText");
@@ -156,6 +157,10 @@ function getPointerPositionInImage(event) {
     y,
     rect
   };
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function startOcrAreaSelection(event) {
@@ -717,6 +722,31 @@ async function recognizeOcrRegion(target) {
   }
 }
 
+async function recognizeOcrRegionSilent(target) {
+  const output = target === "hint" ? ocrHintTextInput : ocrGuessTextInput;
+  const label = target === "hint" ? "提示区" : "猜测区";
+
+  if (!output) {
+    throw new Error(`${label}输出框不存在。`);
+  }
+
+  if (ocrStatus) {
+    ocrStatus.textContent = `自动流程：正在识别${label}...`;
+  }
+
+  const text = await runOcrOnCurrentImage();
+
+  output.value = text || "没有识别到文字。";
+
+  if (ocrStatus) {
+    ocrStatus.textContent = `自动流程：${label}识别完成。`;
+  }
+
+  saveToLocalStorage();
+
+  return text;
+}
+
 function mergeOcrRegions() {
   const hintText = ocrHintTextInput ? ocrHintTextInput.value.trim() : "";
   const guessText = ocrGuessTextInput ? ocrGuessTextInput.value.trim() : "";
@@ -734,6 +764,25 @@ function mergeOcrRegions() {
 
   saveToLocalStorage();
   alert("已合并提示区和猜测区 OCR 文本。现在可以点击“清洗 OCR 文本”。");
+}
+
+function mergeOcrRegionsSilent() {
+  const hintText = ocrHintTextInput ? ocrHintTextInput.value.trim() : "";
+  const guessText = ocrGuessTextInput ? ocrGuessTextInput.value.trim() : "";
+
+  if (!hintText && !guessText) {
+    throw new Error("提示区和猜测区都没有内容。");
+  }
+
+  const mergedText = [hintText, guessText].filter(Boolean).join("\n");
+
+  if (ocrResultInput) {
+    ocrResultInput.value = mergedText;
+  }
+
+  saveToLocalStorage();
+
+  return mergedText;
 }
 
 function useOcrTextAsClues() {
@@ -792,6 +841,43 @@ function cleanOcrText() {
   alert(`清洗完成：提取到 ${parsed.clues.length} 条线索，${parsed.guesses.length} 条历史猜测。请检查预览后点击“应用 OCR 清洗结果”。`);
 }
 
+function cleanOcrTextSilent() {
+  if (!ocrResultInput) {
+    throw new Error("OCR 结果框不存在。");
+  }
+
+  const rawText = ocrResultInput.value.trim();
+
+  if (!rawText) {
+    throw new Error("OCR 文本为空。");
+  }
+
+  const parsed = parseOcrGuessText(rawText);
+  latestOcrParsed = parsed;
+  autoSelectModeFromOcr(parsed);
+
+  if (ocrCluePreview) {
+    ocrCluePreview.value =
+      parsed.clues.length > 0 ? parsed.clues.join("\n") : "";
+  }
+
+  if (ocrGuessPreview) {
+    ocrGuessPreview.value =
+      parsed.guesses.length > 0
+        ? parsed.guesses.map((guess) => `${guess.word} ${guess.score}`).join("\n")
+        : "";
+  }
+
+  if (ocrNoisePreview) {
+    ocrNoisePreview.textContent =
+      parsed.noiseLines.length > 0 ? parsed.noiseLines.join("\n") : "暂无";
+  }
+
+  saveToLocalStorage();
+
+  return parsed;
+}
+
 function mergeUniqueLines(existingText, newText) {
   const existingLines = existingText
     .split("\n")
@@ -842,6 +928,30 @@ function applyOcrParsedResult() {
   saveToLocalStorage();
 
   alert("已应用 OCR 清洗结果，并已自动更新本地分析。");
+}
+
+function applyOcrParsedResultSilent() {
+  if (!ocrCluePreview || !ocrGuessPreview) {
+    throw new Error("OCR 预览区域不存在。");
+  }
+
+  const clueText = ocrCluePreview.value.trim();
+  const guessText = ocrGuessPreview.value.trim();
+
+  if (!clueText && !guessText) {
+    throw new Error("没有可应用的 OCR 清洗结果。");
+  }
+
+  if (clueText) {
+    cluesInput.value = mergeUniqueLines(cluesInput.value, clueText);
+  }
+
+  if (guessText) {
+    guessHistoryInput.value = mergeUniqueLines(guessHistoryInput.value, guessText);
+  }
+
+  analyzeClues();
+  saveToLocalStorage();
 }
 
 function generateOcrLivePrompt() {
@@ -1015,6 +1125,84 @@ async function analyzeOcrWithBackend() {
       ocrBackendAnalyzeBtn.textContent = "用 OCR 结果直接 AI 分析";
       ocrBackendAnalyzeBtn.disabled = false;
     }
+  }
+}
+
+async function runAutoOcrAnalyze() {
+  if (!autoOcrAnalyzeBtn) {
+    return;
+  }
+
+  if (!ocrImageInput || !ocrImageInput.files || ocrImageInput.files.length === 0) {
+    alert("请先上传一张直播截图。");
+    return;
+  }
+
+  if (!ocrRegionPresets.hint || !ocrRegionPresets.guess) {
+    alert("请先保存提示区预设和猜测区预设。");
+    return;
+  }
+
+  autoOcrAnalyzeBtn.disabled = true;
+  autoOcrAnalyzeBtn.textContent = "自动分析中...";
+
+  try {
+    if (ocrStatus) {
+      ocrStatus.textContent = "自动流程：应用提示区预设。";
+    }
+
+    applyOcrRegionPreset("hint");
+    await wait(200);
+
+    await recognizeOcrRegionSilent("hint");
+
+    if (ocrStatus) {
+      ocrStatus.textContent = "自动流程：应用猜测区预设。";
+    }
+
+    applyOcrRegionPreset("guess");
+    await wait(200);
+
+    await recognizeOcrRegionSilent("guess");
+
+    if (ocrStatus) {
+      ocrStatus.textContent = "自动流程：合并 OCR 文本。";
+    }
+
+    mergeOcrRegionsSilent();
+
+    if (ocrStatus) {
+      ocrStatus.textContent = "自动流程：清洗 OCR 文本。";
+    }
+
+    cleanOcrTextSilent();
+
+    if (ocrStatus) {
+      ocrStatus.textContent = "自动流程：应用 OCR 清洗结果。";
+    }
+
+    applyOcrParsedResultSilent();
+
+    if (ocrStatus) {
+      ocrStatus.textContent = "自动流程：调用后端 AI。";
+    }
+
+    await analyzeOcrWithBackend();
+
+    if (ocrStatus) {
+      ocrStatus.textContent = "一键 OCR + AI 分析完成。";
+    }
+  } catch (error) {
+    console.error(error);
+
+    if (ocrStatus) {
+      ocrStatus.textContent = "一键 OCR + AI 分析失败。";
+    }
+
+    alert(`一键 OCR + AI 分析失败：${error.message}`);
+  } finally {
+    autoOcrAnalyzeBtn.disabled = false;
+    autoOcrAnalyzeBtn.textContent = "一键 OCR + AI 分析";
   }
 }
 
@@ -2569,6 +2757,10 @@ if (saveGuessPresetBtn) {
 
 if (applyGuessPresetBtn) {
   applyGuessPresetBtn.addEventListener("click", () => applyOcrRegionPreset("guess"));
+}
+
+if (autoOcrAnalyzeBtn) {
+  autoOcrAnalyzeBtn.addEventListener("click", runAutoOcrAnalyze);
 }
 
 if (ocrImageWrapper) {
