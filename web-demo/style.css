@@ -776,3 +776,29 @@ li {
   background: #fda4af;
   cursor: not-allowed;
 }
+
+.ocr-flow-log-box {
+  margin-top: 16px;
+  padding: 12px;
+  background: #fff1f2;
+  border-radius: 12px;
+  border: 1px solid #fecdd3;
+}
+
+.ocr-flow-log-box h3 {
+  margin-top: 0;
+  font-size: 18px;
+  color: #be123c;
+}
+
+#ocrFlowLog {
+  min-height: 100px;
+  max-height: 220px;
+  overflow: auto;
+  padding: 10px;
+  background: white;
+  border-radius: 10px;
+  white-space: pre-wrap;
+  font-size: 13px;
+  color: #334155;
+}

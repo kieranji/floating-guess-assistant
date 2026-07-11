@@ -62,6 +62,7 @@ const applyOcrParsedBtn = document.getElementById("applyOcrParsedBtn");
 const ocrPromptBtn = document.getElementById("ocrPromptBtn");
 const ocrBackendAnalyzeBtn = document.getElementById("ocrBackendAnalyzeBtn");
 const autoOcrAnalyzeBtn = document.getElementById("autoOcrAnalyzeBtn");
+const ocrFlowLog = document.getElementById("ocrFlowLog");
 const ocrHintRegionBtn = document.getElementById("ocrHintRegionBtn");
 const ocrGuessRegionBtn = document.getElementById("ocrGuessRegionBtn");
 const ocrHintTextInput = document.getElementById("ocrHintText");
@@ -161,6 +162,29 @@ function getPointerPositionInImage(event) {
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function resetOcrFlowLog() {
+  if (ocrFlowLog) {
+    ocrFlowLog.textContent = "";
+  }
+}
+
+function addOcrFlowLog(message) {
+  const time = new Date().toLocaleTimeString();
+  const line = `[${time}] ${message}`;
+
+  if (ocrFlowLog) {
+    if (!ocrFlowLog.textContent || ocrFlowLog.textContent === "暂无流程日志。") {
+      ocrFlowLog.textContent = line;
+    } else {
+      ocrFlowLog.textContent += `\n${line}`;
+    }
+
+    ocrFlowLog.scrollTop = ocrFlowLog.scrollHeight;
+  }
+
+  console.log(line);
 }
 
 function startOcrAreaSelection(event) {
@@ -1146,52 +1170,67 @@ async function runAutoOcrAnalyze() {
   autoOcrAnalyzeBtn.disabled = true;
   autoOcrAnalyzeBtn.textContent = "自动分析中...";
 
+  resetOcrFlowLog();
+  addOcrFlowLog("开始一键 OCR + AI 分析。");
+
   try {
     if (ocrStatus) {
       ocrStatus.textContent = "自动流程：应用提示区预设。";
     }
 
+    addOcrFlowLog("应用提示区预设。");
     applyOcrRegionPreset("hint");
     await wait(200);
 
+    addOcrFlowLog("开始识别提示区。");
     await recognizeOcrRegionSilent("hint");
+    addOcrFlowLog("提示区识别完成。");
 
     if (ocrStatus) {
       ocrStatus.textContent = "自动流程：应用猜测区预设。";
     }
 
+    addOcrFlowLog("应用猜测区预设。");
     applyOcrRegionPreset("guess");
     await wait(200);
 
+    addOcrFlowLog("开始识别猜测区。");
     await recognizeOcrRegionSilent("guess");
+    addOcrFlowLog("猜测区识别完成。");
 
     if (ocrStatus) {
       ocrStatus.textContent = "自动流程：合并 OCR 文本。";
     }
 
+    addOcrFlowLog("合并提示区和猜测区 OCR 文本。");
     mergeOcrRegionsSilent();
 
     if (ocrStatus) {
       ocrStatus.textContent = "自动流程：清洗 OCR 文本。";
     }
 
+    addOcrFlowLog("清洗 OCR 文本。");
     cleanOcrTextSilent();
 
     if (ocrStatus) {
       ocrStatus.textContent = "自动流程：应用 OCR 清洗结果。";
     }
 
+    addOcrFlowLog("应用 OCR 清洗结果到线索和历史猜测。");
     applyOcrParsedResultSilent();
 
     if (ocrStatus) {
       ocrStatus.textContent = "自动流程：调用后端 AI。";
     }
 
+    addOcrFlowLog("调用后端 AI 分析。");
     await analyzeOcrWithBackend();
 
     if (ocrStatus) {
       ocrStatus.textContent = "一键 OCR + AI 分析完成。";
     }
+
+    addOcrFlowLog("一键 OCR + AI 分析完成。");
   } catch (error) {
     console.error(error);
 
@@ -1199,6 +1238,7 @@ async function runAutoOcrAnalyze() {
       ocrStatus.textContent = "一键 OCR + AI 分析失败。";
     }
 
+    addOcrFlowLog(`流程失败：${error.message}`);
     alert(`一键 OCR + AI 分析失败：${error.message}`);
   } finally {
     autoOcrAnalyzeBtn.disabled = false;
@@ -1785,6 +1825,10 @@ function clearInputs() {
 
   if (ocrGuessTextInput) {
     ocrGuessTextInput.value = "";
+  }
+
+  if (ocrFlowLog) {
+    ocrFlowLog.textContent = "暂无流程日志。";
   }
 
   if (ocrCropXInput) ocrCropXInput.value = "";
