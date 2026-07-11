@@ -296,6 +296,11 @@
         <button id="analyzeBtn" type="button">分析答案</button>
       </div>
 
+      <section class="result-box">
+        <h2>可能答案</h2>
+        <ol id="resultList"></ol>
+      </section>
+
       <div class="extra-button-row">
         <button id="copyBtn" type="button" class="copy-button">复制结果</button>
         <button id="exportBtn" type="button" class="export-button">导出 JSON</button>
@@ -372,15 +377,11 @@
 
         <button id="importBtn" type="button" class="import-button">导入 JSON</button>
 
-        <section class="result-box">
-          <h2>可能答案</h2>
-          <ol id="resultList"></ol>
-        </section>
       </details>
     </section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
