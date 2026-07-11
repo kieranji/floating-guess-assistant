@@ -2728,6 +2728,32 @@ function setupSectionStateSaving() {
   });
 }
 
+function setupQuickNav() {
+  const navButtons = document.querySelectorAll("[data-target-section]");
+
+  navButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const targetKey = button.dataset.targetSection;
+      const targetSection = document.querySelector(
+        `.section-details[data-section="${targetKey}"]`
+      );
+
+      if (!targetSection) {
+        alert("没有找到对应区域。");
+        return;
+      }
+
+      targetSection.open = true;
+      saveSectionStates();
+
+      targetSection.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    });
+  });
+}
+
 function loadFromLocalStorage() {
   const saved = localStorage.getItem("floatingGuessAssistantData");
 
@@ -3099,5 +3125,6 @@ autoSaveInputs.forEach((input) => {
 
 loadSectionStates();
 setupSectionStateSaving();
+setupQuickNav();
 loadFromLocalStorage();
 loadWordBank();
