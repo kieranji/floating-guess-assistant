@@ -1167,6 +1167,8 @@ async function runAutoOcrAnalyze() {
     return;
   }
 
+  let currentStep = "准备开始";
+
   autoOcrAnalyzeBtn.disabled = true;
   autoOcrAnalyzeBtn.textContent = "自动分析中...";
 
@@ -1174,75 +1176,97 @@ async function runAutoOcrAnalyze() {
   addOcrFlowLog("开始一键 OCR + AI 分析。");
 
   try {
+    currentStep = "应用提示区预设";
+    addOcrFlowLog("应用提示区预设。");
     if (ocrStatus) {
       ocrStatus.textContent = "自动流程：应用提示区预设。";
     }
-
-    addOcrFlowLog("应用提示区预设。");
     applyOcrRegionPreset("hint");
     await wait(200);
 
+    currentStep = "识别提示区";
     addOcrFlowLog("开始识别提示区。");
     await recognizeOcrRegionSilent("hint");
     addOcrFlowLog("提示区识别完成。");
 
+    currentStep = "应用猜测区预设";
+    addOcrFlowLog("应用猜测区预设。");
     if (ocrStatus) {
       ocrStatus.textContent = "自动流程：应用猜测区预设。";
     }
-
-    addOcrFlowLog("应用猜测区预设。");
     applyOcrRegionPreset("guess");
     await wait(200);
 
+    currentStep = "识别猜测区";
     addOcrFlowLog("开始识别猜测区。");
     await recognizeOcrRegionSilent("guess");
     addOcrFlowLog("猜测区识别完成。");
 
+    currentStep = "合并 OCR 文本";
+    addOcrFlowLog("合并提示区和猜测区 OCR 文本。");
     if (ocrStatus) {
       ocrStatus.textContent = "自动流程：合并 OCR 文本。";
     }
-
-    addOcrFlowLog("合并提示区和猜测区 OCR 文本。");
     mergeOcrRegionsSilent();
 
+    currentStep = "清洗 OCR 文本";
+    addOcrFlowLog("清洗 OCR 文本。");
     if (ocrStatus) {
       ocrStatus.textContent = "自动流程：清洗 OCR 文本。";
     }
-
-    addOcrFlowLog("清洗 OCR 文本。");
     cleanOcrTextSilent();
 
+    currentStep = "应用 OCR 清洗结果";
+    addOcrFlowLog("应用 OCR 清洗结果到线索和历史猜测。");
     if (ocrStatus) {
       ocrStatus.textContent = "自动流程：应用 OCR 清洗结果。";
     }
-
-    addOcrFlowLog("应用 OCR 清洗结果到线索和历史猜测。");
     applyOcrParsedResultSilent();
 
+    currentStep = "调用后端 AI";
+    addOcrFlowLog("调用后端 AI 分析。");
     if (ocrStatus) {
       ocrStatus.textContent = "自动流程：调用后端 AI。";
     }
-
-    addOcrFlowLog("调用后端 AI 分析。");
     await analyzeOcrWithBackend();
+
+    currentStep = "完成";
+    addOcrFlowLog("一键 OCR + AI 分析完成。");
 
     if (ocrStatus) {
       ocrStatus.textContent = "一键 OCR + AI 分析完成。";
     }
-
-    addOcrFlowLog("一键 OCR + AI 分析完成。");
   } catch (error) {
     console.error(error);
 
-    if (ocrStatus) {
-      ocrStatus.textContent = "一键 OCR + AI 分析失败。";
+    const hintText = ocrHintTextInput ? ocrHintTextInput.value.trim() : "";
+    const guessText = ocrGuessTextInput ? ocrGuessTextInput.value.trim() : "";
+    const mergedText = ocrResultInput ? ocrResultInput.value.trim() : "";
+
+    addOcrFlowLog(`流程失败，失败步骤：${currentStep}`);
+    addOcrFlowLog(`错误信息：${error.message}`);
+
+    if (hintText) {
+      addOcrFlowLog(`当前提示区 OCR 文本长度：${hintText.length}`);
     }
 
-    addOcrFlowLog(`流程失败：${error.message}`);
-    alert(`一键 OCR + AI 分析失败：${error.message}`);
+    if (guessText) {
+      addOcrFlowLog(`当前猜测区 OCR 文本长度：${guessText.length}`);
+    }
+
+    if (mergedText) {
+      addOcrFlowLog(`当前合并 OCR 文本长度：${mergedText.length}`);
+    }
+
+    if (ocrStatus) {
+      ocrStatus.textContent = `一键 OCR + AI 分析失败：${currentStep}`;
+    }
+
+    alert(`一键 OCR + AI 分析失败。\n失败步骤：${currentStep}\n错误：${error.message}`);
   } finally {
     autoOcrAnalyzeBtn.disabled = false;
     autoOcrAnalyzeBtn.textContent = "一键 OCR + AI 分析";
+    saveToLocalStorage();
   }
 }
 
