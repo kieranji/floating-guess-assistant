@@ -845,7 +845,7 @@ function cleanOcrText() {
 
   const parsed = parseOcrGuessText(rawText);
   latestOcrParsed = parsed;
-  latestOcrParsed = parsed;
+  autoSelectModeFromOcr(parsed);
 
   if (ocrCluePreview) {
     ocrCluePreview.value =
@@ -2312,10 +2312,6 @@ card.innerHTML = `
       askBackendAboutCandidate(item);
     });
 
-    addButton.addEventListener("click", () => {
-      addAiCandidateToCustomWords(item);
-    });
-
     aiCandidateCardsBox.appendChild(card);
   });
 
@@ -2761,13 +2757,13 @@ function loadFromLocalStorage() {
     return;
   }
 
-  if (data.ocrRegionPresets) {
-    ocrRegionPresets = data.ocrRegionPresets;
-    updateOcrRegionPresetInfo();
-  }
-
   try {
     const data = JSON.parse(saved);
+
+    if (data.ocrRegionPresets) {
+      ocrRegionPresets = data.ocrRegionPresets;
+      updateOcrRegionPresetInfo();
+    }
 
     modeSelect.value = data.mode || "semantic";
     cluesInput.value = data.clues || "";
@@ -2896,19 +2892,19 @@ function importCurrentData() {
         .join("\n");
     }
 
+    if (Array.isArray(data.followupHistory)) {
+      followupHistory = data.followupHistory;
+      renderFollowupHistory();
+    } else {
+      followupHistory = [];
+      renderFollowupHistory();
+    }
+
     analyzeClues();
     saveToLocalStorage();
     alert("导入成功。");
   } catch (error) {
     alert("JSON 格式错误，请检查后再试。");
-  }
-
-  if (Array.isArray(data.followupHistory)) {
-    followupHistory = data.followupHistory;
-    renderFollowupHistory();
-  } else {
-    followupHistory = [];
-    renderFollowupHistory();
   }
 }
 
@@ -3125,6 +3121,5 @@ autoSaveInputs.forEach((input) => {
 
 loadSectionStates();
 setupSectionStateSaving();
-setupQuickNav();
 loadFromLocalStorage();
 loadWordBank();
