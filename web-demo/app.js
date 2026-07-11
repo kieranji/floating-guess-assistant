@@ -43,6 +43,12 @@ const ocrScaleSelect = document.getElementById("ocrScale");
 const previewPreprocessBtn = document.getElementById("previewPreprocessBtn");
 const preprocessImagePreview = document.getElementById("preprocessImagePreview");
 const ocrCropInfo = document.getElementById("ocrCropInfo");
+const cropFullBtn = document.getElementById("cropFullBtn");
+const cropTopBtn = document.getElementById("cropTopBtn");
+const cropBottomBtn = document.getElementById("cropBottomBtn");
+const cropLeftBtn = document.getElementById("cropLeftBtn");
+const cropRightBtn = document.getElementById("cropRightBtn");
+const cropCenterBtn = document.getElementById("cropCenterBtn");
 const ocrBtn = document.getElementById("ocrBtn");
 const ocrStatus = document.getElementById("ocrStatus");
 const ocrResultInput = document.getElementById("ocrResult");
@@ -101,6 +107,11 @@ function previewOcrImage() {
   if (ocrImagePreview) {
     ocrImagePreview.src = imageUrl;
     ocrImagePreview.style.display = "block";
+
+    ocrImagePreview.onload = () => {
+      updateOcrCropInfo();
+      updateOcrSelectionBoxFromInputs();
+    };
   }
 
   if (ocrStatus) {
@@ -241,6 +252,101 @@ function updateOcrCropInfo() {
   }
 
   ocrCropInfo.textContent = `当前识别区域：x=${crop.x}, y=${crop.y}, 宽=${crop.width}, 高=${crop.height}`;
+}
+
+function setOcrCropValues(x, y, width, height) {
+  if (ocrCropXInput) ocrCropXInput.value = Math.round(x);
+  if (ocrCropYInput) ocrCropYInput.value = Math.round(y);
+  if (ocrCropWidthInput) ocrCropWidthInput.value = Math.round(width);
+  if (ocrCropHeightInput) ocrCropHeightInput.value = Math.round(height);
+
+  updateOcrCropInfo();
+  updateOcrSelectionBoxFromInputs();
+  saveToLocalStorage();
+}
+
+function getCurrentImageSize() {
+  if (!ocrImagePreview || !ocrImagePreview.naturalWidth || !ocrImagePreview.naturalHeight) {
+    alert("请先上传图片。");
+    return null;
+  }
+
+  return {
+    width: ocrImagePreview.naturalWidth,
+    height: ocrImagePreview.naturalHeight
+  };
+}
+
+function applyOcrCropPreset(preset) {
+  const imageSize = getCurrentImageSize();
+
+  if (!imageSize) {
+    return;
+  }
+
+  const width = imageSize.width;
+  const height = imageSize.height;
+
+  if (preset === "full") {
+    clearOcrCropSettings();
+    return;
+  }
+
+  if (preset === "top") {
+    setOcrCropValues(0, 0, width, height * 0.5);
+    return;
+  }
+
+  if (preset === "bottom") {
+    setOcrCropValues(0, height * 0.5, width, height * 0.5);
+    return;
+  }
+
+  if (preset === "left") {
+    setOcrCropValues(0, 0, width * 0.5, height);
+    return;
+  }
+
+  if (preset === "right") {
+    setOcrCropValues(width * 0.5, 0, width * 0.5, height);
+    return;
+  }
+
+  if (preset === "center") {
+    setOcrCropValues(width * 0.15, height * 0.15, width * 0.7, height * 0.7);
+  }
+}
+
+function updateOcrSelectionBoxFromInputs() {
+  const crop = getOcrCropSettings();
+
+  if (!ocrSelectionBox || !ocrImagePreview || !crop) {
+    if (ocrSelectionBox) {
+      ocrSelectionBox.style.display = "none";
+    }
+
+    return;
+  }
+
+  const rect = ocrImagePreview.getBoundingClientRect();
+
+  if (!rect.width || !rect.height || !ocrImagePreview.naturalWidth || !ocrImagePreview.naturalHeight) {
+    return;
+  }
+
+  const scaleX = rect.width / ocrImagePreview.naturalWidth;
+  const scaleY = rect.height / ocrImagePreview.naturalHeight;
+
+  const displayLeft = crop.x * scaleX;
+  const displayTop = crop.y * scaleY;
+  const displayWidth = crop.width * scaleX;
+  const displayHeight = crop.height * scaleY;
+
+  ocrSelectionBox.style.display = "block";
+  ocrSelectionBox.style.left = `${displayLeft}px`;
+  ocrSelectionBox.style.top = `${displayTop}px`;
+  ocrSelectionBox.style.width = `${displayWidth}px`;
+  ocrSelectionBox.style.height = `${displayHeight}px`;
 }
 
 function getOcrCropSettings() {
@@ -2059,6 +2165,10 @@ function loadFromLocalStorage() {
 
     updateOcrCropInfo();
 
+    setTimeout(() => {
+      updateOcrSelectionBoxFromInputs();
+    }, 300);
+
     savedAiResponseBox.innerText = data.savedAiResponse || "暂无 AI 分析。";
 
     if (aiCardLimitSelect) {
@@ -2230,6 +2340,30 @@ if (previewPreprocessBtn) {
   previewPreprocessBtn.addEventListener("click", previewPreprocessedOcrImage);
 }
 
+if (cropFullBtn) {
+  cropFullBtn.addEventListener("click", () => applyOcrCropPreset("full"));
+}
+
+if (cropTopBtn) {
+  cropTopBtn.addEventListener("click", () => applyOcrCropPreset("top"));
+}
+
+if (cropBottomBtn) {
+  cropBottomBtn.addEventListener("click", () => applyOcrCropPreset("bottom"));
+}
+
+if (cropLeftBtn) {
+  cropLeftBtn.addEventListener("click", () => applyOcrCropPreset("left"));
+}
+
+if (cropRightBtn) {
+  cropRightBtn.addEventListener("click", () => applyOcrCropPreset("right"));
+}
+
+if (cropCenterBtn) {
+  cropCenterBtn.addEventListener("click", () => applyOcrCropPreset("center"));
+}
+
 if (ocrImageWrapper) {
   ocrImageWrapper.addEventListener("touchstart", (event) => {
     startOcrAreaSelection(event.touches[0]);
@@ -2259,6 +2393,7 @@ if (ocrImageWrapper) {
 
   input.addEventListener("input", () => {
     updateOcrCropInfo();
+    updateOcrSelectionBoxFromInputs();
     saveToLocalStorage();
   });
 });

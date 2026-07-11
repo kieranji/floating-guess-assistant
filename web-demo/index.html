@@ -48,6 +48,19 @@
 
           <p id="ocrCropInfo" class="ocr-crop-info">当前识别区域：整张图片</p>
 
+          <div class="ocr-preset-box">
+            <h4>快速选择 OCR 区域</h4>
+
+            <div class="ocr-preset-grid">
+              <button id="cropFullBtn" type="button">整张图</button>
+              <button id="cropTopBtn" type="button">上半部分</button>
+              <button id="cropBottomBtn" type="button">下半部分</button>
+              <button id="cropLeftBtn" type="button">左半部分</button>
+              <button id="cropRightBtn" type="button">右半部分</button>
+              <button id="cropCenterBtn" type="button">中间区域</button>
+            </div>
+          </div>
+
           <div class="ocr-crop-grid">
             <input id="ocrCropX" type="number" min="0" placeholder="x，例如 0" />
             <input id="ocrCropY" type="number" min="0" placeholder="y，例如 200" />

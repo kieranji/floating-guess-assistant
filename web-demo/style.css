@@ -683,3 +683,29 @@ li {
   border-radius: 10px;
   background: white;
 }
+
+.ocr-preset-box {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.ocr-preset-box h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #166534;
+  font-size: 15px;
+}
+
+.ocr-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.ocr-preset-grid button {
+  padding: 10px;
+  background: #0f766e;
+  font-size: 14px;
+}
