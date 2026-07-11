@@ -76,6 +76,7 @@ const ocrRegionPresetInfo = document.getElementById("ocrRegionPresetInfo");
 const generateOcrReportBtn = document.getElementById("generateOcrReportBtn");
 const copyOcrReportBtn = document.getElementById("copyOcrReportBtn");
 const ocrDebugReportInput = document.getElementById("ocrDebugReport");
+const downloadOcrReportBtn = document.getElementById("downloadOcrReportBtn");
 const BACKEND_URL = "https://effective-fishstick-v64pg6p565wghwg7v-3000.app.github.dev";
 
 let wordBank = [];
@@ -1360,6 +1361,45 @@ async function copyOcrDebugReport() {
   } catch (error) {
     alert("复制失败，请手动复制。");
   }
+}
+
+function downloadOcrDebugReport() {
+  if (!ocrDebugReportInput) {
+    return;
+  }
+
+  let text = ocrDebugReportInput.value.trim();
+
+  if (!text) {
+    generateOcrDebugReport();
+    text = ocrDebugReportInput.value.trim();
+  }
+
+  if (!text) {
+    alert("没有可下载的 OCR 调试报告。");
+    return;
+  }
+
+  const now = new Date();
+  const dateText = now.toISOString().slice(0, 19).replace(/[:T]/g, "-");
+  const filename = `ocr-debug-report-${dateText}.txt`;
+
+  const blob = new Blob([text], {
+    type: "text/plain;charset=utf-8"
+  });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+
+  alert("OCR 调试报告已开始下载。");
 }
 
 function parseOcrGuessText(rawText) {
@@ -2938,6 +2978,10 @@ if (generateOcrReportBtn) {
 
 if (copyOcrReportBtn) {
   copyOcrReportBtn.addEventListener("click", copyOcrDebugReport);
+}
+
+if (downloadOcrReportBtn) {
+  downloadOcrReportBtn.addEventListener("click", downloadOcrDebugReport);
 }
 
 if (ocrImageWrapper) {
