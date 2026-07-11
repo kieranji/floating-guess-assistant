@@ -802,3 +802,36 @@ li {
   font-size: 13px;
   color: #334155;
 }
+
+.ocr-debug-report-box {
+  margin-top: 16px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+}
+
+.ocr-debug-report-box h3 {
+  margin-top: 0;
+  font-size: 18px;
+  color: #334155;
+}
+
+.ocr-report-button {
+  width: 100%;
+  margin-top: 8px;
+  background: #475569;
+}
+
+.ocr-report-copy-button {
+  width: 100%;
+  margin-top: 8px;
+  background: #0f766e;
+}
+
+#ocrDebugReport {
+  margin-top: 12px;
+  min-height: 220px;
+  font-family: monospace;
+  font-size: 13px;
+}

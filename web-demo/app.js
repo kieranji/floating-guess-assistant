@@ -73,6 +73,9 @@ const applyHintPresetBtn = document.getElementById("applyHintPresetBtn");
 const saveGuessPresetBtn = document.getElementById("saveGuessPresetBtn");
 const applyGuessPresetBtn = document.getElementById("applyGuessPresetBtn");
 const ocrRegionPresetInfo = document.getElementById("ocrRegionPresetInfo");
+const generateOcrReportBtn = document.getElementById("generateOcrReportBtn");
+const copyOcrReportBtn = document.getElementById("copyOcrReportBtn");
+const ocrDebugReportInput = document.getElementById("ocrDebugReport");
 const BACKEND_URL = "https://effective-fishstick-v64pg6p565wghwg7v-3000.app.github.dev";
 
 let wordBank = [];
@@ -1270,6 +1273,95 @@ async function runAutoOcrAnalyze() {
   }
 }
 
+function generateOcrDebugReport() {
+  const hintText = ocrHintTextInput ? ocrHintTextInput.value.trim() : "";
+  const guessText = ocrGuessTextInput ? ocrGuessTextInput.value.trim() : "";
+  const mergedText = ocrResultInput ? ocrResultInput.value.trim() : "";
+  const cluePreview = ocrCluePreview ? ocrCluePreview.value.trim() : "";
+  const guessPreview = ocrGuessPreview ? ocrGuessPreview.value.trim() : "";
+  const noisePreview = ocrNoisePreview ? ocrNoisePreview.textContent.trim() : "";
+  const flowLog = ocrFlowLog ? ocrFlowLog.textContent.trim() : "";
+  const aiPrompt = aiPromptInput ? aiPromptInput.value.trim() : "";
+  const aiResponse = aiResponseInput ? aiResponseInput.value.trim() : "";
+  const cropInfo = ocrCropInfo ? ocrCropInfo.textContent.trim() : "";
+  const modeText = modeSelect ? modeSelect.value : "";
+
+  const report = `# OCR Debug Report
+
+## Mode
+
+${modeText || "N/A"}
+
+## Crop Info
+
+${cropInfo || "N/A"}
+
+## OCR Flow Log
+
+${flowLog || "N/A"}
+
+## Hint Region OCR Text
+
+${hintText || "N/A"}
+
+## Guess Region OCR Text
+
+${guessText || "N/A"}
+
+## Merged OCR Text
+
+${mergedText || "N/A"}
+
+## Parsed Clues
+
+${cluePreview || "N/A"}
+
+## Parsed Guesses
+
+${guessPreview || "N/A"}
+
+## Filtered Noise
+
+${noisePreview || "N/A"}
+
+## AI Prompt
+
+${aiPrompt || "N/A"}
+
+## AI Response
+
+${aiResponse || "N/A"}
+`;
+
+  if (ocrDebugReportInput) {
+    ocrDebugReportInput.value = report;
+  }
+
+  saveToLocalStorage();
+
+  alert("OCR 调试报告已生成。");
+}
+
+async function copyOcrDebugReport() {
+  if (!ocrDebugReportInput) {
+    return;
+  }
+
+  const text = ocrDebugReportInput.value.trim();
+
+  if (!text) {
+    alert("请先生成 OCR 调试报告。");
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(text);
+    alert("OCR 调试报告已复制。");
+  } catch (error) {
+    alert("复制失败，请手动复制。");
+  }
+}
+
 function parseOcrGuessText(rawText) {
   const lines = rawText
     .split("\n")
@@ -1853,6 +1945,10 @@ function clearInputs() {
 
   if (ocrFlowLog) {
     ocrFlowLog.textContent = "暂无流程日志。";
+  }
+
+  if (ocrDebugReportInput) {
+    ocrDebugReportInput.value = "";
   }
 
   if (ocrCropXInput) ocrCropXInput.value = "";
@@ -2534,6 +2630,7 @@ function saveToLocalStorage() {
     ocrUsePreprocess: ocrUsePreprocessInput ? ocrUsePreprocessInput.checked : true,
     ocrScale: ocrScaleSelect ? ocrScaleSelect.value : "2",
     ocrHintText: ocrHintTextInput ? ocrHintTextInput.value : "",
+    ocrDebugReport: ocrDebugReportInput ? ocrDebugReportInput.value : "",
     ocrGuessText: ocrGuessTextInput ? ocrGuessTextInput.value : ""
   };
 
@@ -2622,6 +2719,10 @@ function loadFromLocalStorage() {
 
     if (ocrGuessTextInput) {
       ocrGuessTextInput.value = data.ocrGuessText || "";
+    }
+
+    if (ocrDebugReportInput) {
+      ocrDebugReportInput.value = data.ocrDebugReport || "";
     }
 
     importJsonInput.value = data.importJson || "";
@@ -2829,6 +2930,14 @@ if (applyGuessPresetBtn) {
 
 if (autoOcrAnalyzeBtn) {
   autoOcrAnalyzeBtn.addEventListener("click", runAutoOcrAnalyze);
+}
+
+if (generateOcrReportBtn) {
+  generateOcrReportBtn.addEventListener("click", generateOcrDebugReport);
+}
+
+if (copyOcrReportBtn) {
+  copyOcrReportBtn.addEventListener("click", copyOcrDebugReport);
 }
 
 if (ocrImageWrapper) {
