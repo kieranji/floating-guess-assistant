@@ -41,11 +41,18 @@ floating-guess-assistant/
   README.md
 
   web-demo/
-    index.html
-    style.css
-    app.js
-    data/
-      wordBank.json
+  index.html
+  style.css
+  app.js
+  data/
+    wordBank.json
+  js/
+    storage.js
+    ui.js
+    ocr.js
+    ai.js
+    parser.js
+    main.js
 
   backend/
     package.json
