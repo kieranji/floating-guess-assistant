@@ -38,6 +38,8 @@ const ocrCropYInput = document.getElementById("ocrCropY");
 const ocrCropWidthInput = document.getElementById("ocrCropWidth");
 const ocrCropHeightInput = document.getElementById("ocrCropHeight");
 const clearOcrCropBtn = document.getElementById("clearOcrCropBtn");
+const ocrUsePreprocessInput = document.getElementById("ocrUsePreprocess");
+const ocrScaleSelect = document.getElementById("ocrScale");
 const ocrCropInfo = document.getElementById("ocrCropInfo");
 const ocrBtn = document.getElementById("ocrBtn");
 const ocrStatus = document.getElementById("ocrStatus");
@@ -330,6 +332,63 @@ async function createCroppedOcrImage(file, crop) {
   });
 }
 
+async function preprocessOcrImage(imageBlobOrFile) {
+  const usePreprocess = ocrUsePreprocessInput
+    ? ocrUsePreprocessInput.checked
+    : true;
+
+  if (!usePreprocess) {
+    return imageBlobOrFile;
+  }
+
+  const scale = ocrScaleSelect ? Number(ocrScaleSelect.value) || 2 : 2;
+
+  const image = new Image();
+  const imageUrl = URL.createObjectURL(imageBlobOrFile);
+
+  await new Promise((resolve, reject) => {
+    image.onload = resolve;
+    image.onerror = reject;
+    image.src = imageUrl;
+  });
+
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+
+  canvas.width = image.naturalWidth * scale;
+  canvas.height = image.naturalHeight * scale;
+
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+
+  const contrast = 1.35;
+  const brightness = 8;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const gray =
+      0.299 * data[i] +
+      0.587 * data[i + 1] +
+      0.114 * data[i + 2];
+
+    let value = (gray - 128) * contrast + 128 + brightness;
+    value = Math.max(0, Math.min(255, value));
+
+    data[i] = value;
+    data[i + 1] = value;
+    data[i + 2] = value;
+  }
+
+  context.putImageData(imageData, 0, 0);
+
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => {
+      resolve(blob || imageBlobOrFile);
+    }, "image/png");
+  });
+}
+
 async function recognizeImageText() {
   if (!ocrImageInput || !ocrImageInput.files || ocrImageInput.files.length === 0) {
     alert("请先选择一张图片。");
@@ -346,7 +405,8 @@ async function recognizeImageText() {
     : "OCR 正在识别整张图片，请稍等。";
 
   try {
-    const imageForOcr = await createCroppedOcrImage(file, crop);
+    const croppedImage = await createCroppedOcrImage(file, crop);
+    const imageForOcr = await preprocessOcrImage(croppedImage);
 
     const result = await Tesseract.recognize(imageForOcr, "chi_sim+eng", {
       logger: (message) => {
@@ -1217,6 +1277,14 @@ function clearInputs() {
     ocrImagePreview.style.display = "none";
   }
 
+  if (ocrUsePreprocessInput) {
+    ocrUsePreprocessInput.checked = true; 
+  }
+
+  if (ocrScaleSelect) {
+    ocrScaleSelect.value = "2";
+  }
+
   if (ocrCropXInput) ocrCropXInput.value = "";
   if (ocrCropYInput) ocrCropYInput.value = "";
   if (ocrCropWidthInput) ocrCropWidthInput.value = "";
@@ -1891,7 +1959,9 @@ function saveToLocalStorage() {
     ocrCropX: ocrCropXInput ? ocrCropXInput.value : "",
     ocrCropY: ocrCropYInput ? ocrCropYInput.value : "",
     ocrCropWidth: ocrCropWidthInput ? ocrCropWidthInput.value : "",
-    ocrCropHeight: ocrCropHeightInput ? ocrCropHeightInput.value : ""
+    ocrCropHeight: ocrCropHeightInput ? ocrCropHeightInput.value : "",
+    ocrUsePreprocess: ocrUsePreprocessInput ? ocrUsePreprocessInput.checked : true,
+    ocrScale: ocrScaleSelect ? ocrScaleSelect.value : "2"
   };
 
   localStorage.setItem("floatingGuessAssistantData", JSON.stringify(data));
@@ -1932,6 +2002,15 @@ function loadFromLocalStorage() {
     if (ocrCropYInput) ocrCropYInput.value = data.ocrCropY || "";  
     if (ocrCropWidthInput) ocrCropWidthInput.value = data.ocrCropWidth || "";
     if (ocrCropHeightInput) ocrCropHeightInput.value = data.ocrCropHeight || "";
+
+    if (ocrUsePreprocessInput) {
+      ocrUsePreprocessInput.checked =
+        data.ocrUsePreprocess !== undefined ? data.ocrUsePreprocess : true;
+    }
+
+    if (ocrScaleSelect) {
+      ocrScaleSelect.value = data.ocrScale || "2";
+    }
 
     updateOcrCropInfo();
 
@@ -2068,6 +2147,14 @@ if (ocrPromptBtn) {
 
 if (ocrBackendAnalyzeBtn) {
   ocrBackendAnalyzeBtn.addEventListener("click", analyzeOcrWithBackend);
+}
+
+if (ocrUsePreprocessInput) {
+  ocrUsePreprocessInput.addEventListener("change", saveToLocalStorage);
+}
+
+if (ocrScaleSelect) {
+  ocrScaleSelect.addEventListener("change", saveToLocalStorage);
 }
 
 if (aiCardLimitSelect) {

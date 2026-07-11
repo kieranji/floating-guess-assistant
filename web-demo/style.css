@@ -624,3 +624,28 @@ li {
   font-size: 14px;
   font-weight: bold;
 }
+
+.ocr-preprocess-box {
+  margin-top: 12px;
+  padding: 12px;
+  background: #ffffff;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+}
+
+.ocr-preprocess-box h3 {
+  margin-top: 0;
+  font-size: 18px;
+  color: #166534;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: normal;
+}
+
+.checkbox-label input {
+  width: auto;
+}

@@ -62,6 +62,22 @@
           <p class="ocr-crop-help">
             不填则识别整张图片。填写后只识别指定区域。
           </p>
+
+          <div class="ocr-preprocess-box">
+            <h3>OCR 图片预处理</h3>
+
+            <label class="checkbox-label">
+              <input id="ocrUsePreprocess" type="checkbox" checked />
+              启用灰度 + 放大 + 对比度增强
+            </label>
+
+            <label for="ocrScale">放大倍数</label>
+            <select id="ocrScale">
+              <option value="1">1x</option>
+              <option value="2" selected>2x</option>
+              <option value="3">3x</option>
+            </select>
+          </div>
         </div>
 
         <button id="ocrBtn" type="button" class="ocr-button">
