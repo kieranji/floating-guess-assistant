@@ -25,7 +25,7 @@
         placeholder="例如：四字成语，和时间有关，形容时间过得很快"
       ></textarea>
 
-      <details class="section-details" open>
+      <details class="section-details" data-section="ocr" open>
         <summary>截图 OCR 识别</summary>
 
         <section class="ocr-box">
@@ -234,7 +234,7 @@
 
       </details>
 
-      <details class="section-details" open>
+      <details class="section-details" data-section="manual" open>
         <summary>手动输入 / 本地分析</summary>
 
         <label>添加历史猜测</label>
@@ -306,7 +306,7 @@
 
       </details>
 
-      <details class="section-details" open>
+      <details class="section-details" data-section="ai-actions" open>
       <summary>AI 操作 / Prompt</summary>
 
       <div class="extra-button-row">
@@ -341,8 +341,8 @@
       </button>
 
       </details>
-      
-      <details class="section-details" open>
+
+      <details class="section-details" data-section="ai-results" open>
         <summary>AI 分析结果</summary>
 
       <section class="ai-response-box">
@@ -376,7 +376,7 @@
 
       </details>
 
-      <details class="section-details">
+      <details class="section-details" data-section="import">
         <summary>导入导出 / Prompt</summary>
 
         <label for="importJson">导入 JSON</label>

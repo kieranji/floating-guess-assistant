@@ -2682,6 +2682,52 @@ function saveToLocalStorage() {
   updateSaveStatus(`已自动保存 ${timeText}`);
 }
 
+function saveSectionStates() {
+  const sections = document.querySelectorAll(".section-details");
+  const states = {};
+
+  sections.forEach((section) => {
+    const key = section.dataset.section;
+
+    if (key) {
+      states[key] = section.open;
+    }
+  });
+
+  localStorage.setItem("floatingGuessSectionStates", JSON.stringify(states));
+}
+
+function loadSectionStates() {
+  const saved = localStorage.getItem("floatingGuessSectionStates");
+
+  if (!saved) {
+    return;
+  }
+
+  try {
+    const states = JSON.parse(saved);
+    const sections = document.querySelectorAll(".section-details");
+
+    sections.forEach((section) => {
+      const key = section.dataset.section;
+
+      if (key && Object.prototype.hasOwnProperty.call(states, key)) {
+        section.open = states[key];
+      }
+    });
+  } catch (error) {
+    console.error("读取折叠区状态失败：", error);
+  }
+}
+
+function setupSectionStateSaving() {
+  const sections = document.querySelectorAll(".section-details");
+
+  sections.forEach((section) => {
+    section.addEventListener("toggle", saveSectionStates);
+  });
+}
+
 function loadFromLocalStorage() {
   const saved = localStorage.getItem("floatingGuessAssistantData");
 
@@ -3051,5 +3097,7 @@ autoSaveInputs.forEach((input) => {
   input.addEventListener("change", saveToLocalStorage);
 });
 
+loadSectionStates();
+setupSectionStateSaving();
 loadFromLocalStorage();
 loadWordBank();
