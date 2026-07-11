@@ -79,6 +79,99 @@ const ocrDebugReportInput = document.getElementById("ocrDebugReport");
 const downloadOcrReportBtn = document.getElementById("downloadOcrReportBtn");
 const BACKEND_URL = "https://effective-fishstick-v64pg6p565wghwg7v-3000.app.github.dev";
 
+function checkRequiredElements() {
+  const requiredElements = {
+    modeSelect,
+    cluesInput,
+    guessWordInput,
+    guessScoreInput,
+    guessHistoryInput,
+    customWordsInput,
+    candidateWordInput,
+    candidateKeywordsInput,
+    candidateReasonInput,
+    addGuessBtn,
+    addCandidateBtn,
+    exampleBtn,
+    clearBtn,
+    analyzeBtn,
+    copyBtn,
+    importBtn,
+    resultList,
+    saveStatus,
+    exportBtn,
+    aiResponseInput,
+    saveAiResponseBtn,
+    copyAiResponseBtn,
+    savedAiResponseBox,
+    aiCandidateCardsBox,
+    followupHistoryBox,
+    aiCardLimitSelect,
+    aiCardSearchInput,
+    importJsonInput,
+    promptBtn,
+    backendAnalyzeBtn,
+    aiPromptInput,
+    ocrImageInput,
+    ocrImagePreview,
+    ocrImageWrapper,
+    ocrSelectionBox,
+    ocrCropXInput,
+    ocrCropYInput,
+    ocrCropWidthInput,
+    ocrCropHeightInput,
+    clearOcrCropBtn,
+    ocrUsePreprocessInput,
+    ocrScaleSelect,
+    previewPreprocessBtn,
+    preprocessImagePreview,
+    ocrCropInfo,
+    cropFullBtn,
+    cropTopBtn,
+    cropBottomBtn,
+    cropLeftBtn,
+    cropRightBtn,
+    cropCenterBtn,
+    ocrBtn,
+    ocrStatus,
+    ocrResultInput,
+    useOcrTextBtn,
+    cleanOcrBtn,
+    ocrCluePreview,
+    ocrGuessPreview,
+    ocrNoisePreview,
+    ocrModePreview,
+    applyOcrParsedBtn,
+    ocrPromptBtn,
+    ocrBackendAnalyzeBtn,
+    autoOcrAnalyzeBtn,
+    ocrFlowLog,
+    ocrHintRegionBtn,
+    ocrGuessRegionBtn,
+    ocrHintTextInput,
+    ocrGuessTextInput,
+    mergeOcrRegionsBtn,
+    saveHintPresetBtn,
+    applyHintPresetBtn,
+    saveGuessPresetBtn,
+    applyGuessPresetBtn,
+    ocrRegionPresetInfo,
+    generateOcrReportBtn,
+    copyOcrReportBtn,
+    downloadOcrReportBtn,
+    ocrDebugReportInput
+  };
+
+  const missingElements = Object.entries(requiredElements)
+    .filter(([, element]) => !element)
+    .map(([name]) => name);
+
+  if (missingElements.length > 0) {
+    console.error("页面缺少这些元素：", missingElements);
+    alert(`页面缺少 ${missingElements.length} 个元素，请打开控制台查看详情。`);
+  }
+}
+
 let wordBank = [];
 let latestAiJson = null;
 let latestOcrParsed = null;
@@ -3119,7 +3212,9 @@ autoSaveInputs.forEach((input) => {
   input.addEventListener("change", saveToLocalStorage);
 });
 
+checkRequiredElements();
 loadSectionStates();
 setupSectionStateSaving();
+setupQuickNav();
 loadFromLocalStorage();
 loadWordBank();
