@@ -40,6 +40,8 @@ const ocrCropHeightInput = document.getElementById("ocrCropHeight");
 const clearOcrCropBtn = document.getElementById("clearOcrCropBtn");
 const ocrUsePreprocessInput = document.getElementById("ocrUsePreprocess");
 const ocrScaleSelect = document.getElementById("ocrScale");
+const previewPreprocessBtn = document.getElementById("previewPreprocessBtn");
+const preprocessImagePreview = document.getElementById("preprocessImagePreview");
 const ocrCropInfo = document.getElementById("ocrCropInfo");
 const ocrBtn = document.getElementById("ocrBtn");
 const ocrStatus = document.getElementById("ocrStatus");
@@ -387,6 +389,44 @@ async function preprocessOcrImage(imageBlobOrFile) {
       resolve(blob || imageBlobOrFile);
     }, "image/png");
   });
+}
+
+async function previewPreprocessedOcrImage() {
+  if (!ocrImageInput || !ocrImageInput.files || ocrImageInput.files.length === 0) {
+    alert("请先选择一张图片。");
+    return;
+  }
+
+  const file = ocrImageInput.files[0];
+  const crop = getOcrCropSettings();
+
+  if (previewPreprocessBtn) {
+    previewPreprocessBtn.disabled = true;
+    previewPreprocessBtn.textContent = "生成预览中...";
+  }
+
+  try {
+    const croppedImage = await createCroppedOcrImage(file, crop);
+    const processedImage = await preprocessOcrImage(croppedImage);
+    const previewUrl = URL.createObjectURL(processedImage);
+
+    if (preprocessImagePreview) {
+      preprocessImagePreview.src = previewUrl;
+      preprocessImagePreview.style.display = "block";
+    }
+
+    if (ocrStatus) {
+      ocrStatus.textContent = "预处理图片已生成，可对比后再 OCR。";
+    }
+  } catch (error) {
+    console.error(error);
+    alert("生成预处理图片失败。");
+  } finally {
+    if (previewPreprocessBtn) {
+      previewPreprocessBtn.disabled = false;
+      previewPreprocessBtn.textContent = "预览预处理图片";
+    }
+  }
 }
 
 async function recognizeImageText() {
@@ -1285,6 +1325,11 @@ function clearInputs() {
     ocrScaleSelect.value = "2";
   }
 
+  if (preprocessImagePreview) {
+    preprocessImagePreview.src = "";
+    preprocessImagePreview.style.display = "none";
+  }
+
   if (ocrCropXInput) ocrCropXInput.value = "";
   if (ocrCropYInput) ocrCropYInput.value = "";
   if (ocrCropWidthInput) ocrCropWidthInput.value = "";
@@ -2179,6 +2224,10 @@ if (ocrImageWrapper) {
   ocrImageWrapper.addEventListener("mousedown", startOcrAreaSelection);
   ocrImageWrapper.addEventListener("mousemove", updateOcrAreaSelection);
   window.addEventListener("mouseup", finishOcrAreaSelection);
+}
+
+if (previewPreprocessBtn) {
+  previewPreprocessBtn.addEventListener("click", previewPreprocessedOcrImage);
 }
 
 if (ocrImageWrapper) {
