@@ -66,6 +66,11 @@ const ocrGuessRegionBtn = document.getElementById("ocrGuessRegionBtn");
 const ocrHintTextInput = document.getElementById("ocrHintText");
 const ocrGuessTextInput = document.getElementById("ocrGuessText");
 const mergeOcrRegionsBtn = document.getElementById("mergeOcrRegionsBtn");
+const saveHintPresetBtn = document.getElementById("saveHintPresetBtn");
+const applyHintPresetBtn = document.getElementById("applyHintPresetBtn");
+const saveGuessPresetBtn = document.getElementById("saveGuessPresetBtn");
+const applyGuessPresetBtn = document.getElementById("applyGuessPresetBtn");
+const ocrRegionPresetInfo = document.getElementById("ocrRegionPresetInfo");
 const BACKEND_URL = "https://effective-fishstick-v64pg6p565wghwg7v-3000.app.github.dev";
 
 let wordBank = [];
@@ -74,6 +79,11 @@ let latestOcrParsed = null;
 let isSelectingOcrArea = false;
 let ocrSelectionStart = null;
 let followupHistory = [];
+
+let ocrRegionPresets = {
+  hint: null,
+  guess: null
+};
 
 async function loadWordBank() {
   try {
@@ -320,6 +330,75 @@ function applyOcrCropPreset(preset) {
   if (preset === "center") {
     setOcrCropValues(width * 0.15, height * 0.15, width * 0.7, height * 0.7);
   }
+}
+
+function getCurrentCropOrAlert() {
+  const crop = getOcrCropSettings();
+
+  if (!crop) {
+    alert("请先框选或填写一个 OCR 区域。");
+    return null;
+  }
+
+  return crop;
+}
+
+function saveOcrRegionPreset(type) {
+  const crop = getCurrentCropOrAlert();
+
+  if (!crop) {
+    return;
+  }
+
+  ocrRegionPresets[type] = {
+    x: crop.x,
+    y: crop.y,
+    width: crop.width,
+    height: crop.height
+  };
+
+  updateOcrRegionPresetInfo();
+  saveToLocalStorage();
+
+  const label = type === "hint" ? "提示区" : "猜测区";
+  alert(`已保存当前区域为${label}预设。`);
+}
+
+function applyOcrRegionPreset(type) {
+  const preset = ocrRegionPresets[type];
+
+  if (!preset) {
+    const label = type === "hint" ? "提示区" : "猜测区";
+    alert(`还没有保存${label}预设。`);
+    return;
+  }
+
+  setOcrCropValues(preset.x, preset.y, preset.width, preset.height);
+
+  const label = type === "hint" ? "提示区" : "猜测区";
+
+  if (ocrStatus) {
+    ocrStatus.textContent = `已应用${label}预设。`;
+  }
+}
+
+function updateOcrRegionPresetInfo() {
+  if (!ocrRegionPresetInfo) {
+    return;
+  }
+
+  const hint = ocrRegionPresets.hint;
+  const guess = ocrRegionPresets.guess;
+
+  const hintText = hint
+    ? `提示区：x=${hint.x}, y=${hint.y}, 宽=${hint.width}, 高=${hint.height}`
+    : "提示区：未保存";
+
+  const guessText = guess
+    ? `猜测区：x=${guess.x}, y=${guess.y}, 宽=${guess.width}, 高=${guess.height}`
+    : "猜测区：未保存";
+
+  ocrRegionPresetInfo.textContent = `${hintText}；${guessText}`;
 }
 
 function updateOcrSelectionBoxFromInputs() {
@@ -2188,6 +2267,7 @@ function saveToLocalStorage() {
     savedAiResponse: savedAiResponseBox.innerText,
     latestAiJson,
     followupHistory,
+    ocrRegionPresets,
     aiCardSearch: aiCardSearchInput ? aiCardSearchInput.value : "",
     aiCardLimit: aiCardLimitSelect ? aiCardLimitSelect.value : "5",
     importJson: importJsonInput.value,
@@ -2214,6 +2294,11 @@ function loadFromLocalStorage() {
 
   if (!saved) {
     return;
+  }
+
+  if (data.ocrRegionPresets) {
+    ocrRegionPresets = data.ocrRegionPresets;
+    updateOcrRegionPresetInfo();
   }
 
   try {
@@ -2468,6 +2553,22 @@ if (ocrGuessRegionBtn) {
 
 if (mergeOcrRegionsBtn) {
   mergeOcrRegionsBtn.addEventListener("click", mergeOcrRegions);
+}
+
+if (saveHintPresetBtn) {
+  saveHintPresetBtn.addEventListener("click", () => saveOcrRegionPreset("hint"));
+}
+
+if (applyHintPresetBtn) {
+  applyHintPresetBtn.addEventListener("click", () => applyOcrRegionPreset("hint"));
+}
+
+if (saveGuessPresetBtn) {
+  saveGuessPresetBtn.addEventListener("click", () => saveOcrRegionPreset("guess"));
+}
+
+if (applyGuessPresetBtn) {
+  applyGuessPresetBtn.addEventListener("click", () => applyOcrRegionPreset("guess"));
 }
 
 if (ocrImageWrapper) {

@@ -61,6 +61,21 @@
             </div>
           </div>
 
+          <div class="ocr-region-preset-box">
+            <h4>直播布局区域预设</h4>
+
+            <div class="ocr-region-preset-grid">
+              <button id="saveHintPresetBtn" type="button">保存当前为提示区</button>
+              <button id="applyHintPresetBtn" type="button">应用提示区预设</button>
+              <button id="saveGuessPresetBtn" type="button">保存当前为猜测区</button>
+              <button id="applyGuessPresetBtn" type="button">应用猜测区预设</button>
+            </div>
+
+            <p id="ocrRegionPresetInfo" class="ocr-region-preset-info">
+              暂无区域预设。
+            </p>
+          </div>
+
           <div class="ocr-crop-grid">
             <input id="ocrCropX" type="number" min="0" placeholder="x，例如 0" />
             <input id="ocrCropY" type="number" min="0" placeholder="y，例如 200" />

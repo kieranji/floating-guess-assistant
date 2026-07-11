@@ -732,3 +732,36 @@ li {
   margin-top: 12px;
   background: #7c3aed;
 }
+
+.ocr-region-preset-box {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.ocr-region-preset-box h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #166534;
+  font-size: 15px;
+}
+
+.ocr-region-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.ocr-region-preset-grid button {
+  padding: 10px;
+  background: #047857;
+  font-size: 14px;
+}
+
+.ocr-region-preset-info {
+  margin-bottom: 0;
+  color: #166534;
+  font-size: 13px;
+  line-height: 1.5;
+}
