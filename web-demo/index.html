@@ -101,9 +101,19 @@
             </div>
           </div>
 
-        <button id="ocrBtn" type="button" class="ocr-button">
-          识别图片文字
-        </button>
+        <div class="ocr-action-grid">
+          <button id="ocrBtn" type="button" class="ocr-button">
+            识别当前区域
+          </button>
+
+          <button id="ocrHintRegionBtn" type="button" class="ocr-region-button">
+            识别为提示区
+          </button>
+
+          <button id="ocrGuessRegionBtn" type="button" class="ocr-region-button">
+            识别为猜测区
+          </button>
+        </div>
 
         <p id="ocrStatus" class="ocr-status">尚未识别图片。</p>
 
@@ -112,6 +122,22 @@
           id="ocrResult"
           placeholder="识别出的文字会显示在这里"
         ></textarea>
+
+        <label for="ocrHintText">提示区 OCR 文本</label>
+        <textarea
+          id="ocrHintText"
+          placeholder="提示区识别结果会显示在这里"
+        ></textarea>
+
+        <label for="ocrGuessText">猜测区 OCR 文本</label>
+        <textarea
+          id="ocrGuessText"
+          placeholder="猜测列表识别结果会显示在这里"
+        ></textarea>
+
+        <button id="mergeOcrRegionsBtn" type="button" class="merge-ocr-button">
+          合并提示区和猜测区
+        </button>
 
         <button id="useOcrTextBtn" type="button" class="use-ocr-button">
           填入线索

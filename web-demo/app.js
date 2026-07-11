@@ -61,6 +61,11 @@ const ocrModePreview = document.getElementById("ocrModePreview");
 const applyOcrParsedBtn = document.getElementById("applyOcrParsedBtn");
 const ocrPromptBtn = document.getElementById("ocrPromptBtn");
 const ocrBackendAnalyzeBtn = document.getElementById("ocrBackendAnalyzeBtn");
+const ocrHintRegionBtn = document.getElementById("ocrHintRegionBtn");
+const ocrGuessRegionBtn = document.getElementById("ocrGuessRegionBtn");
+const ocrHintTextInput = document.getElementById("ocrHintText");
+const ocrGuessTextInput = document.getElementById("ocrGuessText");
+const mergeOcrRegionsBtn = document.getElementById("mergeOcrRegionsBtn");
 const BACKEND_URL = "https://effective-fishstick-v64pg6p565wghwg7v-3000.app.github.dev";
 
 let wordBank = [];
@@ -535,50 +540,121 @@ async function previewPreprocessedOcrImage() {
   }
 }
 
-async function recognizeImageText() {
+async function runOcrOnCurrentImage() {
   if (!ocrImageInput || !ocrImageInput.files || ocrImageInput.files.length === 0) {
-    alert("请先选择一张图片。");
-    return;
+    throw new Error("请先选择一张图片。");
   }
 
   const file = ocrImageInput.files[0];
   const crop = getOcrCropSettings();
 
+  const croppedImage = await createCroppedOcrImage(file, crop);
+  const imageForOcr = await preprocessOcrImage(croppedImage);
+
+  const result = await Tesseract.recognize(imageForOcr, "chi_sim+eng", {
+    logger: (message) => {
+      if (message.status === "recognizing text") {
+        const progress = Math.round(message.progress * 100);
+        if (ocrStatus) {
+          ocrStatus.textContent = `正在识别文字：${progress}%`;
+        }
+      } else if (ocrStatus) {
+        ocrStatus.textContent = `OCR 状态：${message.status}`;
+      }
+    }
+  });
+
+  return result.data.text.trim();
+}
+
+async function recognizeImageText() {
+  if (!ocrBtn) {
+    return;
+  }
+
   ocrBtn.disabled = true;
   ocrBtn.textContent = "识别中...";
-  ocrStatus.textContent = crop
-    ? "OCR 正在识别裁剪区域，请稍等。"
-    : "OCR 正在识别整张图片，请稍等。";
+
+  if (ocrStatus) {
+    ocrStatus.textContent = "OCR 正在识别当前区域，请稍等。";
+  }
 
   try {
-    const croppedImage = await createCroppedOcrImage(file, crop);
-    const imageForOcr = await preprocessOcrImage(croppedImage);
+    const text = await runOcrOnCurrentImage();
 
-    const result = await Tesseract.recognize(imageForOcr, "chi_sim+eng", {
-      logger: (message) => {
-        if (message.status === "recognizing text") {
-          const progress = Math.round(message.progress * 100);
-          ocrStatus.textContent = `正在识别文字：${progress}%`;
-        } else {
-          ocrStatus.textContent = `OCR 状态：${message.status}`;
-        }
-      }
-    });
+    if (ocrResultInput) {
+      ocrResultInput.value = text || "没有识别到文字。";
+    }
 
-    const text = result.data.text.trim();
-
-    ocrResultInput.value = text || "没有识别到文字。";
-    ocrStatus.textContent = "OCR 识别完成。";
+    if (ocrStatus) {
+      ocrStatus.textContent = "OCR 识别完成。";
+    }
 
     saveToLocalStorage();
   } catch (error) {
     console.error(error);
-    ocrStatus.textContent = "OCR 识别失败。";
-    alert("OCR 识别失败，请换一张更清晰的图片。");
+    if (ocrStatus) {
+      ocrStatus.textContent = "OCR 识别失败。";
+    }
+    alert(error.message || "OCR 识别失败，请换一张更清晰的图片。");
   } finally {
     ocrBtn.disabled = false;
-    ocrBtn.textContent = "识别图片文字";
+    ocrBtn.textContent = "识别当前区域";
   }
+}
+
+async function recognizeOcrRegion(target) {
+  const button = target === "hint" ? ocrHintRegionBtn : ocrGuessRegionBtn;
+  const output = target === "hint" ? ocrHintTextInput : ocrGuessTextInput;
+  const label = target === "hint" ? "提示区" : "猜测区";
+
+  if (!button || !output) {
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = `${label}识别中...`;
+
+  if (ocrStatus) {
+    ocrStatus.textContent = `正在识别${label}。`;
+  }
+
+  try {
+    const text = await runOcrOnCurrentImage();
+
+    output.value = text || "没有识别到文字。";
+
+    if (ocrStatus) {
+      ocrStatus.textContent = `${label} OCR 识别完成。`;
+    }
+
+    saveToLocalStorage();
+  } catch (error) {
+    console.error(error);
+    alert(`${label} OCR 失败：${error.message || "未知错误"}`);
+  } finally {
+    button.disabled = false;
+    button.textContent = target === "hint" ? "识别为提示区" : "识别为猜测区";
+  }
+}
+
+function mergeOcrRegions() {
+  const hintText = ocrHintTextInput ? ocrHintTextInput.value.trim() : "";
+  const guessText = ocrGuessTextInput ? ocrGuessTextInput.value.trim() : "";
+
+  if (!hintText && !guessText) {
+    alert("提示区和猜测区都没有内容。");
+    return;
+  }
+
+  const mergedText = [hintText, guessText].filter(Boolean).join("\n");
+
+  if (ocrResultInput) {
+    ocrResultInput.value = mergedText;
+  }
+
+  saveToLocalStorage();
+  alert("已合并提示区和猜测区 OCR 文本。现在可以点击“清洗 OCR 文本”。");
 }
 
 function useOcrTextAsClues() {
@@ -1436,6 +1512,14 @@ function clearInputs() {
     preprocessImagePreview.style.display = "none";
   }
 
+  if (ocrHintTextInput) {
+    ocrHintTextInput.value = "";
+  }
+
+  if (ocrGuessTextInput) {
+    ocrGuessTextInput.value = "";
+  }
+
   if (ocrCropXInput) ocrCropXInput.value = "";
   if (ocrCropYInput) ocrCropYInput.value = "";
   if (ocrCropWidthInput) ocrCropWidthInput.value = "";
@@ -2112,7 +2196,9 @@ function saveToLocalStorage() {
     ocrCropWidth: ocrCropWidthInput ? ocrCropWidthInput.value : "",
     ocrCropHeight: ocrCropHeightInput ? ocrCropHeightInput.value : "",
     ocrUsePreprocess: ocrUsePreprocessInput ? ocrUsePreprocessInput.checked : true,
-    ocrScale: ocrScaleSelect ? ocrScaleSelect.value : "2"
+    ocrScale: ocrScaleSelect ? ocrScaleSelect.value : "2",
+    ocrHintText: ocrHintTextInput ? ocrHintTextInput.value : "",
+    ocrGuessText: ocrGuessTextInput ? ocrGuessTextInput.value : ""
   };
 
   localStorage.setItem("floatingGuessAssistantData", JSON.stringify(data));
@@ -2187,6 +2273,14 @@ function loadFromLocalStorage() {
     if (Array.isArray(data.followupHistory)) {
       followupHistory = data.followupHistory;
       renderFollowupHistory();
+    }
+
+    if (ocrHintTextInput) {
+      ocrHintTextInput.value = data.ocrHintText || "";
+    }
+
+    if (ocrGuessTextInput) {
+      ocrGuessTextInput.value = data.ocrGuessText || "";
     }
 
     importJsonInput.value = data.importJson || "";
@@ -2364,6 +2458,18 @@ if (cropCenterBtn) {
   cropCenterBtn.addEventListener("click", () => applyOcrCropPreset("center"));
 }
 
+if (ocrHintRegionBtn) {
+  ocrHintRegionBtn.addEventListener("click", () => recognizeOcrRegion("hint"));
+}
+
+if (ocrGuessRegionBtn) {
+  ocrGuessRegionBtn.addEventListener("click", () => recognizeOcrRegion("guess"));
+}
+
+if (mergeOcrRegionsBtn) {
+  mergeOcrRegionsBtn.addEventListener("click", mergeOcrRegions);
+}
+
 if (ocrImageWrapper) {
   ocrImageWrapper.addEventListener("touchstart", (event) => {
     startOcrAreaSelection(event.touches[0]);
@@ -2417,6 +2523,8 @@ const autoSaveInputs = [
   ocrCropYInput,
   ocrCropWidthInput,
   ocrCropHeightInput,
+  ocrHintTextInput,
+  ocrGuessTextInput,
   importJsonInput
 ];
 
