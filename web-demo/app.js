@@ -1,3 +1,5 @@
+import { saveJson, loadJson, removeItem } from "./js/storage.js";
+
 const modeSelect = document.getElementById("mode");
 const cluesInput = document.getElementById("clues");
 const guessWordInput = document.getElementById("guessWord");
@@ -2011,7 +2013,7 @@ function clearInputs() {
   followupHistory = [];
   renderFollowupHistory();
 
-  localStorage.removeItem("floatingGuessAssistantData");
+  removeItem("floatingGuessAssistantData");
 
   updateSaveStatus("已清空本地保存");
 
@@ -2763,7 +2765,7 @@ function saveToLocalStorage() {
     ocrGuessText: ocrGuessTextInput ? ocrGuessTextInput.value : ""
   };
 
-  localStorage.setItem("floatingGuessAssistantData", JSON.stringify(data));
+  saveJson("floatingGuessAssistantData", data);
 
   const now = new Date();
   const timeText = now.toLocaleTimeString();
@@ -2783,18 +2785,17 @@ function saveSectionStates() {
     }
   });
 
-  localStorage.setItem("floatingGuessSectionStates", JSON.stringify(states));
+  saveJson("floatingGuessSectionStates", states);
 }
 
 function loadSectionStates() {
-  const saved = localStorage.getItem("floatingGuessSectionStates");
+  const states = loadJson("floatingGuessSectionStates", null);
 
-  if (!saved) {
+  if (!states) {
     return;
   }
 
   try {
-    const states = JSON.parse(saved);
     const sections = document.querySelectorAll(".section-details");
 
     sections.forEach((section) => {
@@ -2844,9 +2845,9 @@ function setupQuickNav() {
 }
 
 function loadFromLocalStorage() {
-  const saved = localStorage.getItem("floatingGuessAssistantData");
+  const data = localStorage.getItem("floatingGuessAssistantData");
 
-  if (!saved) {
+  if (!data) {
     return;
   }
 
