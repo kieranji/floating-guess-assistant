@@ -33,6 +33,10 @@ import {
   renderLocalResults,
   renderOcrPreview
 } from "./js/render.js";
+import {
+  buildOcrDebugReport,
+  createTextDownload
+} from "./js/ocrReport.js";
 
 const modeSelect = document.getElementById("mode");
 const cluesInput = document.getElementById("clues");
@@ -1177,64 +1181,19 @@ async function runAutoOcrAnalyze() {
 }
 
 function generateOcrDebugReport() {
-  const hintText = ocrHintTextInput ? ocrHintTextInput.value.trim() : "";
-  const guessText = ocrGuessTextInput ? ocrGuessTextInput.value.trim() : "";
-  const mergedText = ocrResultInput ? ocrResultInput.value.trim() : "";
-  const cluePreview = ocrCluePreview ? ocrCluePreview.value.trim() : "";
-  const guessPreview = ocrGuessPreview ? ocrGuessPreview.value.trim() : "";
-  const noisePreview = ocrNoisePreview ? ocrNoisePreview.textContent.trim() : "";
-  const flowLog = ocrFlowLog ? ocrFlowLog.textContent.trim() : "";
-  const aiPrompt = aiPromptInput ? aiPromptInput.value.trim() : "";
-  const aiResponse = aiResponseInput ? aiResponseInput.value.trim() : "";
-  const cropInfo = ocrCropInfo ? ocrCropInfo.textContent.trim() : "";
-  const modeText = modeSelect ? modeSelect.value : "";
-
-  const report = `# OCR Debug Report
-
-## Mode
-
-${modeText || "N/A"}
-
-## Crop Info
-
-${cropInfo || "N/A"}
-
-## OCR Flow Log
-
-${flowLog || "N/A"}
-
-## Hint Region OCR Text
-
-${hintText || "N/A"}
-
-## Guess Region OCR Text
-
-${guessText || "N/A"}
-
-## Merged OCR Text
-
-${mergedText || "N/A"}
-
-## Parsed Clues
-
-${cluePreview || "N/A"}
-
-## Parsed Guesses
-
-${guessPreview || "N/A"}
-
-## Filtered Noise
-
-${noisePreview || "N/A"}
-
-## AI Prompt
-
-${aiPrompt || "N/A"}
-
-## AI Response
-
-${aiResponse || "N/A"}
-`;
+  const report = buildOcrDebugReport({
+    mode: modeSelect ? modeSelect.value : "",
+    cropInfo: ocrCropInfo ? ocrCropInfo.textContent.trim() : "",
+    flowLog: ocrFlowLog ? ocrFlowLog.textContent.trim() : "",
+    hintText: ocrHintTextInput ? ocrHintTextInput.value.trim() : "",
+    guessText: ocrGuessTextInput ? ocrGuessTextInput.value.trim() : "",
+    mergedText: ocrResultInput ? ocrResultInput.value.trim() : "",
+    cluePreview: ocrCluePreview ? ocrCluePreview.value.trim() : "",
+    guessPreview: ocrGuessPreview ? ocrGuessPreview.value.trim() : "",
+    noisePreview: ocrNoisePreview ? ocrNoisePreview.textContent.trim() : "",
+    aiPrompt: aiPromptInput ? aiPromptInput.value.trim() : "",
+    aiResponse: aiResponseInput ? aiResponseInput.value.trim() : ""
+  });
 
   if (ocrDebugReportInput) {
     ocrDebugReportInput.value = report;
@@ -1282,24 +1241,10 @@ function downloadOcrDebugReport() {
     return;
   }
 
-  const now = new Date();
-  const dateText = now.toISOString().slice(0, 19).replace(/[:T]/g, "-");
-  const filename = `ocr-debug-report-${dateText}.txt`;
-
-  const blob = new Blob([text], {
-    type: "text/plain;charset=utf-8"
+  createTextDownload({
+    text,
+    filenamePrefix: "ocr-debug-report"
   });
-
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
 
   alert("OCR 调试报告已开始下载。");
 }
