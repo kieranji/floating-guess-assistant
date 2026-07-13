@@ -27,7 +27,10 @@ import {
   updateText,
   checkElements
 } from "./js/ui.js";
-import { renderAiCandidateCards } from "./js/render.js";
+import {
+  renderAiCandidateCards,
+  renderFollowupHistoryList
+} from "./js/render.js";
 
 const modeSelect = document.getElementById("mode");
 const cluesInput = document.getElementById("clues");
@@ -1756,43 +1759,10 @@ function renderAiCards(aiJson) {
 }
 
 function renderFollowupHistory() {
-  if (!followupHistoryBox) {
-    return;
-  }
-
-  followupHistoryBox.innerHTML = "";
-
-  if (followupHistory.length === 0) {
-    followupHistoryBox.innerText = "暂无追问历史。";
-    return;
-  }
-
-  followupHistory.forEach((item, index) => {
-    const box = document.createElement("div");
-    box.className = "followup-history-item";
-
-    box.innerHTML = `
-      <div class="followup-history-header">
-        <div>
-          <strong>${index + 1}. ${item.word}</strong>
-          <span>${item.time}</span>
-        </div>
-
-        <button type="button" class="delete-followup-btn">
-          删除
-        </button>
-      </div>
-
-      <p>${item.response}</p>
-    `;
-
-    const deleteButton = box.querySelector(".delete-followup-btn");
-
-    deleteButton.addEventListener("click", () => {
-      deleteFollowupHistoryItem(index);
-    });
-
-    followupHistoryBox.appendChild(box);
+  renderFollowupHistoryList({
+    container: followupHistoryBox,
+    followupHistory,
+    onDelete: deleteFollowupHistoryItem
   });
 }
 

@@ -136,3 +136,48 @@ export function renderAiCandidateCards({
     container.appendChild(uncertaintyBox);
   }
 }
+
+export function renderFollowupHistoryList({
+  container,
+  followupHistory,
+  onDelete
+}) {
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = "";
+
+  if (!Array.isArray(followupHistory) || followupHistory.length === 0) {
+    container.innerText = "暂无追问历史。";
+    return;
+  }
+
+  followupHistory.forEach((item, index) => {
+    const box = document.createElement("div");
+    box.className = "followup-history-item";
+
+    box.innerHTML = `
+      <div class="followup-history-header">
+        <div>
+          <strong>${index + 1}. ${item.word}</strong>
+          <span>${item.time}</span>
+        </div>
+
+        <button type="button" class="delete-followup-btn">
+          删除
+        </button>
+      </div>
+
+      <p>${item.response}</p>
+    `;
+
+    const deleteButton = box.querySelector(".delete-followup-btn");
+
+    deleteButton.addEventListener("click", () => {
+      onDelete?.(index);
+    });
+
+    container.appendChild(box);
+  });
+}
