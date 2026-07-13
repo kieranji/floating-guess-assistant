@@ -2117,217 +2117,221 @@ function importCurrentData() {
   }
 }
 
-addGuessBtn.addEventListener("click", addGuess);
-addCandidateBtn.addEventListener("click", addCandidate);
-exampleBtn.addEventListener("click", fillExample);
-clearBtn.addEventListener("click", clearInputs);
-analyzeBtn.addEventListener("click", analyzeClues);
-copyBtn.addEventListener("click", copyResults);
-exportBtn.addEventListener("click", exportCurrentData);
-promptBtn.addEventListener("click", generateAiPrompt);
-backendAnalyzeBtn.addEventListener("click", analyzeWithBackend);
-saveAiResponseBtn.addEventListener("click", saveAiResponse);
-importBtn.addEventListener("click", importCurrentData);
+function setupEventListeners() {
+  addGuessBtn.addEventListener("click", addGuess);
+  addCandidateBtn.addEventListener("click", addCandidate);
+  exampleBtn.addEventListener("click", fillExample);
+  clearBtn.addEventListener("click", clearInputs);
+  analyzeBtn.addEventListener("click", analyzeClues);
+  copyBtn.addEventListener("click", copyResults);
+  exportBtn.addEventListener("click", exportCurrentData);
+  promptBtn.addEventListener("click", generateAiPrompt);
+  backendAnalyzeBtn.addEventListener("click", analyzeWithBackend);
+  saveAiResponseBtn.addEventListener("click", saveAiResponse);
+  importBtn.addEventListener("click", importCurrentData);
 
-if (ocrImageInput) {
-  ocrImageInput.addEventListener("change", previewOcrImage);
-}
+  if (ocrImageInput) {
+    ocrImageInput.addEventListener("change", previewOcrImage);
+  }
 
-if (ocrBtn) {
-  ocrBtn.addEventListener("click", recognizeImageText);
-}
+  if (ocrBtn) {
+    ocrBtn.addEventListener("click", recognizeImageText);
+  }
 
-if (useOcrTextBtn) {
-  useOcrTextBtn.addEventListener("click", useOcrTextAsClues);
-}
+  if (useOcrTextBtn) {
+    useOcrTextBtn.addEventListener("click", useOcrTextAsClues);
+  }
 
-if (cleanOcrBtn) {
-  cleanOcrBtn.addEventListener("click", cleanOcrText);
-}
+  if (cleanOcrBtn) {
+    cleanOcrBtn.addEventListener("click", cleanOcrText);
+  }
 
-if (applyOcrParsedBtn) {
-  applyOcrParsedBtn.addEventListener("click", applyOcrParsedResult);
-}
+  if (applyOcrParsedBtn) {
+    applyOcrParsedBtn.addEventListener("click", applyOcrParsedResult);
+  }
 
-if (ocrPromptBtn) {
-  ocrPromptBtn.addEventListener("click", generateOcrLivePrompt);
-}
+  if (ocrPromptBtn) {
+    ocrPromptBtn.addEventListener("click", generateOcrLivePrompt);
+  }
 
-if (ocrBackendAnalyzeBtn) {
-  ocrBackendAnalyzeBtn.addEventListener("click", analyzeOcrWithBackend);
-}
+  if (ocrBackendAnalyzeBtn) {
+    ocrBackendAnalyzeBtn.addEventListener("click", analyzeOcrWithBackend);
+  }
 
-if (ocrUsePreprocessInput) {
-  ocrUsePreprocessInput.addEventListener("change", saveToLocalStorage);
-}
+  if (ocrUsePreprocessInput) {
+    ocrUsePreprocessInput.addEventListener("change", saveToLocalStorage);
+  }
 
-if (ocrScaleSelect) {
-  ocrScaleSelect.addEventListener("change", saveToLocalStorage);
-}
+  if (ocrScaleSelect) {
+    ocrScaleSelect.addEventListener("change", saveToLocalStorage);
+  }
 
-if (aiCardLimitSelect) {
-  aiCardLimitSelect.addEventListener("change", () => {
-    renderAiCards(latestAiJson);
-    saveToLocalStorage();
-  });
-}
+  if (aiCardLimitSelect) {
+    aiCardLimitSelect.addEventListener("change", () => {
+      renderAiCards(latestAiJson);
+      saveToLocalStorage();
+    });
+  }
 
-if (aiCardSearchInput) {
-  aiCardSearchInput.addEventListener("input", () => {
-    renderAiCards(latestAiJson);
-    saveToLocalStorage();
-  });
-}
+  if (aiCardSearchInput) {
+    aiCardSearchInput.addEventListener("input", () => {
+      renderAiCards(latestAiJson);
+      saveToLocalStorage();
+    });
+  }
 
-if (clearOcrCropBtn) {
-  clearOcrCropBtn.addEventListener("click", clearOcrCropSettings);
-}
+  if (clearOcrCropBtn) {
+    clearOcrCropBtn.addEventListener("click", clearOcrCropSettings);
+  }
 
-if (ocrImageWrapper) {
-  ocrImageWrapper.addEventListener("mousedown", startOcrAreaSelection);
-  ocrImageWrapper.addEventListener("mousemove", updateOcrAreaSelection);
-  window.addEventListener("mouseup", finishOcrAreaSelection);
-}
+  if (ocrImageWrapper) {
+    ocrImageWrapper.addEventListener("mousedown", startOcrAreaSelection);
+    ocrImageWrapper.addEventListener("mousemove", updateOcrAreaSelection);
+    window.addEventListener("mouseup", finishOcrAreaSelection);
+  }
 
-if (previewPreprocessBtn) {
-  previewPreprocessBtn.addEventListener("click", previewPreprocessedOcrImage);
-}
+  if (previewPreprocessBtn) {
+    previewPreprocessBtn.addEventListener("click", previewPreprocessedOcrImage);
+  }
 
-if (cropFullBtn) {
-  cropFullBtn.addEventListener("click", () => applyOcrCropPreset("full"));
-}
+  if (cropFullBtn) {
+    cropFullBtn.addEventListener("click", () => applyOcrCropPreset("full"));
+  }
 
-if (cropTopBtn) {
-  cropTopBtn.addEventListener("click", () => applyOcrCropPreset("top"));
-}
+  if (cropTopBtn) {
+    cropTopBtn.addEventListener("click", () => applyOcrCropPreset("top"));
+  }
 
-if (cropBottomBtn) {
-  cropBottomBtn.addEventListener("click", () => applyOcrCropPreset("bottom"));
-}
+  if (cropBottomBtn) {
+    cropBottomBtn.addEventListener("click", () => applyOcrCropPreset("bottom"));
+  }
 
-if (cropLeftBtn) {
-  cropLeftBtn.addEventListener("click", () => applyOcrCropPreset("left"));
-}
+  if (cropLeftBtn) {
+    cropLeftBtn.addEventListener("click", () => applyOcrCropPreset("left"));
+  }
 
-if (cropRightBtn) {
-  cropRightBtn.addEventListener("click", () => applyOcrCropPreset("right"));
-}
+  if (cropRightBtn) {
+    cropRightBtn.addEventListener("click", () => applyOcrCropPreset("right"));
+  }
 
-if (cropCenterBtn) {
-  cropCenterBtn.addEventListener("click", () => applyOcrCropPreset("center"));
-}
+  if (cropCenterBtn) {
+    cropCenterBtn.addEventListener("click", () => applyOcrCropPreset("center"));
+  }
 
-if (ocrHintRegionBtn) {
-  ocrHintRegionBtn.addEventListener("click", () => recognizeOcrRegion("hint"));
-}
+  if (ocrHintRegionBtn) {
+    ocrHintRegionBtn.addEventListener("click", () => recognizeOcrRegion("hint"));
+  }
 
-if (ocrGuessRegionBtn) {
-  ocrGuessRegionBtn.addEventListener("click", () => recognizeOcrRegion("guess"));
-}
+  if (ocrGuessRegionBtn) {
+    ocrGuessRegionBtn.addEventListener("click", () => recognizeOcrRegion("guess"));
+  }
 
-if (mergeOcrRegionsBtn) {
-  mergeOcrRegionsBtn.addEventListener("click", mergeOcrRegions);
-}
+  if (mergeOcrRegionsBtn) {
+    mergeOcrRegionsBtn.addEventListener("click", mergeOcrRegions);
+  }
 
-if (saveHintPresetBtn) {
-  saveHintPresetBtn.addEventListener("click", () => saveOcrRegionPreset("hint"));
-}
+  if (saveHintPresetBtn) {
+    saveHintPresetBtn.addEventListener("click", () => saveOcrRegionPreset("hint"));
+  }
 
-if (applyHintPresetBtn) {
-  applyHintPresetBtn.addEventListener("click", () => applyOcrRegionPreset("hint"));
-}
+  if (applyHintPresetBtn) {
+    applyHintPresetBtn.addEventListener("click", () => applyOcrRegionPreset("hint"));
+  }
 
-if (saveGuessPresetBtn) {
-  saveGuessPresetBtn.addEventListener("click", () => saveOcrRegionPreset("guess"));
-}
+  if (saveGuessPresetBtn) {
+    saveGuessPresetBtn.addEventListener("click", () => saveOcrRegionPreset("guess"));
+  }
 
-if (applyGuessPresetBtn) {
-  applyGuessPresetBtn.addEventListener("click", () => applyOcrRegionPreset("guess"));
-}
+  if (applyGuessPresetBtn) {
+    applyGuessPresetBtn.addEventListener("click", () => applyOcrRegionPreset("guess"));
+  }
 
-if (autoOcrAnalyzeBtn) {
-  autoOcrAnalyzeBtn.addEventListener("click", runAutoOcrAnalyze);
-}
+  if (autoOcrAnalyzeBtn) {
+    autoOcrAnalyzeBtn.addEventListener("click", runAutoOcrAnalyze);
+  }
 
-if (generateOcrReportBtn) {
-  generateOcrReportBtn.addEventListener("click", generateOcrDebugReport);
-}
+  if (generateOcrReportBtn) {
+    generateOcrReportBtn.addEventListener("click", generateOcrDebugReport);
+  }
 
-if (copyOcrReportBtn) {
-  copyOcrReportBtn.addEventListener("click", copyOcrDebugReport);
-}
+  if (copyOcrReportBtn) {
+    copyOcrReportBtn.addEventListener("click", copyOcrDebugReport);
+  }
 
-if (downloadOcrReportBtn) {
-  downloadOcrReportBtn.addEventListener("click", downloadOcrDebugReport);
-}
+  if (downloadOcrReportBtn) {
+    downloadOcrReportBtn.addEventListener("click", downloadOcrDebugReport);
+  }
 
-if (ocrImageWrapper) {
-  ocrImageWrapper.addEventListener("touchstart", (event) => {
-    startOcrAreaSelection(event.touches[0]);
-  });
+  if (ocrImageWrapper) {
+    ocrImageWrapper.addEventListener("touchstart", (event) => {
+      startOcrAreaSelection(event.touches[0]);
+    });
 
-  ocrImageWrapper.addEventListener("touchmove", (event) => {
-    event.preventDefault();
-    updateOcrAreaSelection(event.touches[0]);
-  });
+    ocrImageWrapper.addEventListener("touchmove", (event) => {
+      event.preventDefault();
+      updateOcrAreaSelection(event.touches[0]);
+    });
 
-  ocrImageWrapper.addEventListener("touchend", (event) => {
-    if (event.changedTouches.length > 0) {
-      finishOcrAreaSelection(event.changedTouches[0]);
+    ocrImageWrapper.addEventListener("touchend", (event) => {
+      if (event.changedTouches.length > 0) {
+        finishOcrAreaSelection(event.changedTouches[0]);
+      }
+    });
+  }
+
+  [
+    ocrCropXInput,
+    ocrCropYInput,
+    ocrCropWidthInput,
+    ocrCropHeightInput
+  ].forEach((input) => {
+    if (!input) {
+      return;
     }
+
+    input.addEventListener("input", () => {
+      updateOcrCropInfo();
+      updateOcrSelectionBoxFromInputs();
+      saveToLocalStorage();
+    });
+  });
+
+  copyAiResponseBtn.addEventListener("click", copyAiResponse);
+
+  const autoSaveInputs = [
+    modeSelect,
+    cluesInput,
+    guessWordInput,
+    guessScoreInput,
+    guessHistoryInput,
+    candidateWordInput,
+    candidateKeywordsInput,
+    candidateReasonInput,
+    customWordsInput,
+    aiPromptInput,
+    aiResponseInput,
+    ocrResultInput,
+    ocrCropXInput,
+    ocrCropYInput,
+    ocrCropWidthInput,
+    ocrCropHeightInput,
+    ocrHintTextInput,
+    ocrGuessTextInput,
+    importJsonInput
+  ];
+
+  autoSaveInputs.forEach((input) => {
+    if (!input) {
+      return;
+    }
+
+    input.addEventListener("input", saveToLocalStorage);
+    input.addEventListener("change", saveToLocalStorage);
   });
 }
 
-[
-  ocrCropXInput,
-  ocrCropYInput,
-  ocrCropWidthInput,
-  ocrCropHeightInput
-].forEach((input) => {
-  if (!input) {
-    return;
-  }
-
-  input.addEventListener("input", () => {
-    updateOcrCropInfo();
-    updateOcrSelectionBoxFromInputs();
-    saveToLocalStorage();
-  });
-});
-
-copyAiResponseBtn.addEventListener("click", copyAiResponse);
-
-const autoSaveInputs = [
-  modeSelect,
-  cluesInput,
-  guessWordInput,
-  guessScoreInput,
-  guessHistoryInput,
-  candidateWordInput,
-  candidateKeywordsInput,
-  candidateReasonInput,
-  customWordsInput,
-  aiPromptInput,
-  aiResponseInput,
-  ocrResultInput,
-  ocrCropXInput,
-  ocrCropYInput,
-  ocrCropWidthInput,
-  ocrCropHeightInput,
-  ocrHintTextInput,
-  ocrGuessTextInput,
-  importJsonInput
-];
-
-autoSaveInputs.forEach((input) => {
-  if (!input) {
-    return;
-  }
-
-  input.addEventListener("input", saveToLocalStorage);
-  input.addEventListener("change", saveToLocalStorage);
-});
-
+checkRequiredElements();
+setupEventListeners();
 loadSectionStates(loadJson);
 setupSectionStateSaving(saveJson);
 setupQuickNav(saveJson);
