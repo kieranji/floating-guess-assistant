@@ -29,7 +29,8 @@ import {
 } from "./js/ui.js";
 import {
   renderAiCandidateCards,
-  renderFollowupHistoryList
+  renderFollowupHistoryList,
+  renderLocalResults
 } from "./js/render.js";
 
 const modeSelect = document.getElementById("mode");
@@ -1456,30 +1457,10 @@ function analyzeClues() {
     limit: 5
   });
 
-  const maxScore = topResults.length > 0 ? topResults[0].score : 0;
-
-  topResults.forEach((answer, index) => {
-    const li = document.createElement("li");
-
-    const label = index === 0 ? "最可能" : "";
-    const confidence = calculateConfidence(answer.score, maxScore);
-
-    const logText =
-    answer.logs.length > 0
-      ? answer.logs.join("；")
-      : "暂无明显命中规则。";
-
-  li.innerHTML = `
-    <strong>${answer.word}</strong>
-    ${label ? `<span class="tag">${label}</span>` : ""}
-    <span class="confidence">置信度 ${confidence}%</span>
-    <br />
-    <span class="reason">${answer.reason}</span>
-    <br />
-    <span class="score-log">得分原因：${logText}</span>
-  `;
-
-    resultList.appendChild(li);
+  renderLocalResults({
+    container: resultList,
+    results: topResults,
+    calculateConfidence
   });
 }
 

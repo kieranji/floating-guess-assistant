@@ -181,3 +181,48 @@ export function renderFollowupHistoryList({
     container.appendChild(box);
   });
 }
+
+export function renderLocalResults({
+  container,
+  results,
+  calculateConfidence
+}) {
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = "";
+
+  if (!Array.isArray(results) || results.length === 0) {
+    const li = document.createElement("li");
+    li.textContent = "暂无本地分析结果。";
+    container.appendChild(li);
+    return;
+  }
+
+  const maxScore = results.length > 0 ? results[0].score : 0;
+
+  results.forEach((answer, index) => {
+    const li = document.createElement("li");
+
+    const label = index === 0 ? "最可能" : "";
+    const confidence = calculateConfidence(answer.score, maxScore);
+
+    const logText =
+      answer.logs && answer.logs.length > 0
+        ? answer.logs.join("；")
+        : "暂无明显命中规则。";
+
+    li.innerHTML = `
+      <strong>${answer.word}</strong>
+      ${label ? `<span class="tag">${label}</span>` : ""}
+      <span class="confidence">置信度 ${confidence}%</span>
+      <br />
+      <span class="reason">${answer.reason}</span>
+      <br />
+      <span class="score-log">得分原因：${logText}</span>
+    `;
+
+    container.appendChild(li);
+  });
+}
