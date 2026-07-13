@@ -88,3 +88,41 @@ JSON 格式：
 - 如果历史猜测分数较低，说明这些方向可能不是答案。
 - 如果信息不足，请说明还需要什么线索。`;
 }
+
+export async function analyzeWithAiBackend({
+  backendUrl,
+  mode,
+  clues,
+  guesses,
+  customWords
+}) {
+  const response = await fetch(`${backendUrl}/api/analyze`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      mode,
+      clues,
+      guesses,
+      customWords
+    })
+  });
+
+  const rawText = await response.text();
+
+  let data;
+
+  try {
+    data = JSON.parse(rawText);
+  } catch (error) {
+    console.error("后端返回的不是 JSON：", rawText);
+    throw new Error("后端返回的不是 JSON，可能是 BACKEND_URL 写错或后端没有运行。");
+  }
+
+  if (!response.ok) {
+    throw new Error(data.details || data.error || "后端 AI 分析失败。");
+  }
+
+  return data;
+}

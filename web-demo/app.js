@@ -7,7 +7,8 @@ import {
 import { calculateScore, calculateConfidence } from "./js/scoring.js";
 import {
   buildGeneralAiPrompt,
-  buildOcrLivePrompt
+  buildOcrLivePrompt,
+  analyzeWithAiBackend
 } from "./js/ai.js";
 
 const modeSelect = document.getElementById("mode");
@@ -1165,33 +1166,13 @@ async function analyzeOcrWithBackend() {
   }
 
   try {
-    const response = await fetch(`${BACKEND_URL}/api/analyze`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        mode: modeSelect.value,
-        clues: ocrClues,
-        guesses,
-        customWords: parseCustomWords(customWordsInput.value, modeSelect.value)
-      })
-    });
-
-    const rawText = await response.text();
-
-    let data;
-
-    try {
-      data = JSON.parse(rawText);
-    } catch (error) {
-      console.error("后端返回的不是 JSON：", rawText);
-      throw new Error("后端返回的不是 JSON。");
-    }
-
-    if (!response.ok) {
-      throw new Error(data.details || data.error || "OCR 后端分析失败");
-    }
+    const data = await analyzeWithAiBackend({
+      backendUrl: BACKEND_URL,
+      mode,
+      clues: followupClues,
+      guesses,
+      customWords
+  });
 
     if (aiPromptInput) {
       aiPromptInput.value = data.prompt || "";
@@ -1853,35 +1834,17 @@ async function analyzeWithBackend() {
   backendAnalyzeBtn.disabled = true;
 
   try {
-    const response = await fetch(`${BACKEND_URL}/api/analyze`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        mode,
-        clues,
-        guesses,
-        customWords
-      })
+    const data = await analyzeWithAiBackend({
+      backendUrl: BACKEND_URL,
+      mode,
+      clues,
+      guesses,
+      customWords
     });
 
-    const rawText = await response.text();
-
-    let data;
-
-    try {
-      data = JSON.parse(rawText);
-    } catch (error) {
-      console.error("后端返回的不是 JSON：", rawText);
-      throw new Error("后端返回的不是 JSON，可能是 BACKEND_URL 写错或 3000 端口不是 Public。");
+    if (aiPromptInput) {
+      aiPromptInput.value = data.prompt || "";
     }
-
-    if (!response.ok) {
-      throw new Error(data.details || data.error || "后端分析失败");
-    }
-
-    aiPromptInput.value = data.prompt || "";
 
     if (data.aiText) {
       if (aiResponseInput) {
@@ -1893,7 +1856,6 @@ async function analyzeWithBackend() {
       }
 
       renderAiCards(data.aiJson);
-
       latestAiJson = data.aiJson || null;
 
       if (aiCandidateCardsBox) {
@@ -1903,15 +1865,16 @@ async function analyzeWithBackend() {
         });
       }
     }
-        saveToLocalStorage();
-        alert("后端分析完成。");
-      } catch (error) {
-        alert(`调用后端失败：${error.message}`);
-      } finally {
-        backendAnalyzeBtn.textContent = "后端 AI 分析";
-        backendAnalyzeBtn.disabled = false;
-      }
-    }
+
+    saveToLocalStorage();
+    alert("后端分析完成。");
+  } catch (error) {
+    alert(`调用后端失败：${error.message}`);
+  } finally {
+    backendAnalyzeBtn.textContent = "后端 AI 分析";
+    backendAnalyzeBtn.disabled = false;
+  }
+}
 
 function saveAiResponse() {
   const response = aiResponseInput.value.trim();
@@ -2279,33 +2242,13 @@ ${item.confidence || "未知"}%
   backendAnalyzeBtn.disabled = true;
 
   try {
-    const response = await fetch(`${BACKEND_URL}/api/analyze`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        mode,
-        clues: followupClues,
-        guesses,
-        customWords
-      })
+    const data = await analyzeWithAiBackend({
+      backendUrl: BACKEND_URL,
+      mode: modeSelect.value,
+      clues: ocrClues,
+      guesses,
+      customWords: parseCustomWords(customWordsInput.value, modeSelect.value)
     });
-
-    const rawText = await response.text();
-
-    let data;
-
-    try {
-      data = JSON.parse(rawText);
-    } catch (error) {
-      console.error("后端返回的不是 JSON：", rawText);
-      throw new Error("后端返回的不是 JSON。");
-    }
-
-    if (!response.ok) {
-      throw new Error(data.details || data.error || "后端追问失败");
-    }
 
     if (aiPromptInput) {
       aiPromptInput.value = data.prompt || "";
