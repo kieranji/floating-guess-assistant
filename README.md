@@ -66,6 +66,7 @@ floating-guess-assistant/
       ocrReport.js      # OCR debug report generation and download helpers
       ui.js             # general UI helpers
       dom.js             # DOM element references
+      config.js         # frontend configuration such as backend URL
 
   backend/
     package.json

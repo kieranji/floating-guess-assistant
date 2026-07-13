@@ -135,7 +135,7 @@ const {
   downloadOcrReportBtn,
   ocrDebugReportInput
 } = dom;
-const BACKEND_URL = "https://effective-fishstick-v64pg6p565wghwg7v-3000.app.github.dev";
+const BACKEND_URL = APP_CONFIG.backendUrl;
 
 function checkRequiredElements() {
   checkElements({
