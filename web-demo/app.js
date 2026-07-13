@@ -41,6 +41,7 @@ import {
   createTextDownload
 } from "./js/ocrReport.js";
 import { dom } from "./js/dom.js";
+import { loadWordBankFromJson } from "./js/wordBank.js";
 
 const {
   modeSelect,
@@ -226,21 +227,17 @@ function checkRequiredElements() {
 
 async function loadWordBank() {
   try {
-    const response = await fetch("data/wordBank.json");
-
-    if (!response.ok) {
-      throw new Error("词库加载失败");
-    }
-
-    wordBank = await response.json();
+    wordBank = await loadWordBankFromJson("data/wordBank.json");
     console.log("词库加载成功：", wordBank);
   } catch (error) {
     console.error(error);
 
-    resultList.innerHTML = "";
-    const li = document.createElement("li");
-    li.textContent = "词库加载失败，请检查 data/wordBank.json 是否存在。";
-    resultList.appendChild(li);
+    if (resultList) {
+      resultList.innerHTML = "";
+      const li = document.createElement("li");
+      li.textContent = "词库加载失败，请检查 data/wordBank.json 是否存在。";
+      resultList.appendChild(li);
+    }
   }
 }
 

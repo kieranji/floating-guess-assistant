@@ -67,6 +67,7 @@ floating-guess-assistant/
       ui.js             # general UI helpers
       dom.js             # DOM element references
       config.js         # frontend configuration such as backend URL
+      wordBank.js       # word bank JSON loading helper
 
   backend/
     package.json
