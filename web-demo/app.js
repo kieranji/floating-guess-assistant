@@ -1608,56 +1608,6 @@ function addCandidate() {
   saveToLocalStorage();
 }
 
-function parseGuessHistory(text) {
-  if (!text.trim()) {
-    return [];
-  }
-
-  return text
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0)
-    .map((line) => {
-      const parts = line.split(/\s+/);
-      const word = parts[0];
-      const score = Number(parts[1]);
-
-      return {
-        word,
-        score: Number.isNaN(score) ? 0 : score
-      };
-    });
-}
-
-function parseCustomWords(text, mode) {
-  if (!text.trim()) {
-    return [];
-  }
-
-  return text
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0)
-    .map((line) => {
-      const parts = line.split("|").map((part) => part.trim());
-
-      const word = parts[0] || "";
-      const keywords = parts[1]
-        ? parts[1].split(",").map((keyword) => keyword.trim()).filter(Boolean)
-        : [];
-
-      const reason = parts[2] || "用户临时添加的候选词。";
-
-      return {
-        word,
-        mode,
-        keywords,
-        reason
-      };
-    })
-    .filter((item) => item.word.length > 0);
-}
-
 function calculateScore(clues, guesses, item) {
   let score = 0;
   const logs = [];
