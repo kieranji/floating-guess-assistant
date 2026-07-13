@@ -37,86 +37,104 @@ import {
   buildOcrDebugReport,
   createTextDownload
 } from "./js/ocrReport.js";
+import { dom } from "./js/dom.js";
 
-const modeSelect = document.getElementById("mode");
-const cluesInput = document.getElementById("clues");
-const guessWordInput = document.getElementById("guessWord");
-const guessScoreInput = document.getElementById("guessScore");
-const guessHistoryInput = document.getElementById("guessHistory");
-const customWordsInput = document.getElementById("customWords");
-const candidateWordInput = document.getElementById("candidateWord");
-const candidateKeywordsInput = document.getElementById("candidateKeywords");
-const candidateReasonInput = document.getElementById("candidateReason");
-const addGuessBtn = document.getElementById("addGuessBtn");
-const addCandidateBtn = document.getElementById("addCandidateBtn");
-const exampleBtn = document.getElementById("exampleBtn");
-const clearBtn = document.getElementById("clearBtn");
-const analyzeBtn = document.getElementById("analyzeBtn");
-const copyBtn = document.getElementById("copyBtn");
-const importBtn = document.getElementById("importBtn");
-const resultList = document.getElementById("resultList");
-const saveStatus = document.getElementById("saveStatus");
-const exportBtn = document.getElementById("exportBtn");
-const aiResponseInput = document.getElementById("aiResponse");
-const saveAiResponseBtn = document.getElementById("saveAiResponseBtn");
-const copyAiResponseBtn = document.getElementById("copyAiResponseBtn");
-const savedAiResponseBox = document.getElementById("savedAiResponse");
-const aiCandidateCardsBox = document.getElementById("aiCandidateCards");
-const followupHistoryBox = document.getElementById("followupHistory");
-const aiCardLimitSelect = document.getElementById("aiCardLimit");
-const aiCardSearchInput = document.getElementById("aiCardSearch");
-const importJsonInput = document.getElementById("importJson");
-const promptBtn = document.getElementById("promptBtn");
-const backendAnalyzeBtn = document.getElementById("backendAnalyzeBtn");
-const aiPromptInput = document.getElementById("aiPrompt");
-const ocrImageInput = document.getElementById("ocrImageInput");
-const ocrImagePreview = document.getElementById("ocrImagePreview");
-const ocrImageWrapper = document.getElementById("ocrImageWrapper");
-const ocrSelectionBox = document.getElementById("ocrSelectionBox");
-const ocrCropXInput = document.getElementById("ocrCropX");
-const ocrCropYInput = document.getElementById("ocrCropY");
-const ocrCropWidthInput = document.getElementById("ocrCropWidth");
-const ocrCropHeightInput = document.getElementById("ocrCropHeight");
-const clearOcrCropBtn = document.getElementById("clearOcrCropBtn");
-const ocrUsePreprocessInput = document.getElementById("ocrUsePreprocess");
-const ocrScaleSelect = document.getElementById("ocrScale");
-const previewPreprocessBtn = document.getElementById("previewPreprocessBtn");
-const preprocessImagePreview = document.getElementById("preprocessImagePreview");
-const ocrCropInfo = document.getElementById("ocrCropInfo");
-const cropFullBtn = document.getElementById("cropFullBtn");
-const cropTopBtn = document.getElementById("cropTopBtn");
-const cropBottomBtn = document.getElementById("cropBottomBtn");
-const cropLeftBtn = document.getElementById("cropLeftBtn");
-const cropRightBtn = document.getElementById("cropRightBtn");
-const cropCenterBtn = document.getElementById("cropCenterBtn");
-const ocrBtn = document.getElementById("ocrBtn");
-const ocrStatus = document.getElementById("ocrStatus");
-const ocrResultInput = document.getElementById("ocrResult");
-const useOcrTextBtn = document.getElementById("useOcrTextBtn");
-const cleanOcrBtn = document.getElementById("cleanOcrBtn");
-const ocrCluePreview = document.getElementById("ocrCluePreview");
-const ocrGuessPreview = document.getElementById("ocrGuessPreview");
-const ocrNoisePreview = document.getElementById("ocrNoisePreview");
-const ocrModePreview = document.getElementById("ocrModePreview");
-const applyOcrParsedBtn = document.getElementById("applyOcrParsedBtn");
-const ocrPromptBtn = document.getElementById("ocrPromptBtn");
-const ocrBackendAnalyzeBtn = document.getElementById("ocrBackendAnalyzeBtn");
-const autoOcrAnalyzeBtn = document.getElementById("autoOcrAnalyzeBtn");
-const ocrFlowLog = document.getElementById("ocrFlowLog");
-const ocrHintRegionBtn = document.getElementById("ocrHintRegionBtn");
-const ocrGuessRegionBtn = document.getElementById("ocrGuessRegionBtn");
-const ocrHintTextInput = document.getElementById("ocrHintText");
-const ocrGuessTextInput = document.getElementById("ocrGuessText");
-const mergeOcrRegionsBtn = document.getElementById("mergeOcrRegionsBtn");
-const saveHintPresetBtn = document.getElementById("saveHintPresetBtn");
-const applyHintPresetBtn = document.getElementById("applyHintPresetBtn");
-const saveGuessPresetBtn = document.getElementById("saveGuessPresetBtn");
-const applyGuessPresetBtn = document.getElementById("applyGuessPresetBtn");
-const ocrRegionPresetInfo = document.getElementById("ocrRegionPresetInfo");
-const generateOcrReportBtn = document.getElementById("generateOcrReportBtn");
-const copyOcrReportBtn = document.getElementById("copyOcrReportBtn");
-const ocrDebugReportInput = document.getElementById("ocrDebugReport");
-const downloadOcrReportBtn = document.getElementById("downloadOcrReportBtn");
+const {
+  modeSelect,
+  cluesInput,
+
+  guessWordInput,
+  guessScoreInput,
+  guessHistoryInput,
+  customWordsInput,
+
+  candidateWordInput,
+  candidateKeywordsInput,
+  candidateReasonInput,
+
+  addGuessBtn,
+  addCandidateBtn,
+  exampleBtn,
+  clearBtn,
+  analyzeBtn,
+  copyBtn,
+  exportBtn,
+  importBtn,
+
+  resultList,
+  saveStatus,
+
+  aiPromptInput,
+  aiResponseInput,
+  saveAiResponseBtn,
+  copyAiResponseBtn,
+  savedAiResponseBox,
+  aiCandidateCardsBox,
+  followupHistoryBox,
+  aiCardLimitSelect,
+  aiCardSearchInput,
+
+  promptBtn,
+  backendAnalyzeBtn,
+
+  importJsonInput,
+
+  ocrImageInput,
+  ocrImagePreview,
+  ocrImageWrapper,
+  ocrSelectionBox,
+
+  ocrCropXInput,
+  ocrCropYInput,
+  ocrCropWidthInput,
+  ocrCropHeightInput,
+  clearOcrCropBtn,
+  ocrCropInfo,
+
+  ocrUsePreprocessInput,
+  ocrScaleSelect,
+  previewPreprocessBtn,
+  preprocessImagePreview,
+
+  cropFullBtn,
+  cropTopBtn,
+  cropBottomBtn,
+  cropLeftBtn,
+  cropRightBtn,
+  cropCenterBtn,
+
+  saveHintPresetBtn,
+  applyHintPresetBtn,
+  saveGuessPresetBtn,
+  applyGuessPresetBtn,
+  ocrRegionPresetInfo,
+
+  ocrBtn,
+  ocrHintRegionBtn,
+  ocrGuessRegionBtn,
+  ocrStatus,
+  ocrResultInput,
+  ocrHintTextInput,
+  ocrGuessTextInput,
+  mergeOcrRegionsBtn,
+
+  useOcrTextBtn,
+  cleanOcrBtn,
+  ocrCluePreview,
+  ocrGuessPreview,
+  ocrNoisePreview,
+  ocrModePreview,
+  applyOcrParsedBtn,
+  ocrPromptBtn,
+  ocrBackendAnalyzeBtn,
+  autoOcrAnalyzeBtn,
+  ocrFlowLog,
+
+  generateOcrReportBtn,
+  copyOcrReportBtn,
+  downloadOcrReportBtn,
+  ocrDebugReportInput
+} = dom;
 const BACKEND_URL = "https://effective-fishstick-v64pg6p565wghwg7v-3000.app.github.dev";
 
 function checkRequiredElements() {
