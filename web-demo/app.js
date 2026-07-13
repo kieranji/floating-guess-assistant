@@ -15,6 +15,13 @@ import {
   preprocessOcrImage,
   runOcrOnImage
 } from "./js/ocr.js";
+import {
+  getCropSettingsFromInputs,
+  getImageSize,
+  calculateCropPreset,
+  calculateSelectionBoxFromCrop,
+  convertDisplaySelectionToImageCrop
+} from "./js/ocrCrop.js";
 
 const modeSelect = document.getElementById("mode");
 const cluesInput = document.getElementById("clues");
@@ -361,8 +368,6 @@ function finishOcrAreaSelection(event) {
     return;
   }
 
-  const rect = position.rect;
-
   const x1 = ocrSelectionStart.x;
   const y1 = ocrSelectionStart.y;
   const x2 = position.x;
@@ -377,22 +382,26 @@ function finishOcrAreaSelection(event) {
     return;
   }
 
-  const scaleX = ocrImagePreview.naturalWidth / rect.width;
-  const scaleY = ocrImagePreview.naturalHeight / rect.height;
+  const crop = convertDisplaySelectionToImageCrop({
+    displayLeft,
+    displayTop,
+    displayWidth,
+    displayHeight,
+    imageElement: ocrImagePreview
+  });
 
-  const realX = Math.round(displayLeft * scaleX);
-  const realY = Math.round(displayTop * scaleY);
-  const realWidth = Math.round(displayWidth * scaleX);
-  const realHeight = Math.round(displayHeight * scaleY);
+  if (!crop) {
+    return;
+  }
 
-  if (ocrCropXInput) ocrCropXInput.value = realX;
-  if (ocrCropYInput) ocrCropYInput.value = realY;
-  if (ocrCropWidthInput) ocrCropWidthInput.value = realWidth;
-  if (ocrCropHeightInput) ocrCropHeightInput.value = realHeight;
+  if (ocrCropXInput) ocrCropXInput.value = crop.x;
+  if (ocrCropYInput) ocrCropYInput.value = crop.y;
+  if (ocrCropWidthInput) ocrCropWidthInput.value = crop.width;
+  if (ocrCropHeightInput) ocrCropHeightInput.value = crop.height;
 
   if (ocrStatus) {
-    ocrStatus.textContent = `已选择 OCR 区域：x=${realX}, y=${realY}, 宽=${realWidth}, 高=${realHeight}`; 
-  }
+    ocrStatus.textContent = `已选择 OCR 区域：x=${crop.x}, y=${crop.y}, 宽=${crop.width}, 高=${crop.height}`;
+  }  
 
   updateOcrCropInfo();
   saveToLocalStorage();
@@ -425,15 +434,14 @@ function setOcrCropValues(x, y, width, height) {
 }
 
 function getCurrentImageSize() {
-  if (!ocrImagePreview || !ocrImagePreview.naturalWidth || !ocrImagePreview.naturalHeight) {
+  const imageSize = getImageSize(ocrImagePreview);
+
+  if (!imageSize) {
     alert("请先上传图片。");
     return null;
   }
 
-  return {
-    width: ocrImagePreview.naturalWidth,
-    height: ocrImagePreview.naturalHeight
-  };
+  return imageSize;
 }
 
 function applyOcrCropPreset(preset) {
@@ -443,37 +451,18 @@ function applyOcrCropPreset(preset) {
     return;
   }
 
-  const width = imageSize.width;
-  const height = imageSize.height;
-
   if (preset === "full") {
     clearOcrCropSettings();
     return;
   }
 
-  if (preset === "top") {
-    setOcrCropValues(0, 0, width, height * 0.5);
+  const crop = calculateCropPreset(preset, imageSize);
+
+  if (!crop) {
     return;
   }
 
-  if (preset === "bottom") {
-    setOcrCropValues(0, height * 0.5, width, height * 0.5);
-    return;
-  }
-
-  if (preset === "left") {
-    setOcrCropValues(0, 0, width * 0.5, height);
-    return;
-  }
-
-  if (preset === "right") {
-    setOcrCropValues(width * 0.5, 0, width * 0.5, height);
-    return;
-  }
-
-  if (preset === "center") {
-    setOcrCropValues(width * 0.15, height * 0.15, width * 0.7, height * 0.7);
-  }
+  setOcrCropValues(crop.x, crop.y, crop.width, crop.height);
 }
 
 function getCurrentCropOrAlert() {
@@ -547,8 +536,12 @@ function updateOcrRegionPresetInfo() {
 
 function updateOcrSelectionBoxFromInputs() {
   const crop = getOcrCropSettings();
+  const box = calculateSelectionBoxFromCrop({
+    crop,
+    imageElement: ocrImagePreview
+  });
 
-  if (!ocrSelectionBox || !ocrImagePreview || !crop) {
+  if (!ocrSelectionBox || !box) {
     if (ocrSelectionBox) {
       ocrSelectionBox.style.display = "none";
     }
@@ -556,50 +549,20 @@ function updateOcrSelectionBoxFromInputs() {
     return;
   }
 
-  const rect = ocrImagePreview.getBoundingClientRect();
-
-  if (!rect.width || !rect.height || !ocrImagePreview.naturalWidth || !ocrImagePreview.naturalHeight) {
-    return;
-  }
-
-  const scaleX = rect.width / ocrImagePreview.naturalWidth;
-  const scaleY = rect.height / ocrImagePreview.naturalHeight;
-
-  const displayLeft = crop.x * scaleX;
-  const displayTop = crop.y * scaleY;
-  const displayWidth = crop.width * scaleX;
-  const displayHeight = crop.height * scaleY;
-
   ocrSelectionBox.style.display = "block";
-  ocrSelectionBox.style.left = `${displayLeft}px`;
-  ocrSelectionBox.style.top = `${displayTop}px`;
-  ocrSelectionBox.style.width = `${displayWidth}px`;
-  ocrSelectionBox.style.height = `${displayHeight}px`;
+  ocrSelectionBox.style.left = `${box.left}px`;
+  ocrSelectionBox.style.top = `${box.top}px`;
+  ocrSelectionBox.style.width = `${box.width}px`;
+  ocrSelectionBox.style.height = `${box.height}px`;
 }
 
 function getOcrCropSettings() {
-  const x = ocrCropXInput ? Number(ocrCropXInput.value) : 0;
-  const y = ocrCropYInput ? Number(ocrCropYInput.value) : 0;
-  const width = ocrCropWidthInput ? Number(ocrCropWidthInput.value) : 0;
-  const height = ocrCropHeightInput ? Number(ocrCropHeightInput.value) : 0;
-
-  if (
-    Number.isNaN(x) ||
-    Number.isNaN(y) ||
-    Number.isNaN(width) ||
-    Number.isNaN(height) ||
-    width <= 0 ||
-    height <= 0
-  ) {
-    return null;
-  }
-
-  return {
-    x,
-    y,
-    width,
-    height
-  };
+  return getCropSettingsFromInputs({
+    xInput: ocrCropXInput,
+    yInput: ocrCropYInput,
+    widthInput: ocrCropWidthInput,
+    heightInput: ocrCropHeightInput
+  });
 }
 
 function clearOcrCropSettings() {
