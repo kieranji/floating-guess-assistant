@@ -25,7 +25,10 @@ import {
 import {
   wait,
   updateText,
-  checkElements
+  checkElements,
+  loadSectionStates,
+  setupSectionStateSaving,
+  setupQuickNav
 } from "./js/ui.js";
 import {
   renderAiCandidateCards,
@@ -1959,77 +1962,6 @@ function saveToLocalStorage() {
   updateSaveStatus(`已自动保存 ${timeText}`);
 }
 
-function saveSectionStates() {
-  const sections = document.querySelectorAll(".section-details");
-  const states = {};
-
-  sections.forEach((section) => {
-    const key = section.dataset.section;
-
-    if (key) {
-      states[key] = section.open;
-    }
-  });
-
-  saveJson("floatingGuessSectionStates", states);
-}
-
-function loadSectionStates() {
-  const states = loadJson("floatingGuessSectionStates", null);
-
-  if (!states) {
-    return;
-  }
-
-  try {
-    const sections = document.querySelectorAll(".section-details");
-
-    sections.forEach((section) => {
-      const key = section.dataset.section;
-
-      if (key && Object.prototype.hasOwnProperty.call(states, key)) {
-        section.open = states[key];
-      }
-    });
-  } catch (error) {
-    console.error("读取折叠区状态失败：", error);
-  }
-}
-
-function setupSectionStateSaving() {
-  const sections = document.querySelectorAll(".section-details");
-
-  sections.forEach((section) => {
-    section.addEventListener("toggle", saveSectionStates);
-  });
-}
-
-function setupQuickNav() {
-  const navButtons = document.querySelectorAll("[data-target-section]");
-
-  navButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      const targetKey = button.dataset.targetSection;
-      const targetSection = document.querySelector(
-        `.section-details[data-section="${targetKey}"]`
-      );
-
-      if (!targetSection) {
-        alert("没有找到对应区域。");
-        return;
-      }
-
-      targetSection.open = true;
-      saveSectionStates();
-
-      targetSection.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
-    });
-  });
-}
-
 function loadFromLocalStorage() {
   const data = localStorage.getItem("floatingGuessAssistantData");
 
@@ -2399,9 +2331,8 @@ autoSaveInputs.forEach((input) => {
   input.addEventListener("change", saveToLocalStorage);
 });
 
-checkRequiredElements();
-loadSectionStates();
-setupSectionStateSaving();
-setupQuickNav();
+loadSectionStates(loadJson);
+setupSectionStateSaving(saveJson);
+setupQuickNav(saveJson);
 loadFromLocalStorage();
 loadWordBank();

@@ -20,3 +20,72 @@ export function checkElements(requiredElements) {
 
   return missingElements;
 }
+
+export function saveSectionStates(storageSaveFn) {
+  const sections = document.querySelectorAll(".section-details");
+  const states = {};
+
+  sections.forEach((section) => {
+    const key = section.dataset.section;
+
+    if (key) {
+      states[key] = section.open;
+    }
+  });
+
+  storageSaveFn("floatingGuessSectionStates", states);
+}
+
+export function loadSectionStates(storageLoadFn) {
+  const states = storageLoadFn("floatingGuessSectionStates", null);
+
+  if (!states) {
+    return;
+  }
+
+  const sections = document.querySelectorAll(".section-details");
+
+  sections.forEach((section) => {
+    const key = section.dataset.section;
+
+    if (key && Object.prototype.hasOwnProperty.call(states, key)) {
+      section.open = states[key];
+    }
+  });
+}
+
+export function setupSectionStateSaving(storageSaveFn) {
+  const sections = document.querySelectorAll(".section-details");
+
+  sections.forEach((section) => {
+    section.addEventListener("toggle", () => {
+      saveSectionStates(storageSaveFn);
+    });
+  });
+}
+
+export function setupQuickNav(storageSaveFn) {
+  const navButtons = document.querySelectorAll("[data-target-section]");
+
+  navButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const targetKey = button.dataset.targetSection;
+      const targetSection = document.querySelector(
+        `.section-details[data-section="${targetKey}"]`
+      );
+
+      if (!targetSection) {
+        alert("没有找到对应区域。");
+        return;
+      }
+
+      targetSection.open = true;
+      saveSectionStates(storageSaveFn);
+
+      targetSection.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    });
+  });
+}
