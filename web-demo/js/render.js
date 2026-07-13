@@ -226,3 +226,37 @@ export function renderLocalResults({
     container.appendChild(li);
   });
 }
+
+export function renderOcrPreview({
+  cluePreview,
+  guessPreview,
+  noisePreview,
+  modePreview,
+  parsed,
+  modeText = ""
+}) {
+  if (cluePreview) {
+    cluePreview.value =
+      parsed && parsed.clues && parsed.clues.length > 0
+        ? parsed.clues.join("\n")
+        : "";
+  }
+
+  if (guessPreview) {
+    guessPreview.value =
+      parsed && parsed.guesses && parsed.guesses.length > 0
+        ? parsed.guesses.map((guess) => `${guess.word} ${guess.score}`).join("\n")
+        : "";
+  }
+
+  if (noisePreview) {
+    noisePreview.textContent =
+      parsed && parsed.noiseLines && parsed.noiseLines.length > 0
+        ? parsed.noiseLines.join("\n")
+        : "暂无";
+  }
+
+  if (modePreview && modeText) {
+    modePreview.textContent = modeText;
+  }
+}

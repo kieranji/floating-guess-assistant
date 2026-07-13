@@ -30,7 +30,8 @@ import {
 import {
   renderAiCandidateCards,
   renderFollowupHistoryList,
-  renderLocalResults
+  renderLocalResults,
+  renderOcrPreview
 } from "./js/render.js";
 
 const modeSelect = document.getElementById("mode");
@@ -813,24 +814,17 @@ function cleanOcrText() {
 
   const parsed = parseOcrGuessText(rawText);
   latestOcrParsed = parsed;
-  autoSelectModeFromOcr(parsed);
 
-  if (ocrCluePreview) {
-    ocrCluePreview.value =
-      parsed.clues.length > 0 ? parsed.clues.join("\n") : "";
-  }
+  const modeText = autoSelectModeFromOcr(parsed);
 
-  if (ocrGuessPreview) {
-    ocrGuessPreview.value =
-      parsed.guesses.length > 0
-        ? parsed.guesses.map((guess) => `${guess.word} ${guess.score}`).join("\n")
-        : "";
-  }
-
-  if (ocrNoisePreview) {
-    ocrNoisePreview.textContent =
-      parsed.noiseLines.length > 0 ? parsed.noiseLines.join("\n") : "暂无";
-  }
+  renderOcrPreview({
+    cluePreview: ocrCluePreview,
+    guessPreview: ocrGuessPreview,
+    noisePreview: ocrNoisePreview,
+    modePreview: ocrModePreview,
+    parsed,
+    modeText
+  });
 
   saveToLocalStorage();
 
@@ -850,24 +844,17 @@ function cleanOcrTextSilent() {
 
   const parsed = parseOcrGuessText(rawText);
   latestOcrParsed = parsed;
-  autoSelectModeFromOcr(parsed);
 
-  if (ocrCluePreview) {
-    ocrCluePreview.value =
-      parsed.clues.length > 0 ? parsed.clues.join("\n") : "";
-  }
+  const modeText = autoSelectModeFromOcr(parsed);
 
-  if (ocrGuessPreview) {
-    ocrGuessPreview.value =
-      parsed.guesses.length > 0
-        ? parsed.guesses.map((guess) => `${guess.word} ${guess.score}`).join("\n")
-        : "";
-  }
-
-  if (ocrNoisePreview) {
-    ocrNoisePreview.textContent =
-      parsed.noiseLines.length > 0 ? parsed.noiseLines.join("\n") : "暂无";
-  }
+  renderOcrPreview({
+    cluePreview: ocrCluePreview,
+    guessPreview: ocrGuessPreview,
+    noisePreview: ocrNoisePreview,
+    modePreview: ocrModePreview,
+    parsed,
+    modeText
+  });
 
   saveToLocalStorage();
 
@@ -1319,7 +1306,7 @@ function downloadOcrDebugReport() {
 
 function autoSelectModeFromOcr(parsed) {
   if (!parsed) {
-    return;
+    return "模式判断：暂无";
   }
 
   const hasSimilarityScores =
@@ -1340,27 +1327,15 @@ function autoSelectModeFromOcr(parsed) {
 
   if (hasSimilarityScores) {
     modeSelect.value = "semantic";
-
-    if (ocrModePreview) {
-      ocrModePreview.textContent = "模式判断：相似度猜词";
-    }
-
-    return;
+    return "模式判断：相似度猜词";
   }
 
   if (looksLikeMaskedText) {
     modeSelect.value = "masked";
-
-    if (ocrModePreview) {
-      ocrModePreview.textContent = "模式判断：揭字猜词";
-    }
-
-    return;
+    return "模式判断：揭字猜词";
   }
 
-  if (ocrModePreview) {
-    ocrModePreview.textContent = "模式判断：暂不确定";
-  }
+  return "模式判断：暂不确定";
 }
 
 function addGuess() {
@@ -1520,21 +1495,14 @@ function clearInputs() {
     ocrStatus.textContent = "尚未识别图片。";
   }
 
-  if (ocrCluePreview) {
-    ocrCluePreview.value = "";
-  } 
-
-  if (ocrGuessPreview) {
-    ocrGuessPreview.value = "";
-  }
-
-  if (ocrNoisePreview) {
-    ocrNoisePreview.textContent = "暂无";
-  }
-
-  if (ocrModePreview) {
-    ocrModePreview.textContent = "模式判断：暂无";
-  }
+  renderOcrPreview({
+    cluePreview: ocrCluePreview,
+    guessPreview: ocrGuessPreview,
+    noisePreview: ocrNoisePreview,
+    modePreview: ocrModePreview,
+    parsed: null,
+    modeText: "模式判断：暂无"
+  });
 
   if (ocrImagePreview) {
     ocrImagePreview.src = "";
