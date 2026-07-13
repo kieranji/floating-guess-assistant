@@ -4,7 +4,7 @@ import {
   parseGuessHistory,
   parseCustomWords
 } from "./js/parser.js";
-import { calculateScore, calculateConfidence } from "./js/scoring.js";
+import { calculateConfidence } from "./js/scoring.js";
 import {
   buildGeneralAiPrompt,
   buildOcrLivePrompt,
@@ -1443,22 +1443,15 @@ function analyzeClues() {
     return;
   }
 
-  const activeWordBank = [...wordBank, ...customWords];
+  const topResults = analyzeLocalCandidates({
+    wordBank,
+    mode,
+    clues,
+    guesses,
+    customWords,
+    limit: 5
+  });
 
-  const results = activeWordBank
-    .filter((item) => item.mode === mode)
-    .map((item) => {
-      const result = calculateScore(clues, guesses, item);
-
-      return {
-        ...item,
-        score: result.score,
-        logs: result.logs
-      };
-    })
-    .sort((a, b) => b.score - a.score);
-
-  const topResults = results.slice(0, 5);
   const maxScore = topResults.length > 0 ? topResults[0].score : 0;
 
   topResults.forEach((answer, index) => {
