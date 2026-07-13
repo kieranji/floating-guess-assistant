@@ -22,6 +22,11 @@ import {
   calculateSelectionBoxFromCrop,
   convertDisplaySelectionToImageCrop
 } from "./js/ocrCrop.js";
+import {
+  wait,
+  updateText,
+  checkElements
+} from "./js/ui.js";
 
 const modeSelect = document.getElementById("mode");
 const cluesInput = document.getElementById("clues");
@@ -105,7 +110,7 @@ const downloadOcrReportBtn = document.getElementById("downloadOcrReportBtn");
 const BACKEND_URL = "https://effective-fishstick-v64pg6p565wghwg7v-3000.app.github.dev";
 
 function checkRequiredElements() {
-  const requiredElements = {
+  checkElements({
     modeSelect,
     cluesInput,
     guessWordInput,
@@ -185,29 +190,8 @@ function checkRequiredElements() {
     copyOcrReportBtn,
     downloadOcrReportBtn,
     ocrDebugReportInput
-  };
-
-  const missingElements = Object.entries(requiredElements)
-    .filter(([, element]) => !element)
-    .map(([name]) => name);
-
-  if (missingElements.length > 0) {
-    console.error("页面缺少这些元素：", missingElements);
-    alert(`页面缺少 ${missingElements.length} 个元素，请打开控制台查看详情。`);
-  }
+  });
 }
-
-let wordBank = [];
-let latestAiJson = null;
-let latestOcrParsed = null;
-let isSelectingOcrArea = false;
-let ocrSelectionStart = null;
-let followupHistory = [];
-
-let ocrRegionPresets = {
-  hint: null,
-  guess: null
-};
 
 async function loadWordBank() {
   try {
@@ -280,10 +264,6 @@ function getPointerPositionInImage(event) {
     y,
     rect
   };
-}
-
-function wait(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function resetOcrFlowLog() {
@@ -2183,7 +2163,7 @@ async function copyAiResponse() {
 }
 
 function updateSaveStatus(message) {
-  saveStatus.textContent = message;
+  updateText(saveStatus, message);
 }
 
 function saveToLocalStorage() {
