@@ -10,6 +10,11 @@ import {
   buildOcrLivePrompt,
   analyzeWithAiBackend
 } from "./js/ai.js";
+import {
+  createCroppedOcrImage,
+  preprocessOcrImage,
+  runOcrOnImage
+} from "./js/ocr.js";
 
 const modeSelect = document.getElementById("mode");
 const cluesInput = document.getElementById("clues");
@@ -619,107 +624,6 @@ function clearOcrCropSettings() {
   updateOcrCropInfo();
 }
 
-async function createCroppedOcrImage(file, crop) {
-  if (!crop) {
-    return file;
-  }
-
-  const image = new Image();
-  const imageUrl = URL.createObjectURL(file);
-
-  await new Promise((resolve, reject) => {
-    image.onload = resolve;
-    image.onerror = reject;
-    image.src = imageUrl;
-  });
-
-  const canvas = document.createElement("canvas");
-  const context = canvas.getContext("2d");
-
-  const safeX = Math.max(0, Math.min(crop.x, image.naturalWidth));
-  const safeY = Math.max(0, Math.min(crop.y, image.naturalHeight));
-  const safeWidth = Math.max(1, Math.min(crop.width, image.naturalWidth - safeX));
-  const safeHeight = Math.max(1, Math.min(crop.height, image.naturalHeight - safeY));
-
-  canvas.width = safeWidth;
-  canvas.height = safeHeight;
-
-  context.drawImage(
-    image,
-    safeX,
-    safeY,
-    safeWidth,
-    safeHeight,
-    0,
-    0,
-    safeWidth,
-    safeHeight
-  );
-
-  return new Promise((resolve) => {
-    canvas.toBlob((blob) => {
-      resolve(blob || file);
-    }, "image/png");
-  });
-}
-
-async function preprocessOcrImage(imageBlobOrFile) {
-  const usePreprocess = ocrUsePreprocessInput
-    ? ocrUsePreprocessInput.checked
-    : true;
-
-  if (!usePreprocess) {
-    return imageBlobOrFile;
-  }
-
-  const scale = ocrScaleSelect ? Number(ocrScaleSelect.value) || 2 : 2;
-
-  const image = new Image();
-  const imageUrl = URL.createObjectURL(imageBlobOrFile);
-
-  await new Promise((resolve, reject) => {
-    image.onload = resolve;
-    image.onerror = reject;
-    image.src = imageUrl;
-  });
-
-  const canvas = document.createElement("canvas");
-  const context = canvas.getContext("2d");
-
-  canvas.width = image.naturalWidth * scale;
-  canvas.height = image.naturalHeight * scale;
-
-  context.drawImage(image, 0, 0, canvas.width, canvas.height);
-
-  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-  const data = imageData.data;
-
-  const contrast = 1.35;
-  const brightness = 8;
-
-  for (let i = 0; i < data.length; i += 4) {
-    const gray =
-      0.299 * data[i] +
-      0.587 * data[i + 1] +
-      0.114 * data[i + 2];
-
-    let value = (gray - 128) * contrast + 128 + brightness;
-    value = Math.max(0, Math.min(255, value));
-
-    data[i] = value;
-    data[i + 1] = value;
-    data[i + 2] = value;
-  }
-
-  context.putImageData(imageData, 0, 0);
-
-  return new Promise((resolve) => {
-    canvas.toBlob((blob) => {
-      resolve(blob || imageBlobOrFile);
-    }, "image/png");
-  });
-}
-
 async function previewPreprocessedOcrImage() {
   if (!ocrImageInput || !ocrImageInput.files || ocrImageInput.files.length === 0) {
     alert("请先选择一张图片。");
@@ -735,9 +639,13 @@ async function previewPreprocessedOcrImage() {
   }
 
   try {
-    const croppedImage = await createCroppedOcrImage(file, crop);
-    const processedImage = await preprocessOcrImage(croppedImage);
     const previewUrl = URL.createObjectURL(processedImage);
+    const croppedImage = await createCroppedOcrImage(file, crop);
+
+    const processedImage = await preprocessOcrImage(croppedImage, {
+      usePreprocess: ocrUsePreprocessInput ? ocrUsePreprocessInput.checked : true,
+      scale: ocrScaleSelect ? Number(ocrScaleSelect.value) || 2 : 2
+    });
 
     if (preprocessImagePreview) {
       preprocessImagePreview.src = previewUrl;
@@ -766,13 +674,21 @@ async function runOcrOnCurrentImage() {
   const file = ocrImageInput.files[0];
   const crop = getOcrCropSettings();
 
-  const croppedImage = await createCroppedOcrImage(file, crop);
-  const imageForOcr = await preprocessOcrImage(croppedImage);
+  const usePreprocess = ocrUsePreprocessInput
+    ? ocrUsePreprocessInput.checked
+    : true;
 
-  const result = await Tesseract.recognize(imageForOcr, "chi_sim+eng", {
+  const scale = ocrScaleSelect ? Number(ocrScaleSelect.value) || 2 : 2;
+
+  return runOcrOnImage({
+    file,
+    crop,
+    usePreprocess,
+    scale,
     logger: (message) => {
       if (message.status === "recognizing text") {
         const progress = Math.round(message.progress * 100);
+
         if (ocrStatus) {
           ocrStatus.textContent = `正在识别文字：${progress}%`;
         }
@@ -781,8 +697,6 @@ async function runOcrOnCurrentImage() {
       }
     }
   });
-
-  return result.data.text.trim();
 }
 
 async function recognizeImageText() {
