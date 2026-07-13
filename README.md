@@ -32,6 +32,12 @@ It supports:
 - Direct backend follow-up analysis
 - Follow-up history
 - Delete follow-up history records
+- Modular frontend JavaScript structure
+- OCR crop presets and drag selection
+- OCR preprocessing and preprocessing preview
+- Multi-region OCR for hint region and guess region
+- One-click OCR + AI analysis flow
+- OCR debug report generation and download
 
 ## Project Structure
 
@@ -41,18 +47,24 @@ floating-guess-assistant/
   README.md
 
   web-demo/
-  index.html
-  style.css
-  app.js
-  data/
-    wordBank.json
-  js/
-    storage.js
-    ui.js
-    ocr.js
-    ai.js
-    parser.js
-    main.js
+    index.html
+    style.css
+    app.js
+
+    data/
+      wordBank.json
+
+    js/
+      storage.js        # localStorage helper functions
+      parser.js         # OCR text parsing and input parsing
+      scoring.js        # local scoring and confidence logic
+      localAnalysis.js  # local candidate ranking
+      ai.js             # AI prompt builders and backend request helper
+      ocr.js            # OCR image cropping/preprocessing/recognition helpers
+      ocrCrop.js        # OCR crop coordinate and preset calculations
+      render.js         # UI rendering helpers for results and cards
+      ocrReport.js      # OCR debug report generation and download helpers
+      ui.js             # general UI helpers
 
   backend/
     package.json
