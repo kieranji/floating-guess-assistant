@@ -2085,53 +2085,58 @@ function importCurrentData() {
   }
 }
 
-setupEventListeners({
-  dom,
-  getLatestAiJson: () => latestAiJson,
-  handlers: {
-    addGuess,
-    addCandidate,
-    fillExample,
-    clearInputs,
-    analyzeClues,
-    copyResults,
-    exportCurrentData,
-    generateAiPrompt,
-    analyzeWithBackend,
-    saveAiResponse,
-    importCurrentData,
-    previewOcrImage,
-    recognizeImageText,
-    useOcrTextAsClues,
-    cleanOcrText,
-    applyOcrParsedResult,
-    generateOcrLivePrompt,
-    analyzeOcrWithBackend,
-    saveToLocalStorage,
-    renderAiCards,
-    clearOcrCropSettings,
-    startOcrAreaSelection,
-    updateOcrAreaSelection,
-    finishOcrAreaSelection,
-    previewPreprocessedOcrImage,
-    applyOcrCropPreset,
-    recognizeOcrRegion,
-    mergeOcrRegions,
-    saveOcrRegionPreset,
-    applyOcrRegionPreset,
-    runAutoOcrAnalyze,
-    generateOcrDebugReport,
-    copyOcrDebugReport,
-    downloadOcrDebugReport,
-    updateOcrCropInfo,
-    updateOcrSelectionBoxFromInputs,
-    copyAiResponse
-  }
-});
+function initApp() {
+  checkRequiredElements();
 
-checkRequiredElements();
-loadSectionStates(loadJson);
-setupSectionStateSaving(saveJson);
-setupQuickNav(saveJson);
-loadFromLocalStorage();
-loadWordBank();
+  setupEventListeners({
+    dom,
+    getLatestAiJson: () => latestAiJson,
+    handlers: {
+      addGuess,
+      addCandidate,
+      fillExample,
+      clearInputs,
+      analyzeClues,
+      copyResults,
+      exportCurrentData,
+      generateAiPrompt,
+      analyzeWithBackend,
+      saveAiResponse,
+      importCurrentData,
+      previewOcrImage,
+      recognizeImageText,
+      useOcrTextAsClues,
+      cleanOcrText,
+      applyOcrParsedResult,
+      generateOcrLivePrompt,
+      analyzeOcrWithBackend,
+      saveToLocalStorage,
+      renderAiCards,
+      clearOcrCropSettings,
+      startOcrAreaSelection,
+      updateOcrAreaSelection,
+      finishOcrAreaSelection,
+      previewPreprocessedOcrImage,
+      applyOcrCropPreset,
+      recognizeOcrRegion,
+      mergeOcrRegions,
+      saveOcrRegionPreset,
+      applyOcrRegionPreset,
+      runAutoOcrAnalyze,
+      generateOcrDebugReport,
+      copyOcrDebugReport,
+      downloadOcrDebugReport,
+      updateOcrCropInfo,
+      updateOcrSelectionBoxFromInputs,
+      copyAiResponse
+    }
+  });
+
+  loadSectionStates(loadJson);
+  setupSectionStateSaving(saveJson);
+  setupQuickNav(saveJson);
+  loadFromLocalStorage();
+  loadWordBank();
+}
+
+initApp();
