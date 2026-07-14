@@ -11,6 +11,9 @@ import { dom } from "./js/dom.js";
 import { loadWordBankFromJson } from "./js/wordBank.js";
 import { setupEventListeners } from "./js/events.js";
 import { initApp } from "./js/main.js";
+import { STORAGE_KEYS, createDefaultOcrRegionPresets } from "./js/state.js";
+import { APP_CONFIG } from "./js/config.js";
+import { analyzeLocalCandidates } from "./js/localAnalysis.js";
 
 const {
   modeSelect,
@@ -109,6 +112,14 @@ const {
   ocrDebugReportInput
 } = dom;
 const BACKEND_URL = APP_CONFIG.backendUrl;
+
+let wordBank = [];
+let latestAiJson = null;
+let latestOcrParsed = null;
+let isSelectingOcrArea = false;
+let ocrSelectionStart = null;
+let followupHistory = [];
+let ocrRegionPresets = createDefaultOcrRegionPresets();
 
 function checkRequiredElements() {
   checkElements({
@@ -579,13 +590,14 @@ async function previewPreprocessedOcrImage() {
   }
 
   try {
-    const previewUrl = URL.createObjectURL(processedImage);
     const croppedImage = await createCroppedOcrImage(file, crop);
-
+    
     const processedImage = await preprocessOcrImage(croppedImage, {
       usePreprocess: ocrUsePreprocessInput ? ocrUsePreprocessInput.checked : true,
       scale: ocrScaleSelect ? Number(ocrScaleSelect.value) || 2 : 2
     });
+
+    const previewUrl = URL.createObjectURL(processedImage);
 
     if (preprocessImagePreview) {
       preprocessImagePreview.src = previewUrl;
@@ -1008,11 +1020,11 @@ async function analyzeOcrWithBackend() {
   try {
     const data = await analyzeWithAiBackend({
       backendUrl: BACKEND_URL,
-      mode,
-      clues: followupClues,
+      mode: modeSelect.value,
+      clues: ocrClues,
       guesses,
-      customWords
-  });
+      customWords: parseCustomWords(customWordsInput.value, modeSelect.value)
+    });
 
     if (aiPromptInput) {
       aiPromptInput.value = data.prompt || "";
@@ -1404,7 +1416,7 @@ function clearInputs() {
   followupHistory = [];
   renderFollowupHistory();
 
-  removeItem("floatingGuessAssistantData");
+  removeItem(STORAGE_KEYS.appData);
 
   updateSaveStatus("已清空本地保存");
 
@@ -1823,10 +1835,10 @@ ${item.confidence || "未知"}%
   try {
     const data = await analyzeWithAiBackend({
       backendUrl: BACKEND_URL,
-      mode: modeSelect.value,
-      clues: ocrClues,
+      mode,
+      clues: followupClues,
       guesses,
-      customWords: parseCustomWords(customWordsInput.value, modeSelect.value)
+      customWords
     });
 
     if (aiPromptInput) {
@@ -1920,7 +1932,7 @@ function saveToLocalStorage() {
     ocrGuessText: ocrGuessTextInput ? ocrGuessTextInput.value : ""
   };
 
-  saveJson("floatingGuessAssistantData", data);
+  saveJson(STORAGE_KEYS.appData, data);
 
   const now = new Date();
   const timeText = now.toLocaleTimeString();
@@ -1929,15 +1941,13 @@ function saveToLocalStorage() {
 }
 
 function loadFromLocalStorage() {
-  const data = localStorage.getItem("floatingGuessAssistantData");
+  const data = loadJson(STORAGE_KEYS.appData, null);
 
   if (!data) {
     return;
   }
 
   try {
-    const data = JSON.parse(saved);
-
     if (data.ocrRegionPresets) {
       ocrRegionPresets = data.ocrRegionPresets;
       updateOcrRegionPresetInfo();

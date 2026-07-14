@@ -70,6 +70,7 @@ floating-guess-assistant/
       wordBank.js       # word bank JSON loading helper
       events.js         # central event listener setup
       main.js           # app initialization entry helper
+      state.js          # shared storage keys and default state helpers
 
   backend/
     package.json

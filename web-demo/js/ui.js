@@ -1,3 +1,5 @@
+import { STORAGE_KEYS } from "./state.js";
+
 export function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -33,11 +35,11 @@ export function saveSectionStates(storageSaveFn) {
     }
   });
 
-  storageSaveFn("floatingGuessSectionStates", states);
+  storageSaveFn(STORAGE_KEYS.sectionStates, states);
 }
 
 export function loadSectionStates(storageLoadFn) {
-  const states = storageLoadFn("floatingGuessSectionStates", null);
+  const states = storageLoadFn(STORAGE_KEYS.sectionStates, null);
 
   if (!states) {
     return;
