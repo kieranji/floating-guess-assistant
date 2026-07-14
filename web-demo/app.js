@@ -1423,6 +1423,9 @@ function clearInputs() {
   latestAiJson = null;
   latestOcrParsed = null;
 
+  ocrRegionPresets = createDefaultOcrRegionPresets();
+  updateOcrRegionPresetInfo();
+
   if (aiCandidateCardsBox) {
     aiCandidateCardsBox.innerText = "暂无结构化 AI 结果。";
   } 
