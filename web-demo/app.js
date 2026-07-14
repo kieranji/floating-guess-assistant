@@ -10,6 +10,7 @@ import { buildOcrDebugReport, createTextDownload } from "./js/ocrReport.js";
 import { dom } from "./js/dom.js";
 import { loadWordBankFromJson } from "./js/wordBank.js";
 import { setupEventListeners } from "./js/events.js";
+import { initApp } from "./js/main.js";
 
 const {
   modeSelect,
@@ -2085,58 +2086,55 @@ function importCurrentData() {
   }
 }
 
-function initApp() {
-  checkRequiredElements();
-
-  setupEventListeners({
-    dom,
-    getLatestAiJson: () => latestAiJson,
-    handlers: {
-      addGuess,
-      addCandidate,
-      fillExample,
-      clearInputs,
-      analyzeClues,
-      copyResults,
-      exportCurrentData,
-      generateAiPrompt,
-      analyzeWithBackend,
-      saveAiResponse,
-      importCurrentData,
-      previewOcrImage,
-      recognizeImageText,
-      useOcrTextAsClues,
-      cleanOcrText,
-      applyOcrParsedResult,
-      generateOcrLivePrompt,
-      analyzeOcrWithBackend,
-      saveToLocalStorage,
-      renderAiCards,
-      clearOcrCropSettings,
-      startOcrAreaSelection,
-      updateOcrAreaSelection,
-      finishOcrAreaSelection,
-      previewPreprocessedOcrImage,
-      applyOcrCropPreset,
-      recognizeOcrRegion,
-      mergeOcrRegions,
-      saveOcrRegionPreset,
-      applyOcrRegionPreset,
-      runAutoOcrAnalyze,
-      generateOcrDebugReport,
-      copyOcrDebugReport,
-      downloadOcrDebugReport,
-      updateOcrCropInfo,
-      updateOcrSelectionBoxFromInputs,
-      copyAiResponse
-    }
-  });
-
-  loadSectionStates(loadJson);
-  setupSectionStateSaving(saveJson);
-  setupQuickNav(saveJson);
-  loadFromLocalStorage();
-  loadWordBank();
-}
-
-initApp();
+initApp({
+  checkRequiredElements,
+  setupEventListeners,
+  dom,
+  getLatestAiJson: () => latestAiJson,
+  handlers: {
+    addGuess,
+    addCandidate,
+    fillExample,
+    clearInputs,
+    analyzeClues,
+    copyResults,
+    exportCurrentData,
+    generateAiPrompt,
+    analyzeWithBackend,
+    saveAiResponse,
+    importCurrentData,
+    previewOcrImage,
+    recognizeImageText,
+    useOcrTextAsClues,
+    cleanOcrText,
+    applyOcrParsedResult,
+    generateOcrLivePrompt,
+    analyzeOcrWithBackend,
+    saveToLocalStorage,
+    renderAiCards,
+    clearOcrCropSettings,
+    startOcrAreaSelection,
+    updateOcrAreaSelection,
+    finishOcrAreaSelection,
+    previewPreprocessedOcrImage,
+    applyOcrCropPreset,
+    recognizeOcrRegion,
+    mergeOcrRegions,
+    saveOcrRegionPreset,
+    applyOcrRegionPreset,
+    runAutoOcrAnalyze,
+    generateOcrDebugReport,
+    copyOcrDebugReport,
+    downloadOcrDebugReport,
+    updateOcrCropInfo,
+    updateOcrSelectionBoxFromInputs,
+    copyAiResponse
+  },
+  loadSectionStates,
+  setupSectionStateSaving,
+  setupQuickNav,
+  loadJson,
+  saveJson,
+  loadFromLocalStorage,
+  loadWordBank
+});
