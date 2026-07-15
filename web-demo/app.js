@@ -324,12 +324,12 @@ async function analyzeImageWithVision() {
   } finally {
     if (visionAnalyzeBtn) {
       visionAnalyzeBtn.disabled = false;
-      visionAnalyzeBtn.textContent = "上传截图并 AI 直接分析";
+      visionAnalyzeBtn.textContent = "一键读图猜答案";
     }
   }
 }
 
-function compressImageFileToDataUrl(file, maxWidth = 1280, quality = 0.82) {
+function compressImageFileToDataUrl(file, maxWidth = 960, quality = 0.75) {
   return new Promise((resolve, reject) => {
     const image = new Image();
     const reader = new FileReader();

@@ -219,7 +219,7 @@ app.post("/api/analyze-image", async (req, res) => {
         }
       ],
       temperature: 0.2,
-      max_tokens: 1200
+      max_tokens: 1024
     });
 
     const aiText = completion.choices?.[0]?.message?.content || "";
