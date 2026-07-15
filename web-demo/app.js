@@ -205,8 +205,6 @@ function checkRequiredElements() {
     copyOcrReportBtn,
     downloadOcrReportBtn,
     ocrDebugReportInput,
-    visionAnalyzeBtn,
-    visionStatus,
     heroVisionAnalyzeBtn,
     heroVisionStatus
   });
@@ -229,7 +227,7 @@ async function loadWordBank() {
 }
 
 function setVisionButtonsLoading(isLoading) {
-  const buttons = [visionAnalyzeBtn, heroVisionAnalyzeBtn];
+  const buttons = [heroVisionAnalyzeBtn];
 
   buttons.forEach((button) => {
     if (!button) return;
@@ -240,10 +238,6 @@ function setVisionButtonsLoading(isLoading) {
 }
 
 function setVisionStatus(message) {
-  if (visionStatus) {
-    visionStatus.textContent = message;
-  }
-
   if (heroVisionStatus) {
     heroVisionStatus.textContent = message;
   }
@@ -396,6 +390,7 @@ function previewOcrImage() {
 
   if (ocrStatus) {
     ocrStatus.textContent = "图片已加载，可以开始 OCR 识别。";
+    setVisionStatus("视觉 AI：图片已选择，可以一键读图猜答案");
   }
 }
 
