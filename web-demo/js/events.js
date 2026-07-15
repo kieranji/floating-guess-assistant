@@ -40,7 +40,8 @@ export function setupEventListeners({
     downloadOcrDebugReport,
     updateOcrCropInfo,
     updateOcrSelectionBoxFromInputs,
-    copyAiResponse
+    copyAiResponse,
+    analyzeImageWithVision
   } = handlers;
 
   dom.addGuessBtn?.addEventListener("click", addGuess);
@@ -66,6 +67,7 @@ export function setupEventListeners({
 
   dom.ocrUsePreprocessInput?.addEventListener("change", saveToLocalStorage);
   dom.ocrScaleSelect?.addEventListener("change", saveToLocalStorage);
+  dom.visionAnalyzeBtn?.addEventListener("click", analyzeImageWithVision);
 
   dom.aiCardLimitSelect?.addEventListener("change", () => {
     renderAiCards(getLatestAiJson());

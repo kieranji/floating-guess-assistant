@@ -109,7 +109,10 @@ const {
   generateOcrReportBtn,
   copyOcrReportBtn,
   downloadOcrReportBtn,
-  ocrDebugReportInput
+  ocrDebugReportInput,
+
+  visionAnalyzeBtn,
+  visionStatus
 } = dom;
 const BACKEND_URL = APP_CONFIG.backendUrl;
 
@@ -201,7 +204,9 @@ function checkRequiredElements() {
     generateOcrReportBtn,
     copyOcrReportBtn,
     downloadOcrReportBtn,
-    ocrDebugReportInput
+    ocrDebugReportInput,
+    visionAnalyzeBtn,
+    visionStatus
   });
 }
 
@@ -219,6 +224,142 @@ async function loadWordBank() {
       resultList.appendChild(li);
     }
   }
+}
+
+async function analyzeImageWithVision() {
+  if (!ocrImageInput || !ocrImageInput.files || ocrImageInput.files.length === 0) {
+    alert("请先上传一张直播截图。");
+    return;
+  }
+
+  const file = ocrImageInput.files[0];
+
+  if (!file.type.startsWith("image/")) {
+    alert("请选择图片文件。");
+    return;
+  }
+
+  if (visionAnalyzeBtn) {
+    visionAnalyzeBtn.disabled = true;
+    visionAnalyzeBtn.textContent = "视觉 AI 分析中...";
+  }
+
+  if (visionStatus) {
+    visionStatus.textContent = "视觉 AI：正在压缩图片...";
+  }
+
+  try {
+    const imageDataUrl = await compressImageFileToDataUrl(file);
+
+    if (visionStatus) {
+      visionStatus.textContent = "视觉 AI：正在读图分析...";
+    }
+
+    const response = await fetch(`${BACKEND_URL}/api/analyze-image`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        imageDataUrl
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "视觉 AI 分析失败。");
+    }
+
+    if (aiPromptInput) {
+      aiPromptInput.value = "视觉 AI 直接读图分析";
+    }
+
+    if (aiResponseInput) {
+      aiResponseInput.value = data.aiText || "";
+    }
+
+    if (savedAiResponseBox) {
+      savedAiResponseBox.innerText = data.aiText || "暂无 AI 分析。";
+    }
+
+    if (data.aiJson) {
+      latestAiJson = data.aiJson;
+      renderAiCards(latestAiJson);
+
+      if (Array.isArray(data.aiJson.topicClues)) {
+        cluesInput.value = data.aiJson.topicClues.join("\n");
+      }
+
+      if (Array.isArray(data.aiJson.guesses)) {
+        guessHistoryInput.value = data.aiJson.guesses
+          .filter((guess) => guess.word && guess.score !== undefined)
+          .map((guess) => `${guess.word} ${guess.score}`)
+          .join("\n");
+      }
+
+      analyzeClues();
+    }
+
+    saveToLocalStorage();
+
+    if (visionStatus) {
+      visionStatus.textContent = `视觉 AI：分析完成，模型 ${data.model || ""}`;
+    }
+
+    if (aiCandidateCardsBox) {
+      aiCandidateCardsBox.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }
+  } catch (error) {
+    console.error(error);
+
+    if (visionStatus) {
+      visionStatus.textContent = `视觉 AI：失败 - ${error.message}`;
+    }
+
+    alert(`视觉 AI 分析失败：${error.message}`);
+  } finally {
+    if (visionAnalyzeBtn) {
+      visionAnalyzeBtn.disabled = false;
+      visionAnalyzeBtn.textContent = "上传截图并 AI 直接分析";
+    }
+  }
+}
+
+function compressImageFileToDataUrl(file, maxWidth = 1280, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      image.src = reader.result;
+    };
+
+    reader.onerror = reject;
+
+    image.onload = () => {
+      const scale = Math.min(1, maxWidth / image.width);
+      const width = Math.round(image.width * scale);
+      const height = Math.round(image.height * scale);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+
+      const context = canvas.getContext("2d");
+      context.drawImage(image, 0, 0, width, height);
+
+      const dataUrl = canvas.toDataURL("image/jpeg", quality);
+      resolve(dataUrl);
+    };
+
+    image.onerror = reject;
+
+    reader.readAsDataURL(file);
+  });
 }
 
 function previewOcrImage() {
@@ -2141,7 +2282,8 @@ initApp({
     downloadOcrDebugReport,
     updateOcrCropInfo,
     updateOcrSelectionBoxFromInputs,
-    copyAiResponse
+    copyAiResponse,
+    analyzeImageWithVision
   },
   loadSectionStates,
   setupSectionStateSaving,

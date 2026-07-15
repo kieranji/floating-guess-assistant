@@ -92,5 +92,8 @@ export const dom = {
   generateOcrReportBtn: document.getElementById("generateOcrReportBtn"),
   copyOcrReportBtn: document.getElementById("copyOcrReportBtn"),
   downloadOcrReportBtn: document.getElementById("downloadOcrReportBtn"),
-  ocrDebugReportInput: document.getElementById("ocrDebugReport")
+  ocrDebugReportInput: document.getElementById("ocrDebugReport"),
+
+  visionAnalyzeBtn: document.getElementById("visionAnalyzeBtn"),
+  visionStatus: document.getElementById("visionStatus")
 };
