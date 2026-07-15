@@ -47,10 +47,14 @@
       <details class="section-details" data-section="ai-results" open>
         <summary>AI 分析结果</summary>
 
-      <section class="ai-response-box">
-        <h2>已保存的 AI 分析</h2>
-        <div id="savedAiResponse">暂无 AI 分析。</div>
-      </section>
+      <details class="section-details advanced-section ai-raw-response-details" data-section="ai-raw-response">
+        <summary>完整 AI 原文分析（可选）</summary>
+
+        <section class="ai-response-box">
+          <h2>已保存的 AI 分析</h2>
+          <div id="savedAiResponse">暂无 AI 分析。</div>
+        </section>
+      </details>
 
       <section class="ai-cards-box">
         <div class="ai-cards-header">
@@ -421,6 +425,6 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script type="module" src="app.js?v=42"></script>
+  <script type="module" src="app.js?v=45"></script>
 </body>
 </html>
