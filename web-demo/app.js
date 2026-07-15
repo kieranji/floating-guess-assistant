@@ -110,9 +110,7 @@ const {
   copyOcrReportBtn,
   downloadOcrReportBtn,
   ocrDebugReportInput,
-
-  visionAnalyzeBtn,
-  visionStatus,
+  
   heroVisionAnalyzeBtn,
   heroVisionStatus
 } = dom;

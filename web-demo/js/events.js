@@ -67,7 +67,6 @@ export function setupEventListeners({
 
   dom.ocrUsePreprocessInput?.addEventListener("change", saveToLocalStorage);
   dom.ocrScaleSelect?.addEventListener("change", saveToLocalStorage);
-  dom.visionAnalyzeBtn?.addEventListener("click", analyzeImageWithVision);
   dom.heroVisionAnalyzeBtn?.addEventListener("click", analyzeImageWithVision);
 
   dom.aiCardLimitSelect?.addEventListener("change", () => {
