@@ -56,6 +56,40 @@
         </div>
       </section>
 
+      <details class="section-details" data-section="ai-results" open>
+        <summary>AI 分析结果</summary>
+
+      <section class="ai-response-box">
+        <h2>已保存的 AI 分析</h2>
+        <div id="savedAiResponse">暂无 AI 分析。</div>
+      </section>
+
+      <section class="ai-cards-box">
+        <div class="ai-cards-header">
+          <h2>AI 候选答案卡片</h2>
+
+          <select id="aiCardLimit">
+            <option value="5">Top 5</option>
+            <option value="10">Top 10</option>
+          </select>
+        </div>
+
+        <input
+          id="aiCardSearch"
+          type="text"
+          placeholder="搜索 AI 候选词，例如：光阴"
+        />
+
+        <div id="aiCandidateCards">暂无结构化 AI 结果。</div>
+      </section>
+
+      <section class="followup-history-box">
+        <h2>追问历史</h2>
+        <div id="followupHistory">暂无追问历史。</div>
+      </section>
+
+      </details>
+
       <details class="section-card advanced-section" data-section="ocr">
         <summary>截图 OCR 识别</summary>
 
@@ -374,40 +408,6 @@
 
       </details>
 
-      <details class="section-details" data-section="ai-results" open>
-        <summary>AI 分析结果</summary>
-
-      <section class="ai-response-box">
-        <h2>已保存的 AI 分析</h2>
-        <div id="savedAiResponse">暂无 AI 分析。</div>
-      </section>
-
-      <section class="ai-cards-box">
-        <div class="ai-cards-header">
-          <h2>AI 候选答案卡片</h2>
-
-          <select id="aiCardLimit">
-            <option value="5">Top 5</option>
-            <option value="10">Top 10</option>
-          </select>
-        </div>
-
-        <input
-          id="aiCardSearch"
-          type="text"
-          placeholder="搜索 AI 候选词，例如：光阴"
-        />
-
-        <div id="aiCandidateCards">暂无结构化 AI 结果。</div>
-      </section>
-
-      <section class="followup-history-box">
-        <h2>追问历史</h2>
-        <div id="followupHistory">暂无追问历史。</div>
-      </section>
-
-      </details>
-
       <details class="section-details advanced-section" data-section="import">
         <summary>导入导出 / Prompt</summary>
 
@@ -424,6 +424,6 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script type="module" src="app.js?v=37"></script>
+  <script type="module" src="app.js?v=40"></script>
 </body>
 </html>
