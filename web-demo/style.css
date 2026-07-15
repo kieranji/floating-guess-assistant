@@ -1047,3 +1047,30 @@ li {
     font-size: 18px;
   }
 }
+
+.advanced-section {
+  opacity: 0.72;
+  border-style: dashed;
+  background: rgba(148, 163, 184, 0.06);
+}
+
+.advanced-section[open] {
+  opacity: 1;
+  background: var(--card-bg, #fff);
+}
+
+.advanced-section summary {
+  color: #64748b;
+  font-size: 15px;
+}
+
+.advanced-section summary::after {
+  content: "高级";
+  margin-left: 8px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.12);
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
