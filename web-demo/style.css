@@ -1074,3 +1074,37 @@ li {
   font-size: 12px;
   font-weight: 700;
 }
+
+/* 高级折叠区：覆盖 section-details 默认黑色加粗标题 */
+.section-details.advanced-section {
+  opacity: 0.72;
+  border-style: dashed;
+  background: rgba(148, 163, 184, 0.06);
+}
+
+.section-details.advanced-section[open] {
+  opacity: 1;
+  background: #ffffff;
+}
+
+.section-details.advanced-section > summary {
+  color: #64748b !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  background: #f8fafc !important;
+}
+
+.section-details.advanced-section > summary::before {
+  color: #64748b !important;
+}
+
+.section-details.advanced-section > summary::after {
+  content: "高级";
+  margin-left: 8px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.12);
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
