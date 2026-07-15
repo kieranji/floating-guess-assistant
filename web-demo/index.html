@@ -33,16 +33,35 @@
         placeholder="例如：四字成语，和时间有关，形容时间过得很快"
       ></textarea>
 
-      <details class="section-details" data-section="ocr" open>
+      <section class="hero-card">
+        <div class="hero-text">
+          <p class="eyebrow">Floating Guess Assistant</p>
+          <h2>截图上传，一键猜答案</h2>
+          <p class="hero-desc">
+            适合直播猜词场景：上传当前截图，视觉 AI 会自动读取题目线索、历史猜测和相似度，并给出候选答案。
+          </p>
+        </div>
+
+        <div class="hero-actions">
+          <label class="upload-card" for="ocrImageInput">
+            <span class="upload-title">选择直播截图</span>
+            <span class="upload-desc">支持手机截图 / 直播画面截图</span>
+          </label>
+
+          <button id="heroVisionAnalyzeBtn" type="button" class="primary-vision-btn">
+            一键读图猜答案
+          </button>
+
+          <p id="heroVisionStatus" class="hero-status">视觉 AI：待分析</p>
+        </div>
+      </section>
+
+      <details class="section-card advanced-section" data-section="ocr">
         <summary>截图 OCR 识别</summary>
 
         <section class="ocr-box">
 
-        <input
-          id="ocrImageInput"
-          type="file"
-          accept="image/*"
-        />
+        <input id="ocrImageInput" class="hidden-file-input" type="file" accept="image/*" />
 
         <button id="visionAnalyzeBtn" type="button">一键读图猜答案</button>
         <span id="visionStatus">视觉 AI：待分析</span>
@@ -405,6 +424,6 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script type="module" src="app.js?v=35"></script>
+  <script type="module" src="app.js?v=36"></script>
 </body>
 </html>

@@ -95,5 +95,7 @@ export const dom = {
   ocrDebugReportInput: document.getElementById("ocrDebugReport"),
 
   visionAnalyzeBtn: document.getElementById("visionAnalyzeBtn"),
-  visionStatus: document.getElementById("visionStatus")
+  visionStatus: document.getElementById("visionStatus"),
+  heroVisionAnalyzeBtn: document.getElementById("heroVisionAnalyzeBtn"),
+ heroVisionStatus: document.getElementById("heroVisionStatus")
 };

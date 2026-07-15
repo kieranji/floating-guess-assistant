@@ -924,3 +924,126 @@ li {
   margin-left: 10px;
   font-weight: 600;
 }
+
+.hero-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: 24px;
+  align-items: center;
+  padding: 28px;
+  margin: 18px 0 22px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.22), transparent 36%),
+    linear-gradient(135deg, #0f172a, #1e293b);
+  color: #fff;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.2);
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #93c5fd;
+  font-weight: 700;
+}
+
+.hero-card h2 {
+  margin: 0;
+  font-size: clamp(28px, 5vw, 46px);
+  line-height: 1.08;
+}
+
+.hero-desc {
+  margin: 14px 0 0;
+  color: #cbd5e1;
+  line-height: 1.7;
+  max-width: 680px;
+}
+
+.hero-actions {
+  display: grid;
+  gap: 12px;
+}
+
+.upload-card {
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border: 1px dashed rgba(255, 255, 255, 0.5);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+}
+
+.upload-card:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.upload-title {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.upload-desc {
+  color: #cbd5e1;
+  font-size: 14px;
+}
+
+.primary-vision-btn {
+  width: 100%;
+  padding: 16px 18px;
+  border: none;
+  border-radius: 18px;
+  background: #3b82f6;
+  color: white;
+  font-size: 20px;
+  font-weight: 900;
+  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.35);
+}
+
+.primary-vision-btn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.primary-vision-btn:disabled {
+  opacity: 0.7;
+  transform: none;
+  cursor: wait;
+}
+
+.hero-status {
+  margin: 0;
+  color: #dbeafe;
+  font-weight: 700;
+}
+
+.hidden-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.advanced-section {
+  opacity: 0.86;
+}
+
+.advanced-section summary {
+  color: #64748b;
+  font-size: 15px;
+}
+
+@media (max-width: 760px) {
+  .hero-card {
+    grid-template-columns: 1fr;
+    padding: 22px;
+  }
+
+  .primary-vision-btn {
+    font-size: 18px;
+  }
+}

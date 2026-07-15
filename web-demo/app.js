@@ -112,7 +112,9 @@ const {
   ocrDebugReportInput,
 
   visionAnalyzeBtn,
-  visionStatus
+  visionStatus,
+  heroVisionAnalyzeBtn,
+  heroVisionStatus
 } = dom;
 const BACKEND_URL = APP_CONFIG.backendUrl;
 
@@ -206,7 +208,9 @@ function checkRequiredElements() {
     downloadOcrReportBtn,
     ocrDebugReportInput,
     visionAnalyzeBtn,
-    visionStatus
+    visionStatus,
+    heroVisionAnalyzeBtn,
+    heroVisionStatus
   });
 }
 
@@ -226,6 +230,27 @@ async function loadWordBank() {
   }
 }
 
+function setVisionButtonsLoading(isLoading) {
+  const buttons = [visionAnalyzeBtn, heroVisionAnalyzeBtn];
+
+  buttons.forEach((button) => {
+    if (!button) return;
+
+    button.disabled = isLoading;
+    button.textContent = isLoading ? "视觉 AI 分析中..." : "一键读图猜答案";
+  });
+}
+
+function setVisionStatus(message) {
+  if (visionStatus) {
+    visionStatus.textContent = message;
+  }
+
+  if (heroVisionStatus) {
+    heroVisionStatus.textContent = message;
+  }
+}
+
 async function analyzeImageWithVision() {
   if (!ocrImageInput || !ocrImageInput.files || ocrImageInput.files.length === 0) {
     alert("请先上传一张直播截图。");
@@ -239,21 +264,13 @@ async function analyzeImageWithVision() {
     return;
   }
 
-  if (visionAnalyzeBtn) {
-    visionAnalyzeBtn.disabled = true;
-    visionAnalyzeBtn.textContent = "视觉 AI 分析中...";
-  }
-
-  if (visionStatus) {
-    visionStatus.textContent = "视觉 AI：正在压缩图片...";
-  }
+  setVisionButtonsLoading(true);
+  setVisionStatus("视觉 AI：正在压缩图片...");
 
   try {
     const imageDataUrl = await compressImageFileToDataUrl(file);
 
-    if (visionStatus) {
-      visionStatus.textContent = "视觉 AI：正在读图分析...";
-    }
+    setVisionStatus("视觉 AI：正在读图分析...");
 
     const response = await fetch(`${BACKEND_URL}/api/analyze-image`, {
       method: "POST",
@@ -303,9 +320,7 @@ async function analyzeImageWithVision() {
 
     saveToLocalStorage();
 
-    if (visionStatus) {
-      visionStatus.textContent = `视觉 AI：分析完成，模型 ${data.model || ""}`;
-    }
+    setVisionStatus(`视觉 AI：分析完成，模型 ${data.model || ""}`);
 
     if (aiCandidateCardsBox) {
       aiCandidateCardsBox.scrollIntoView({
@@ -316,16 +331,11 @@ async function analyzeImageWithVision() {
   } catch (error) {
     console.error(error);
 
-    if (visionStatus) {
-      visionStatus.textContent = `视觉 AI：失败 - ${error.message}`;
-    }
+    setVisionStatus(`视觉 AI：失败 - ${error.message}`);
 
     alert(`视觉 AI 分析失败：${error.message}`);
   } finally {
-    if (visionAnalyzeBtn) {
-      visionAnalyzeBtn.disabled = false;
-      visionAnalyzeBtn.textContent = "一键读图猜答案";
-    }
+    setVisionButtonsLoading(false);
   }
 }
 
