@@ -96,6 +96,7 @@ export const dom = {
 
   heroVisionAnalyzeBtn: document.getElementById("heroVisionAnalyzeBtn"),
   heroVisionStatus: document.getElementById("heroVisionStatus"),
+  heroImagePreview: document.getElementById("heroImagePreview"),
 
   supplementClueInput: document.getElementById("supplementClueInput"),
   supplementGuessWordInput: document.getElementById("supplementGuessWordInput"),
