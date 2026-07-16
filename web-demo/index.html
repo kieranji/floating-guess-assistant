@@ -41,6 +41,38 @@
           </button>
 
           <p id="heroVisionStatus" class="hero-status">视觉 AI：待分析</p>
+          <div class="hero-refine-box">
+            <p class="hero-refine-title">补充新信息后重新分析</p>
+
+            <input
+              id="supplementClueInput"
+              type="text"
+              placeholder="新线索，例如：和声音有关 / 现场提示是休闲活动"
+            />
+
+            <div class="hero-refine-grid">
+              <input
+                id="supplementGuessWordInput"
+                type="text"
+                placeholder="高分词，例如：听雨"
+              />
+
+              <input
+                id="supplementGuessScoreInput"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                placeholder="相似度%，例如 44.9"
+              />
+            </div>
+
+            <button id="supplementAnalyzeBtn" type="button" class="supplement-analyze-btn">
+              补充信息再分析
+            </button>
+
+            <p id="supplementStatus" class="hero-status">补充分析：待输入</p>
+          </div>
         </div>
       </section>
 
@@ -425,6 +457,6 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script type="module" src="app.js?v=45"></script>
+  <script type="module" src="app.js?v=46"></script>
 </body>
 </html>

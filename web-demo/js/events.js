@@ -41,7 +41,8 @@ export function setupEventListeners({
     updateOcrCropInfo,
     updateOcrSelectionBoxFromInputs,
     copyAiResponse,
-    analyzeImageWithVision
+    analyzeImageWithVision,
+    analyzeWithSupplementalInfo
   } = handlers;
 
   dom.addGuessBtn?.addEventListener("click", addGuess);
@@ -68,6 +69,7 @@ export function setupEventListeners({
   dom.ocrUsePreprocessInput?.addEventListener("change", saveToLocalStorage);
   dom.ocrScaleSelect?.addEventListener("change", saveToLocalStorage);
   dom.heroVisionAnalyzeBtn?.addEventListener("click", analyzeImageWithVision);
+  dom.supplementAnalyzeBtn?.addEventListener("click", analyzeWithSupplementalInfo);
 
   dom.aiCardLimitSelect?.addEventListener("change", () => {
     renderAiCards(getLatestAiJson());
@@ -160,7 +162,10 @@ export function setupEventListeners({
     dom.ocrCropHeightInput,
     dom.ocrHintTextInput,
     dom.ocrGuessTextInput,
-    dom.importJsonInput
+    dom.importJsonInput,
+    dom.supplementClueInput,
+    dom.supplementGuessWordInput,
+    dom.supplementGuessScoreInput
   ];
 
   autoSaveInputs.forEach((input) => {

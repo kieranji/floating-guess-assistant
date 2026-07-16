@@ -112,7 +112,14 @@ const {
   ocrDebugReportInput,
   
   heroVisionAnalyzeBtn,
-  heroVisionStatus
+  heroVisionStatus,
+  heroImagePreview,
+
+  supplementClueInput,
+  supplementGuessWordInput,
+  supplementGuessScoreInput,
+  supplementAnalyzeBtn,
+  supplementStatus
 } = dom;
 const BACKEND_URL = APP_CONFIG.backendUrl;
 
@@ -206,7 +213,14 @@ function checkRequiredElements() {
     downloadOcrReportBtn,
     ocrDebugReportInput,
     heroVisionAnalyzeBtn,
-    heroVisionStatus
+    heroVisionStatus,
+    heroImagePreview,
+
+    supplementClueInput,
+    supplementGuessWordInput,
+    supplementGuessScoreInput,
+    supplementAnalyzeBtn,
+    supplementStatus
   });
 }
 
@@ -328,6 +342,108 @@ async function analyzeImageWithVision() {
     alert(`视觉 AI 分析失败：${error.message}`);
   } finally {
     setVisionButtonsLoading(false);
+  }
+}
+
+function setSupplementStatus(message) {
+  if (supplementStatus) {
+    supplementStatus.textContent = message;
+  }
+}
+
+function mergeSupplementInfoIntoInputs() {
+  const newClue = supplementClueInput ? supplementClueInput.value.trim() : "";
+  const guessWord = supplementGuessWordInput ? supplementGuessWordInput.value.trim() : "";
+  const guessScore = supplementGuessScoreInput ? supplementGuessScoreInput.value.trim() : "";
+
+  if (newClue) {
+    cluesInput.value = mergeUniqueLines(cluesInput.value, newClue);
+  }
+
+  if (guessWord || guessScore) {
+    if (!guessWord || !guessScore) {
+      throw new Error("高分词和相似度需要一起填写。");
+    }
+
+    const scoreNumber = Number(guessScore);
+
+    if (Number.isNaN(scoreNumber) || scoreNumber < 0 || scoreNumber > 100) {
+      throw new Error("相似度必须是 0 到 100 之间的数字。");
+    }
+
+    const newGuessLine = `${guessWord} ${scoreNumber}`;
+    guessHistoryInput.value = mergeUniqueLines(guessHistoryInput.value, newGuessLine);
+  }
+
+  return {
+    hasNewClue: Boolean(newClue),
+    hasNewGuess: Boolean(guessWord && guessScore)
+  };
+}
+
+async function analyzeWithSupplementalInfo() {
+  if (!supplementAnalyzeBtn) {
+    return;
+  }
+
+  try {
+    const info = mergeSupplementInfoIntoInputs();
+
+    if (!info.hasNewClue && !info.hasNewGuess) {
+      alert("请先输入新线索，或输入高分词和相似度。");
+      return;
+    }
+
+    const mode = modeSelect.value;
+    const clues = cluesInput.value.trim();
+    const guesses = parseGuessHistory(guessHistoryInput.value);
+    const customWords = parseCustomWords(customWordsInput.value, mode);
+
+    supplementAnalyzeBtn.disabled = true;
+    supplementAnalyzeBtn.textContent = "补充分析中...";
+    setSupplementStatus("补充分析：正在综合新信息...");
+
+    const data = await analyzeWithAiBackend({
+      backendUrl: BACKEND_URL,
+      mode,
+      clues,
+      guesses,
+      customWords
+    });
+
+    if (aiPromptInput) {
+      aiPromptInput.value = data.prompt || "";
+    }
+
+    if (aiResponseInput) {
+      aiResponseInput.value = data.aiText || "";
+    }
+
+    if (savedAiResponseBox) {
+      savedAiResponseBox.innerText = data.aiText || "暂无 AI 分析。";
+    }
+
+    latestAiJson = data.aiJson || null;
+    renderAiCards(latestAiJson);
+
+    analyzeClues();
+    saveToLocalStorage();
+
+    setSupplementStatus("补充分析：完成，已更新候选答案");
+
+    if (aiCandidateCardsBox) {
+      aiCandidateCardsBox.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    setSupplementStatus(`补充分析：失败 - ${error.message}`);
+    alert(`补充分析失败：${error.message}`);
+  } finally {
+    supplementAnalyzeBtn.disabled = false;
+    supplementAnalyzeBtn.textContent = "补充信息再分析";
   }
 }
 
@@ -1629,6 +1745,12 @@ function clearInputs() {
     ocrDebugReportInput.value = "";
   }
 
+  if (supplementClueInput) supplementClueInput.value = "";
+  if (supplementGuessWordInput) supplementGuessWordInput.value = "";
+  if (supplementGuessScoreInput) supplementGuessScoreInput.value = "";
+
+  setSupplementStatus("补充分析：待输入");
+
   if (ocrCropXInput) ocrCropXInput.value = "";
   if (ocrCropYInput) ocrCropYInput.value = "";
   if (ocrCropWidthInput) ocrCropWidthInput.value = "";
@@ -2076,7 +2198,10 @@ function saveToLocalStorage() {
     ocrScale: ocrScaleSelect ? ocrScaleSelect.value : "2",
     ocrHintText: ocrHintTextInput ? ocrHintTextInput.value : "",
     ocrDebugReport: ocrDebugReportInput ? ocrDebugReportInput.value : "",
-    ocrGuessText: ocrGuessTextInput ? ocrGuessTextInput.value : ""
+    ocrGuessText: ocrGuessTextInput ? ocrGuessTextInput.value : "",
+    supplementClue: supplementClueInput ? supplementClueInput.value : "",
+supplementGuessWord: supplementGuessWordInput ? supplementGuessWordInput.value : "",
+supplementGuessScore: supplementGuessScoreInput ? supplementGuessScoreInput.value : ""
   };
 
   saveJson(STORAGE_KEYS.appData, data);
@@ -2124,6 +2249,18 @@ function loadFromLocalStorage() {
     if (ocrUsePreprocessInput) {
       ocrUsePreprocessInput.checked =
         data.ocrUsePreprocess !== undefined ? data.ocrUsePreprocess : true;
+    }
+
+    if (supplementClueInput) {
+      supplementClueInput.value = data.supplementClue || "";
+    }
+
+    if (supplementGuessWordInput) {
+      supplementGuessWordInput.value = data.supplementGuessWord || "";
+    }
+
+    if (supplementGuessScoreInput) {
+      supplementGuessScoreInput.value = data.supplementGuessScore || "";
     }
 
     if (ocrScaleSelect) {
@@ -2286,7 +2423,8 @@ initApp({
     updateOcrCropInfo,
     updateOcrSelectionBoxFromInputs,
     copyAiResponse,
-    analyzeImageWithVision
+    analyzeImageWithVision,
+    analyzeWithSupplementalInfo
   },
   loadSectionStates,
   setupSectionStateSaving,

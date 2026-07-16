@@ -1116,3 +1116,47 @@ li {
 .ai-raw-response-details .ai-response-box {
   margin-top: 0;
 }
+
+.hero-refine-box {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.hero-refine-title {
+  margin: 0;
+  color: #dbeafe;
+  font-weight: 800;
+}
+
+.hero-refine-box input {
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.hero-refine-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 10px;
+}
+
+.supplement-analyze-btn {
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: 16px;
+  background: #0f766e;
+  color: white;
+  font-weight: 900;
+}
+
+.supplement-analyze-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+@media (max-width: 520px) {
+  .hero-refine-grid {
+    grid-template-columns: 1fr;
+  }
+}

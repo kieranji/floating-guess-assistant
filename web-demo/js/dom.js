@@ -95,5 +95,11 @@ export const dom = {
   ocrDebugReportInput: document.getElementById("ocrDebugReport"),
 
   heroVisionAnalyzeBtn: document.getElementById("heroVisionAnalyzeBtn"),
-  heroVisionStatus: document.getElementById("heroVisionStatus")
+  heroVisionStatus: document.getElementById("heroVisionStatus"),
+
+  supplementClueInput: document.getElementById("supplementClueInput"),
+  supplementGuessWordInput: document.getElementById("supplementGuessWordInput"),
+  supplementGuessScoreInput: document.getElementById("supplementGuessScoreInput"),
+  supplementAnalyzeBtn: document.getElementById("supplementAnalyzeBtn"),
+  supplementStatus: document.getElementById("supplementStatus")
 };
