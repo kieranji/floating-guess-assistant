@@ -113,7 +113,6 @@ const {
   
   heroVisionAnalyzeBtn,
   heroVisionStatus,
-  heroImagePreview,
 
   supplementClueInput,
   supplementGuessWordInput,
@@ -214,7 +213,6 @@ function checkRequiredElements() {
     ocrDebugReportInput,
     heroVisionAnalyzeBtn,
     heroVisionStatus,
-    heroImagePreview,
 
     supplementClueInput,
     supplementGuessWordInput,
@@ -507,11 +505,6 @@ function previewOcrImage() {
   if (ocrStatus) {
     ocrStatus.textContent = "图片已加载，可以开始 OCR 识别。";
     setVisionStatus("视觉 AI：图片已选择，可以一键读图猜答案");
-  }
-
-  if (heroImagePreview) {
-    heroImagePreview.src = imageUrl;
-    heroImagePreview.style.display = "block";
   }
 }
 
