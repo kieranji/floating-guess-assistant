@@ -508,6 +508,11 @@ function previewOcrImage() {
     ocrStatus.textContent = "图片已加载，可以开始 OCR 识别。";
     setVisionStatus("视觉 AI：图片已选择，可以一键读图猜答案");
   }
+
+  if (heroImagePreview) {
+    heroImagePreview.src = imageUrl;
+    heroImagePreview.style.display = "block";
+  }
 }
 
 function getPointerPositionInImage(event) {
@@ -2200,8 +2205,8 @@ function saveToLocalStorage() {
     ocrDebugReport: ocrDebugReportInput ? ocrDebugReportInput.value : "",
     ocrGuessText: ocrGuessTextInput ? ocrGuessTextInput.value : "",
     supplementClue: supplementClueInput ? supplementClueInput.value : "",
-supplementGuessWord: supplementGuessWordInput ? supplementGuessWordInput.value : "",
-supplementGuessScore: supplementGuessScoreInput ? supplementGuessScoreInput.value : ""
+    supplementGuessWord: supplementGuessWordInput ? supplementGuessWordInput.value : "",
+    supplementGuessScore: supplementGuessScoreInput ? supplementGuessScoreInput.value : ""
   };
 
   saveJson(STORAGE_KEYS.appData, data);
