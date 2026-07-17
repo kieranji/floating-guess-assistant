@@ -287,3 +287,54 @@ function extractJsonFromText(text) {
     return null;
   }
 }
+
+function normalizeWord(word) {
+  return String(word || "")
+    .trim()
+    .replace(/\s+/g, "")
+    .toLowerCase();
+}
+
+function removeGuessedCandidates(aiJson, guessesFromRequest = []) {
+  if (!aiJson || !Array.isArray(aiJson.candidates)) {
+    return aiJson;
+  }
+
+  const allGuesses =
+    Array.isArray(guessesFromRequest) && guessesFromRequest.length > 0
+      ? guessesFromRequest
+      : Array.isArray(aiJson.guesses)
+        ? aiJson.guesses
+        : [];
+
+  const guessedWords = new Set(
+    allGuesses
+      .map((guess) => normalizeWord(guess.word))
+      .filter(Boolean)
+  );
+
+  if (guessedWords.size === 0) {
+    return aiJson;
+  }
+
+  const beforeCount = aiJson.candidates.length;
+
+  aiJson.candidates = aiJson.candidates.filter((candidate) => {
+    const candidateWord = normalizeWord(candidate.word);
+    return candidateWord && !guessedWords.has(candidateWord);
+  });
+
+  const removedCount = beforeCount - aiJson.candidates.length;
+
+  if (removedCount > 0) {
+    if (Array.isArray(aiJson.warnings)) {
+      aiJson.warnings.push(`已过滤 ${removedCount} 个已经猜过的候选词。`);
+    } else if (typeof aiJson.uncertainty === "string") {
+      aiJson.uncertainty += ` 已过滤 ${removedCount} 个已经猜过的候选词。`;
+    } else {
+      aiJson.warnings = [`已过滤 ${removedCount} 个已经猜过的候选词。`];
+    }
+  }
+
+  return aiJson;
+}

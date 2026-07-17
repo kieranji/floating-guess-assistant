@@ -130,6 +130,7 @@ let latestOcrParsed = null;
 let isSelectingOcrArea = false;
 let ocrSelectionStart = null;
 let followupHistory = [];
+let supplementHistory = [];
 let ocrRegionPresets = createDefaultOcrRegionPresets();
 
 function checkRequiredElements() {
@@ -357,8 +358,11 @@ function mergeSupplementInfoIntoInputs() {
   const guessWord = supplementGuessWordInput ? supplementGuessWordInput.value.trim() : "";
   const guessScore = supplementGuessScoreInput ? supplementGuessScoreInput.value.trim() : "";
 
-  if (newClue) {
-    cluesInput.value = mergeUniqueLines(cluesInput.value, newClue);
+  if (!newClue && !guessWord && !guessScore) {
+    return {
+      hasNewClue: false,
+      hasNewGuess: false
+    };
   }
 
   if (guessWord || guessScore) {
@@ -371,8 +375,29 @@ function mergeSupplementInfoIntoInputs() {
     if (Number.isNaN(scoreNumber) || scoreNumber < 0 || scoreNumber > 100) {
       throw new Error("相似度必须是 0 到 100 之间的数字。");
     }
+  }
 
+  if (newClue) {
+    supplementHistory.push({
+      type: "clue",
+      text: newClue,
+      time: new Date().toISOString()
+    });
+
+    cluesInput.value = mergeUniqueLines(cluesInput.value, newClue);
+  }
+
+  if (guessWord && guessScore) {
+    const scoreNumber = Number(guessScore);
     const newGuessLine = `${guessWord} ${scoreNumber}`;
+
+    supplementHistory.push({
+      type: "guess",
+      word: guessWord,
+      score: scoreNumber,
+      time: new Date().toISOString()
+    });
+
     guessHistoryInput.value = mergeUniqueLines(guessHistoryInput.value, newGuessLine);
   }
 
@@ -396,9 +421,28 @@ async function analyzeWithSupplementalInfo() {
     }
 
     const mode = modeSelect.value;
-    const clues = cluesInput.value.trim();
     const guesses = parseGuessHistory(guessHistoryInput.value);
     const customWords = parseCustomWords(customWordsInput.value, mode);
+
+    const supplementHistoryText = supplementHistory
+      .map((item) => {
+        if (item.type === "clue") {
+          return `补充线索：${item.text}`;
+        }
+
+        if (item.type === "guess") {
+          return `补充高分词：${item.word} ${item.score}`;
+        }
+
+        return "";
+      })
+      .filter(Boolean)
+      .join("\n");
+
+    const clues = [
+      cluesInput.value.trim(),
+      supplementHistoryText ? `用户补充信息记录：\n${supplementHistoryText}` : ""
+    ].filter(Boolean).join("\n\n");
 
     supplementAnalyzeBtn.disabled = true;
     supplementAnalyzeBtn.textContent = "补充分析中...";
@@ -431,6 +475,10 @@ async function analyzeWithSupplementalInfo() {
     saveToLocalStorage();
 
     setSupplementStatus("补充分析：完成，已更新候选答案");
+
+    if (supplementClueInput) supplementClueInput.value = "";
+    if (supplementGuessWordInput) supplementGuessWordInput.value = "";
+    if (supplementGuessScoreInput) supplementGuessScoreInput.value = "";
 
     if (aiCandidateCardsBox) {
       aiCandidateCardsBox.scrollIntoView({
@@ -1670,6 +1718,7 @@ function clearForNextRound() {
   latestAiJson = null;
   latestOcrParsed = null;
   followupHistory = [];
+  supplementHistory = [];
 
   cluesInput.value = "";
   guessWordInput.value = "";
@@ -1861,6 +1910,7 @@ async function exportCurrentData() {
   savedAiResponse,
   latestAiJson,
   followupHistory,
+  supplementHistory,
   exportedAt: new Date().toISOString()
 };
 
@@ -2251,6 +2301,7 @@ function saveToLocalStorage() {
     savedAiResponse: savedAiResponseBox.innerText,
     latestAiJson,
     followupHistory,
+    supplementHistory,
     ocrRegionPresets,
     aiCardSearch: aiCardSearchInput ? aiCardSearchInput.value : "",
     aiCardLimit: aiCardLimitSelect ? aiCardLimitSelect.value : "5",
@@ -2358,6 +2409,10 @@ function loadFromLocalStorage() {
       renderFollowupHistory();
     }
 
+    if (Array.isArray(data.supplementHistory)) {
+      supplementHistory = data.supplementHistory;
+    }
+
     if (ocrHintTextInput) {
       ocrHintTextInput.value = data.ocrHintText || "";
     }
@@ -2435,6 +2490,12 @@ function importCurrentData() {
     } else {
       followupHistory = [];
       renderFollowupHistory();
+    }
+
+    if (Array.isArray(data.supplementHistory)) {
+      supplementHistory = data.supplementHistory;
+    } else {
+      supplementHistory = [];
     }
 
     analyzeClues();
