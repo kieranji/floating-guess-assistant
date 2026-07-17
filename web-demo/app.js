@@ -119,7 +119,8 @@ const {
   supplementGuessWordInput,
   supplementGuessScoreInput,
   supplementAnalyzeBtn,
-  supplementStatus
+  supplementStatus,
+  nextRoundBtn
 } = dom;
 const BACKEND_URL = APP_CONFIG.backendUrl;
 
@@ -219,7 +220,8 @@ function checkRequiredElements() {
     supplementGuessWordInput,
     supplementGuessScoreInput,
     supplementAnalyzeBtn,
-    supplementStatus
+    supplementStatus,
+    nextRoundBtn
   });
 }
 
@@ -1664,6 +1666,64 @@ function fillExample() {
   saveToLocalStorage();
 }
 
+function clearForNextRound() {
+  latestAiJson = null;
+  latestOcrParsed = null;
+  followupHistory = [];
+
+  cluesInput.value = "";
+  guessWordInput.value = "";
+  guessScoreInput.value = "";
+  guessHistoryInput.value = "";
+  candidateWordInput.value = "";
+  candidateKeywordsInput.value = "";
+  candidateReasonInput.value = "";
+  customWordsInput.value = "";
+
+  aiPromptInput.value = "";
+  aiResponseInput.value = "";
+  savedAiResponseBox.innerText = "暂无 AI 分析。";
+
+  if (aiCandidateCardsBox) {
+    aiCandidateCardsBox.innerText = "暂无结构化 AI 结果。";
+  }
+
+  renderFollowupHistory();
+
+  if (ocrImageInput) {
+    ocrImageInput.value = "";
+  }
+
+  if (ocrImagePreview) {
+    ocrImagePreview.src = "";
+    ocrImagePreview.style.display = "none";
+  }
+
+  if (ocrResultInput) ocrResultInput.value = "";
+  if (ocrHintTextInput) ocrHintTextInput.value = "";
+  if (ocrGuessTextInput) ocrGuessTextInput.value = "";
+  if (ocrDebugReportInput) ocrDebugReportInput.value = "";
+
+  if (ocrCluePreview) ocrCluePreview.value = "";
+  if (ocrGuessPreview) ocrGuessPreview.value = "";
+  if (ocrNoisePreview) ocrNoisePreview.textContent = "暂无";
+  if (ocrModePreview) ocrModePreview.textContent = "模式判断：暂无";
+
+  if (supplementClueInput) supplementClueInput.value = "";
+  if (supplementGuessWordInput) supplementGuessWordInput.value = "";
+  if (supplementGuessScoreInput) supplementGuessScoreInput.value = "";
+
+  setVisionStatus("视觉 AI：待分析");
+  setSupplementStatus("补充分析：待输入");
+
+  if (ocrStatus) {
+    ocrStatus.textContent = "尚未识别图片。";
+  }
+
+  saveToLocalStorage();
+  updateSaveStatus("已清空当前题目，可开始下一题");
+}
+
 function clearInputs() {
   guessWordInput.value = "";
   guessScoreInput.value = "";
@@ -2429,7 +2489,8 @@ initApp({
     updateOcrSelectionBoxFromInputs,
     copyAiResponse,
     analyzeImageWithVision,
-    analyzeWithSupplementalInfo
+    analyzeWithSupplementalInfo,
+    clearForNextRound
   },
   loadSectionStates,
   setupSectionStateSaving,

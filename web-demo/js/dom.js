@@ -102,5 +102,6 @@ export const dom = {
   supplementGuessWordInput: document.getElementById("supplementGuessWordInput"),
   supplementGuessScoreInput: document.getElementById("supplementGuessScoreInput"),
   supplementAnalyzeBtn: document.getElementById("supplementAnalyzeBtn"),
-  supplementStatus: document.getElementById("supplementStatus")
+  supplementStatus: document.getElementById("supplementStatus"),
+  nextRoundBtn: document.getElementById("nextRoundBtn")
 };

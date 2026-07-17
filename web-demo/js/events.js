@@ -42,7 +42,8 @@ export function setupEventListeners({
     updateOcrSelectionBoxFromInputs,
     copyAiResponse,
     analyzeImageWithVision,
-    analyzeWithSupplementalInfo
+    analyzeWithSupplementalInfo,
+    clearForNextRound
   } = handlers;
 
   dom.addGuessBtn?.addEventListener("click", addGuess);
@@ -70,7 +71,8 @@ export function setupEventListeners({
   dom.ocrScaleSelect?.addEventListener("change", saveToLocalStorage);
   dom.heroVisionAnalyzeBtn?.addEventListener("click", analyzeImageWithVision);
   dom.supplementAnalyzeBtn?.addEventListener("click", analyzeWithSupplementalInfo);
-
+  dom.nextRoundBtn?.addEventListener("click", clearForNextRound);
+  
   dom.aiCardLimitSelect?.addEventListener("change", () => {
     renderAiCards(getLatestAiJson());
     saveToLocalStorage();

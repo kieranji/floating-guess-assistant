@@ -1198,3 +1198,16 @@ li {
 .hero-actions img {
   max-width: 100%;
 }
+
+.next-round-btn {
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: 16px;
+  background: rgba(148, 163, 184, 0.95);
+  color: white;
+  font-weight: 900;
+}
+
+.next-round-btn:hover {
+  background: #64748b;
+}
