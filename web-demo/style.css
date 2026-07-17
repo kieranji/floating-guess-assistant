@@ -1160,3 +1160,41 @@ li {
     grid-template-columns: 1fr;
   }
 }
+
+.hero-image-preview-box {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.hero-image-preview-box p {
+  margin: 0 0 8px;
+  color: #dbeafe;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+#heroImagePreview {
+  display: none;
+  width: 100%;
+  max-width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.35);
+}
+
+.hero-card {
+  overflow: hidden;
+}
+
+.hero-actions {
+  min-width: 0;
+}
+
+.hero-actions img {
+  max-width: 100%;
+}

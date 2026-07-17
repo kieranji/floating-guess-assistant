@@ -57,6 +57,14 @@ ${clues || "暂无线索"}
 历史猜测和相似度：
 ${JSON.stringify(guesses || [], null, 2)}
 
+重要游戏规则：
+- 历史猜测词已经被玩家猜过，因此它们都不是正确答案。
+- 历史猜测词只能作为语义接近程度参考。
+- candidates 中禁止包含历史猜测里已经出现过的 word。
+- 相似度越高，说明正确答案越接近这个词，但正确答案必须是另一个不同的词。
+- 例如：如果历史猜测里有“荷花 90”，说明答案可能和“荷花”接近，但最终候选答案不能再给“荷花”。
+- 如果你想把历史猜测词放进 candidates，请改成语义相近但没有被猜过的新词。
+
 临时候选词：
 ${JSON.stringify(customWords || [], null, 2)}
 
@@ -82,6 +90,8 @@ JSON 格式必须是：
 - reason 要简短清晰。
 - 只返回 JSON 本身。
 - 每个 candidate 必须包含 keywords，keywords 用于本地规则匹配。
+- candidates 不能包含任何已经出现在历史猜测 guesses 里的词。
+- 输出前必须检查 candidates，如果候选词已经被猜过，就删除并换成新词。
 `;
 
   try {
@@ -116,7 +126,7 @@ JSON 格式必须是：
         .replace(/```$/i, "")
         .trim();
 
-      aiJson = JSON.parse(cleanedText);
+      aiJson = removeGuessedCandidates(JSON.parse(cleanedText), guesses || []);
     } catch (parseError) {
       console.error("AI JSON parse failed:", parseError);
     }
@@ -233,7 +243,7 @@ app.post("/api/analyze-image", async (req, res) => {
     });
 
     const aiText = completion.choices?.[0]?.message?.content || "";
-    const aiJson = extractJsonFromText(aiText);
+    const aiJson = removeGuessedCandidates(extractJsonFromText(aiText));
 
     return res.json({
       provider: "zhipu",
