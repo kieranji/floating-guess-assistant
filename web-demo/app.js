@@ -496,7 +496,7 @@ async function analyzeWithSupplementalInfo() {
   }
 }
 
-function compressImageFileToDataUrl(file, maxWidth = 960, quality = 0.75) {
+function compressImageFileToDataUrl(file, maxLongEdge = 900, quality = 0.62) {
   return new Promise((resolve, reject) => {
     const image = new Image();
     const reader = new FileReader();
@@ -508,9 +508,14 @@ function compressImageFileToDataUrl(file, maxWidth = 960, quality = 0.75) {
     reader.onerror = reject;
 
     image.onload = () => {
-      const scale = Math.min(1, maxWidth / image.width);
-      const width = Math.round(image.width * scale);
-      const height = Math.round(image.height * scale);
+      const originalWidth = image.width;
+      const originalHeight = image.height;
+      const longEdge = Math.max(originalWidth, originalHeight);
+
+      const scale = Math.min(1, maxLongEdge / longEdge);
+
+      const width = Math.round(originalWidth * scale);
+      const height = Math.round(originalHeight * scale);
 
       const canvas = document.createElement("canvas");
       canvas.width = width;
@@ -520,6 +525,16 @@ function compressImageFileToDataUrl(file, maxWidth = 960, quality = 0.75) {
       context.drawImage(image, 0, 0, width, height);
 
       const dataUrl = canvas.toDataURL("image/jpeg", quality);
+
+      console.log("图片压缩：", {
+        originalWidth,
+        originalHeight,
+        width,
+        height,
+        quality,
+        sizeKB: Math.round(dataUrl.length / 1024)
+      });
+
       resolve(dataUrl);
     };
 
