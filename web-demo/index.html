@@ -9,54 +9,62 @@
 <body>
   <main class="app">
     <section class="card">
-      <h1>AI 猜词助手 Demo</h1>
-      <p class="subtitle">上传直播截图，视觉 AI 自动读取线索并给出候选答案。</p>
+      <div class="top-bar">
+        <h1 data-i18n="appTitle">AI 猜词助手 Demo</h1>
+        <button id="languageToggleBtn" type="button" class="language-toggle-btn">
+          English
+        </button>
+      </div>
+      <p class="subtitle" data-i18n="appSubtitle">
+        上传直播截图，视觉 AI 自动读取线索并给出候选答案。
+      </p>
       <p id="saveStatus" class="save-status">尚未自动保存</p>
 
       <nav class="quick-nav">
-        <button type="button" data-target-section="ocr">OCR</button>
-        <button type="button" data-target-section="manual">手动输入</button>
-        <button type="button" data-target-section="ai-actions">AI 操作</button>
-        <button type="button" data-target-section="ai-results">AI 结果</button>
-        <button type="button" data-target-section="import">导入</button>
+        <button type="button" data-target-section="ai-results" data-i18n="navResults">AI 结果</button>
+        <button type="button" data-target-section="ocr" data-i18n="navOcr">OCR</button>
+        <button type="button" data-target-section="manual" data-i18n="navManual">手动输入</button>
+        <button type="button" data-target-section="ai-actions" data-i18n="navAiActions">AI 操作</button>
+        <button type="button" data-target-section="import" data-i18n="navImport">导入</button>
       </nav>
 
       <section class="hero-card">
         <div class="hero-text">
-          <p class="eyebrow">Floating Guess Assistant</p>
-          <h2>截图上传，一键猜答案</h2>
-          <p class="hero-desc">
+          <p class="eyebrow" data-i18n="heroEyebrow">Floating Guess Assistant</p>
+          <h2 data-i18n="heroTitle">截图上传，一键猜答案</h2>
+          <p class="hero-desc" data-i18n="heroDesc">
             适合直播猜词场景：上传当前截图，视觉 AI 会自动读取题目线索、历史猜测和相似度，并给出候选答案。
           </p>
         </div>
 
         <div class="hero-actions">
           <label class="upload-card" for="ocrImageInput">
-            <span class="upload-title">选择直播截图</span>
-            <span class="upload-desc">支持手机截图 / 直播画面截图</span>
+            <span class="upload-title" data-i18n="chooseScreenshot">选择直播截图</span>
+            <span class="upload-desc" data-i18n="chooseScreenshotDesc">支持手机截图 / 直播画面截图</span>
           </label>
 
           <input id="ocrImageInput" class="hidden-file-input" type="file" accept="image/*" />
 
-          <button id="heroVisionAnalyzeBtn" type="button" class="primary-vision-btn">
+          <button id="heroVisionAnalyzeBtn" type="button" class="primary-vision-btn" data-i18n="analyzeScreenshot">
             一键读图猜答案
           </button>
-          <button id="nextRoundBtn" type="button" class="next-round-btn">
+          <button id="nextRoundBtn" type="button" class="next-round-btn" data-i18n="nextRound">
             清空，准备下一题
           </button>
 
-          <p id="heroVisionStatus" class="hero-status">视觉 AI：待分析</p>
+          <p id="heroVisionStatus" class="hero-status" data-i18n="visionWaiting">视觉 AI：待分析</p>
           <div class="hero-image-preview-box">
-            <p>当前截图预览</p>
+            <p data-i18n="previewTitle">当前截图预览</p>
             <img id="heroImagePreview" alt="当前截图预览" />
           </div>
 
           <div class="hero-refine-box">
-            <p class="hero-refine-title">补充新信息后重新分析</p>
+            <p class="hero-refine-title" data-i18n="refineTitle">补充新信息后重新分析</p>
 
             <input
               id="supplementClueInput"
               type="text"
+              data-i18n-placeholder="supplementCluePlaceholder"
               placeholder="新线索，例如：和声音有关 / 现场提示是休闲活动"
             />
 
@@ -64,6 +72,7 @@
               <input
                 id="supplementGuessWordInput"
                 type="text"
+                data-i18n-placeholder="supplementGuessPlaceholder"
                 placeholder="高分词，例如：听雨"
               />
 
@@ -73,34 +82,35 @@
                 min="0"
                 max="100"
                 step="0.1"
+                data-i18n-placeholder="supplementScorePlaceholder"
                 placeholder="相似度%，例如 44.9"
               />
             </div>
 
-            <button id="supplementAnalyzeBtn" type="button" class="supplement-analyze-btn">
+            <button id="supplementAnalyzeBtn" type="button" class="supplement-analyze-btn" data-i18n="refineButton">
               补充信息再分析
             </button>
 
-            <p id="supplementStatus" class="hero-status">补充分析：待输入</p>
+            <p id="supplementStatus" class="hero-status" data-i18n="refineWaiting">补充分析：待输入</p>
           </div>
         </div>
       </section>
 
       <details class="section-details" data-section="ai-results" open>
-        <summary>AI 分析结果</summary>
+        <summary data-i18n="aiResultsSummary">AI 分析结果</summary>
 
       <details class="section-details advanced-section ai-raw-response-details" data-section="ai-raw-response">
-        <summary>完整 AI 原文分析（可选）</summary>
+        <summary data-i18n="rawAiSummary">完整 AI 原文分析（可选）</summary>
 
         <section class="ai-response-box">
-          <h2>已保存的 AI 分析</h2>
+          <h2 data-i18n="savedAiTitle">已保存的 AI 分析</h2>
           <div id="savedAiResponse">暂无 AI 分析。</div>
         </section>
       </details>
 
       <section class="ai-cards-box">
         <div class="ai-cards-header">
-          <h2>AI 候选答案卡片</h2>
+          <h2 data-i18n="candidateTitle">AI 候选答案卡片</h2>
 
           <select id="aiCardLimit">
             <option value="5">Top 5</option>
@@ -111,6 +121,7 @@
         <input
           id="aiCardSearch"
           type="text"
+          data-i18n-placeholder="searchCandidatePlaceholder"
           placeholder="搜索 AI 候选词，例如：光阴"
         />
 
@@ -118,14 +129,14 @@
       </section>
 
       <section class="followup-history-box">
-        <h2>追问历史</h2>
+        <h2 data-i18n="followupTitle">追问历史</h2>
         <div id="followupHistory">暂无追问历史。</div>
       </section>
 
       </details>
 
       <details class="section-details advanced-section" data-section="ocr">
-        <summary>截图 OCR 识别</summary>
+        <summary data-i18n="ocrSummary">截图 OCR 识别</summary>
 
         <section class="ocr-box">
 
@@ -330,7 +341,7 @@
       </details>
 
       <details class="section-details advanced-section" data-section="manual">
-        <summary>手动输入 / 本地分析</summary>
+        <summary data-i18n="manualSummary">手动输入 / 本地分析</summary>
 
         <label for="mode">选择模式</label>
         <select id="mode">
@@ -414,7 +425,7 @@
       </details>
 
       <details class="section-details advanced-section" data-section="ai-actions">
-      <summary>AI 操作 / Prompt</summary>
+      <summary data-i18n="aiActionsSummary">AI 操作 / Prompt</summary>
 
       <div class="extra-button-row">
         <button id="copyBtn" type="button" class="copy-button">复制结果</button>
@@ -450,7 +461,7 @@
       </details>
 
       <details class="section-details advanced-section" data-section="import">
-        <summary>导入导出 / Prompt</summary>
+        <summary data-i18n="importSummary">导入导出 / Prompt</summary>
 
         <label for="importJson">导入 JSON</label>
         <textarea

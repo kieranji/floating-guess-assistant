@@ -14,6 +14,7 @@ import { initApp } from "./js/main.js";
 import { STORAGE_KEYS, createDefaultOcrRegionPresets } from "./js/state.js";
 import { APP_CONFIG } from "./js/config.js";
 import { analyzeLocalCandidates } from "./js/localAnalysis.js";
+import { setupLanguageToggle, t } from "./js/i18n.js";
 
 const {
   modeSelect,
@@ -249,7 +250,7 @@ function setVisionButtonsLoading(isLoading) {
     if (!button) return;
 
     button.disabled = isLoading;
-    button.textContent = isLoading ? "视觉 AI 分析中..." : "一键读图猜答案";
+    button.textContent = isLoading ? t("visionAnalyzing") || "视觉 AI 分析中..." : t("analyzeScreenshot");
   });
 }
 
@@ -2576,3 +2577,4 @@ initApp({
   loadFromLocalStorage,
   loadWordBank
 });
+setupLanguageToggle();

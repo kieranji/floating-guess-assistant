@@ -1211,3 +1211,40 @@ li {
 .next-round-btn:hover {
   background: #64748b;
 }
+
+.top-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.top-bar h1 {
+  margin-bottom: 0;
+}
+
+.language-toggle-btn {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.language-toggle-btn:hover {
+  background: #cbd5e1;
+}
+
+@media (max-width: 520px) {
+  .top-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .language-toggle-btn {
+    width: 100%;
+  }
+}
