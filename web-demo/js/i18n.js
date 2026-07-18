@@ -41,6 +41,19 @@ const translations = {
     aiActionsSummary: "AI 操作 / Prompt",
     importSummary: "导入导出 / Prompt",
 
+    visionAnalyzing: "视觉 AI 分析中...",
+    visionCompressing: "视觉 AI：正在压缩图片...",
+    visionReading: "视觉 AI：正在读图分析...",
+    visionDone: "视觉 AI：分析完成",
+    visionFailed: "视觉 AI：失败",
+    visionImageSelected: "视觉 AI：图片已选择，可以一键读图猜答案",
+
+    refining: "补充分析中...",
+    refiningInfo: "补充分析：正在综合新信息...",
+    refineDone: "补充分析：完成，已更新候选答案",
+
+    roundCleared: "已清空当前题目，可开始下一题",
+
     languageButton: "English"
   },
 
@@ -83,6 +96,19 @@ const translations = {
     manualSummary: "Manual Input / Local Analysis",
     aiActionsSummary: "AI Tools / Prompt",
     importSummary: "Import / Export",
+
+    visionAnalyzing: "Vision AI analyzing...",
+    visionCompressing: "Vision AI: compressing image...",
+    visionReading: "Vision AI: reading screenshot...",
+    visionDone: "Vision AI: done",
+    visionFailed: "Vision AI: failed",
+    visionImageSelected: "Vision AI: image selected, ready to analyze",
+
+    refining: "Refining...",
+    refiningInfo: "Refining with new information...",
+    refineDone: "Refinement complete. Candidates updated.",
+
+    roundCleared: "Current round cleared. Ready for next round.",
 
     languageButton: "中文"
   }

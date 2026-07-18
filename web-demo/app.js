@@ -250,7 +250,7 @@ function setVisionButtonsLoading(isLoading) {
     if (!button) return;
 
     button.disabled = isLoading;
-    button.textContent = isLoading ? t("visionAnalyzing") || "视觉 AI 分析中..." : t("analyzeScreenshot");
+    button.textContent = isLoading ? t("visionAnalyzing") : t("analyzeScreenshot");
   });
 }
 
@@ -274,12 +274,12 @@ async function analyzeImageWithVision() {
   }
 
   setVisionButtonsLoading(true);
-  setVisionStatus("视觉 AI：正在压缩图片...");
+  setVisionStatus(t("visionCompressing"));
 
   try {
     const imageDataUrl = await compressImageFileToDataUrl(file);
 
-    setVisionStatus("视觉 AI：正在读图分析...");
+    setVisionStatus(t("visionReading"));
 
     const response = await fetch(`${BACKEND_URL}/api/analyze-image`, {
       method: "POST",
@@ -329,7 +329,7 @@ async function analyzeImageWithVision() {
 
     saveToLocalStorage();
 
-    setVisionStatus(`视觉 AI：分析完成，模型 ${data.model || ""}`);
+    setVisionStatus(`${t("visionDone")} ${data.model || ""}`);
 
     if (aiCandidateCardsBox) {
       aiCandidateCardsBox.scrollIntoView({
@@ -340,7 +340,7 @@ async function analyzeImageWithVision() {
   } catch (error) {
     console.error(error);
 
-    setVisionStatus(`视觉 AI：失败 - ${error.message}`);
+    setVisionStatus(`${t("visionFailed")} - ${error.message}`);
 
     alert(`视觉 AI 分析失败：${error.message}`);
   } finally {
@@ -446,8 +446,8 @@ async function analyzeWithSupplementalInfo() {
     ].filter(Boolean).join("\n\n");
 
     supplementAnalyzeBtn.disabled = true;
-    supplementAnalyzeBtn.textContent = "补充分析中...";
-    setSupplementStatus("补充分析：正在综合新信息...");
+    supplementAnalyzeBtn.textContent = t("refining");
+    setSupplementStatus(t("refiningInfo"));
 
     const data = await analyzeWithAiBackend({
       backendUrl: BACKEND_URL,
@@ -475,7 +475,7 @@ async function analyzeWithSupplementalInfo() {
     analyzeClues();
     saveToLocalStorage();
 
-    setSupplementStatus("补充分析：完成，已更新候选答案");
+    setSupplementStatus(t("refineDone"));
 
     if (supplementClueInput) supplementClueInput.value = "";
     if (supplementGuessWordInput) supplementGuessWordInput.value = "";
@@ -493,7 +493,7 @@ async function analyzeWithSupplementalInfo() {
     alert(`补充分析失败：${error.message}`);
   } finally {
     supplementAnalyzeBtn.disabled = false;
-    supplementAnalyzeBtn.textContent = "补充信息再分析";
+    supplementAnalyzeBtn.textContent = t("refineButton");
   }
 }
 
@@ -578,7 +578,7 @@ function previewOcrImage() {
     ocrStatus.textContent = "图片已加载，可以开始 OCR 识别。";
   }
 
-  setVisionStatus("视觉 AI：图片已选择，可以一键读图猜答案");
+  setVisionStatus(t("visionImageSelected"));
 }
 
 function getPointerPositionInImage(event) {
@@ -1778,15 +1778,15 @@ function clearForNextRound() {
   if (supplementGuessWordInput) supplementGuessWordInput.value = "";
   if (supplementGuessScoreInput) supplementGuessScoreInput.value = "";
 
-  setVisionStatus("视觉 AI：待分析");
-  setSupplementStatus("补充分析：待输入");
+  setVisionStatus(t("visionWaiting"));
+  setSupplementStatus(t("refineWaiting"));
 
   if (ocrStatus) {
     ocrStatus.textContent = "尚未识别图片。";
   }
 
   saveToLocalStorage();
-  updateSaveStatus("已清空当前题目，可开始下一题");
+  updateSaveStatus(t("roundCleared"));
 }
 
 function clearInputs() {
@@ -1879,7 +1879,7 @@ function clearInputs() {
   if (supplementGuessWordInput) supplementGuessWordInput.value = "";
   if (supplementGuessScoreInput) supplementGuessScoreInput.value = "";
 
-  setSupplementStatus("补充分析：待输入");
+  setSupplementStatus(t("refineWaiting"));
 
   if (ocrCropXInput) ocrCropXInput.value = "";
   if (ocrCropYInput) ocrCropYInput.value = "";
@@ -2577,4 +2577,5 @@ initApp({
   loadFromLocalStorage,
   loadWordBank
 });
+setupLanguageToggle();
 setupLanguageToggle();
