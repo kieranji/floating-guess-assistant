@@ -260,8 +260,10 @@ app.post("/api/analyze-image", async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`Backend server running on port ${port}`);
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
 
 function extractJsonFromText(text) {
