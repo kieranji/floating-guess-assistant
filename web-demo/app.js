@@ -2443,7 +2443,7 @@ function loadFromLocalStorage() {
 
     importJsonInput.value = data.importJson || "";
 
-    updateSaveStatus("已恢复上次保存内容");
+    updateSaveStatus(t("restoredStatus"));
   } catch (error) {
     console.error("读取本地保存失败：", error);
   }

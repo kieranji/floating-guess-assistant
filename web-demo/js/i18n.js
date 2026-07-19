@@ -53,6 +53,7 @@ const translations = {
     refineDone: "补充分析：完成，已更新候选答案",
 
     roundCleared: "已清空当前题目，可开始下一题",
+    restoredStatus: "已恢复上次保存内容",
 
     languageButton: "English"
   },
@@ -109,6 +110,7 @@ const translations = {
     refineDone: "Refinement complete. Candidates updated.",
 
     roundCleared: "Current round cleared. Ready for next round.",
+    restoredStatus: "Restored last saved content",
 
     languageButton: "中文"
   }
