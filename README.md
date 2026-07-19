@@ -1,164 +1,253 @@
-# Floating Guess Assistant
+# Floating Guess Assistant / 悬浮猜词助手
 
-Floating Guess Assistant is a personal CS learning project for building an AI-assisted word guessing tool.
+Floating Guess Assistant is an AI assistant for livestream guessing games.  
+用户上传直播截图后，系统会使用视觉 AI 自动读取题目线索、历史猜测和相似度，并给出候选答案。
 
-The project started as a simple web demo and is gradually evolving into a complete assistant with local rule-based scoring, AI analysis, structured candidate cards, follow-up analysis, and future OCR / Android support.
+The user uploads a livestream screenshot, and the system uses Vision AI to extract clues, previous guesses, similarity scores, and suggest possible answers.  
+适合直播猜词、相似度猜词、截图分析等场景。
 
-## Current Status
+## Current Version / 当前版本
 
-The current version is a web-based AI guessing assistant.
+Web Demo v1
 
-It supports:
+## Features / 核心功能
 
-- Manual clue input
-- Guess history with similarity scores
-- Temporary candidate word list
-- Local rule-based scoring
-- Top 5 local candidate results
-- Confidence percentage
-- Scoring explanation logs
-- JSON import and export
-- Browser localStorage autosave
-- AI prompt generation
-- Backend AI analysis through DeepSeek API
-- Structured AI candidate cards
-- AI candidate keywords
-- Confidence bars
-- Top 5 / Top 10 AI card display
-- AI card search
-- Add AI candidate to temporary word list
-- Use AI candidate as a guess
-- Candidate follow-up prompt generation
-- Direct backend follow-up analysis
-- Follow-up history
-- Delete follow-up history records
-- Modular frontend JavaScript structure
-- OCR crop presets and drag selection
-- OCR preprocessing and preprocessing preview
-- Multi-region OCR for hint region and guess region
-- One-click OCR + AI analysis flow
-- OCR debug report generation and download
+- Upload a livestream screenshot and analyze it with one click  
+  上传直播截图并一键读图分析
 
-## Project Structure
+- Vision AI extracts clues, previous guesses, and similarity scores  
+  视觉 AI 自动识别题目线索、历史猜测和相似度
+
+- AI returns candidate answer cards  
+  AI 返回候选答案卡片
+
+- Automatically filters out words that have already been guessed  
+  自动排除已经猜过的词
+
+- Refine analysis with new clues  
+  支持补充新线索后重新分析
+
+- Refine analysis with high-score guesses and similarity scores  
+  支持补充高分词和相似度后重新分析
+
+- Temporary memory for supplemental information during the current round  
+  补充信息会在当前题目中临时记忆
+
+- Clear all current-round data with one click  
+  支持一键清空，进入下一题
+
+- Chinese / English language toggle  
+  支持中文 / English 页面切换
+
+- Local autosave and restore  
+  本地自动保存和恢复输入状态
+
+- Advanced OCR backup mode  
+  高级备用 OCR 功能
+
+- Manual input and local analysis mode  
+  高级手动输入 / 本地分析功能
+
+## How to Use / 使用流程
+
+### English
+
+1. Open the Web Demo page.
+2. Click **Choose screenshot**.
+3. Upload the current livestream guessing screenshot.
+4. Click **Analyze screenshot**.
+5. Review the AI candidate answers.
+6. If new clues or high-score guesses appear:
+   - Enter the new clue.
+   - Enter the high-score guess and similarity score.
+   - Click **Refine analysis**.
+7. Click **Clear for next round** when starting a new question.
+
+### 中文
+
+1. 打开 Web Demo 页面。
+2. 点击 **选择直播截图**。
+3. 上传当前直播猜词截图。
+4. 点击 **一键读图猜答案**。
+5. 查看 AI 候选答案。
+6. 如果有新线索或高分词：
+   - 输入新线索。
+   - 输入高分词和相似度。
+   - 点击 **补充信息再分析**。
+7. 进入下一题时，点击 **清空，准备下一题**。
+
+## Project Structure / 项目结构
 
 ```text
-floating-guess-assistant/
+web-demo/
   index.html
-  README.md
+  style.css
+  app.js
+  data/
+    wordBank.json
+  js/
+    ai.js
+    config.js
+    dom.js
+    events.js
+    i18n.js
+    localAnalysis.js
+    main.js
+    ocr.js
+    ocrCrop.js
+    ocrReport.js
+    parser.js
+    render.js
+    scoring.js
+    state.js
+    storage.js
+    ui.js
+    wordBank.js
 
-  web-demo/
-    index.html
-    style.css
-    app.js
-
-    data/
-      wordBank.json
-
-    js/
-      storage.js        # localStorage helper functions
-      parser.js         # OCR text parsing and input parsing
-      scoring.js        # local scoring and confidence logic
-      localAnalysis.js  # local candidate ranking
-      ai.js             # AI prompt builders and backend request helper
-      ocr.js            # OCR image cropping/preprocessing/recognition helpers
-      ocrCrop.js        # OCR crop coordinate and preset calculations
-      render.js         # UI rendering helpers for results and cards
-      ocrReport.js      # OCR debug report generation and download helpers
-      ui.js             # general UI helpers
-      dom.js             # DOM element references
-      config.js         # frontend configuration such as backend URL
-      wordBank.js       # word bank JSON loading helper
-      events.js         # central event listener setup
-      main.js           # app initialization entry helper
-      state.js          # shared storage keys and default state helpers
-
-  backend/
-    package.json
-    package-lock.json
-    server.js
-    .env.example
-    .gitignore
+backend/
+  server.js
+  package.json
+  .env.example
 ```
 
-## Web Demo
+## Frontend / 前端说明
 
-The web demo is located in:
+The frontend is located in:
+
+前端位于：
 
 ```text
 web-demo/
 ```
 
-It includes:
+Main entry files:
+
+主要入口文件：
 
 ```text
-index.html
-style.css
-app.js
-data/wordBank.json
+web-demo/index.html
+web-demo/app.js
 ```
 
-The frontend can be deployed with GitHub Pages.
+The frontend handles:
 
-## Backend
+前端主要负责：
+
+- Page UI  
+  页面 UI
+
+- Chinese / English language toggle  
+  中文 / English 语言切换
+
+- Image upload and compression  
+  图片上传和压缩
+
+- Calling the backend Vision AI API  
+  调用后端视觉 AI 接口
+
+- Rendering AI candidate answer cards  
+  显示 AI 候选答案卡片
+
+- Supplemental refinement analysis  
+  补充信息再分析
+
+- Local autosave and restore  
+  本地保存和恢复输入状态
+
+- Advanced OCR backup tools  
+  高级 OCR 备用功能
+
+- Manual input and local analysis tools  
+  高级手动输入功能
+
+## Backend / 后端说明
 
 The backend is located in:
+
+后端位于：
 
 ```text
 backend/
 ```
 
-It provides:
+Main API endpoints:
+
+主要接口：
 
 ```text
+POST /api/analyze-image
 POST /api/analyze
 ```
 
-The frontend sends clues, guess history, and temporary candidates to the backend. The backend calls the AI model and returns:
+### POST /api/analyze-image
 
-```json
-{
-  "prompt": "...",
-  "aiText": "...",
-  "aiJson": {
-    "candidates": [
-      {
-        "word": "光阴似箭",
-        "confidence": 92,
-        "reason": "和时间飞逝高度相关",
-        "keywords": ["时间", "光阴", "飞逝", "成语"]
-      }
-    ],
-    "nextGuesses": ["时光", "岁月", "日月"],
-    "uncertainty": "当前线索较少，需要更多相似度反馈。"
-  }
-}
-```
+This endpoint receives a screenshot and uses a vision model to analyze the image.
 
-## Environment Variables
+该接口用于上传截图并调用视觉模型分析图片。
 
-Create a local file:
+It is responsible for:
 
-```text
-backend/.env
-```
+主要负责：
 
-Example:
+- Receiving the compressed image from the frontend  
+  接收前端压缩后的图片
+
+- Calling the vision model  
+  调用视觉模型
+
+- Extracting clues, previous guesses, and candidate answers  
+  提取题目线索、历史猜测和候选答案
+
+- Filtering out already-guessed candidate words  
+  过滤已经猜过的候选词
+
+### POST /api/analyze
+
+This endpoint analyzes text clues, previous guesses, and supplemental information.
+
+该接口用于根据文本线索、历史猜测和补充信息重新分析。
+
+It is responsible for:
+
+主要负责：
+
+- Receiving clues and previous guesses  
+  接收线索和历史猜测
+
+- Calling the text model  
+  调用文本模型
+
+- Returning new candidate answers  
+  返回新的候选答案
+
+- Filtering out already-guessed words  
+  过滤已经猜过的词
+
+## Environment Variables / 环境变量
+
+The backend requires a `.env` file inside the `backend/` folder.
+
+后端需要在 `backend/.env` 中配置：
 
 ```env
 DEEPSEEK_API_KEY=your_deepseek_api_key_here
 DEEPSEEK_MODEL=deepseek-chat
+
+ZHIPU_API_KEY=your_zhipu_api_key_here
+ZHIPU_BASE_URL=https://open.bigmodel.cn/api/paas/v4/
+ZHIPU_VISION_MODEL=glm-4v-flash
+
 PORT=3000
 ```
 
-Do not commit `.env` to GitHub.
+Do not commit your real `.env` file to GitHub.  
+不要把真实 `.env` 提交到 GitHub。
 
-The safe example file is:
+## Local Development / 本地运行
 
-```text
-backend/.env.example
-```
+Start the backend:
 
-## Run Backend in Codespaces
+启动后端：
 
 ```bash
 cd backend
@@ -166,87 +255,91 @@ npm install
 npm run dev
 ```
 
-If port 3000 is already in use:
+Open the frontend directly:
 
-```bash
-pkill node
-npm run dev
-```
-
-## Intended Use
-
-This project is for personal learning, coursework, and open-source experimentation.
-
-It is intended to help practice:
-
-- HTML
-- CSS
-- JavaScript
-- GitHub
-- Node.js
-- Express
-- API integration
-- Prompt engineering
-- JSON parsing
-- Local storage
-- Basic AI product design
-
-It is not intended to violate platform rules, interfere with third-party services, or provide unfair advantages in live interactive events.
-
-## Roadmap
-
-### Phase 1: Web + Rules
-
-Completed:
-
-- Basic web UI
-- Manual clue input
-- Guess history
-- Candidate word bank
-- Local scoring
-- JSON import/export
-
-### Phase 2: Web + AI
-
-Completed:
-
-- AI prompt generation
-- Backend API
-- DeepSeek integration
-- Structured AI candidate cards
-- Follow-up analysis
-- Follow-up history
-
-### Phase 3: Web OCR
-
-Planned:
-
-- Upload screenshot
-- OCR text recognition
-- Fill recognized text into clue input
-- Clean OCR text
-- Extract guesses and similarity scores
-
-### Phase 4: Android App
-
-Planned:
-
-- Android manual input version
-- Android floating window
-- Screen capture permission
-- OCR on selected screen region
-- Floating AI candidate display
-
-## Next Milestone
-
-The next milestone is:
+前端可以直接打开：
 
 ```text
-Web OCR v0.1
+web-demo/index.html
 ```
 
-Goal:
+Or deploy the frontend to GitHub Pages.
+
+也可以把前端部署到 GitHub Pages。
+
+## Backend URL / 前端后端连接
+
+The frontend backend URL is configured in:
+
+前端后端地址配置在：
 
 ```text
-Upload image → OCR recognize text → fill clue input → AI analyze
+web-demo/js/config.js
 ```
+
+Example:
+
+示例：
+
+```javascript
+export const APP_CONFIG = {
+  backendUrl: "https://your-backend-url.example.com"
+};
+```
+
+For local development:
+
+本地开发时可以使用：
+
+```javascript
+export const APP_CONFIG = {
+  backendUrl: "http://localhost:3000"
+};
+```
+
+When using Codespaces or online deployment, replace it with the corresponding backend URL.
+
+使用 Codespaces 或线上部署时，需要换成对应的后端地址。
+
+## Limitations / 当前限制
+
+- The Web version cannot automatically capture the livestream app screen. Users need to upload screenshots manually.  
+  Web 版不能自动截取直播 App 画面，需要用户手动截图并上传。
+
+- Vision AI analysis speed depends on image size and model response time.  
+  视觉 AI 分析速度取决于图片大小和模型响应速度。
+
+- If the livestream screenshot is blurry, the model may misread the content.  
+  直播截图太模糊时，模型可能识别错误。
+
+- OCR is only a backup option. The recommended main workflow is Vision AI.  
+  OCR 功能只是备用方案，主流程推荐使用视觉 AI。
+
+- The current version is a Web Demo, not an Android floating-window app.  
+  当前版本是 Web Demo，不是 Android 悬浮窗版本。
+
+## Roadmap / 下一阶段计划
+
+- Test with more real livestream screenshots  
+  测试更多真实直播截图
+
+- Continue optimizing the vision prompt  
+  继续优化视觉提示词
+
+- Continue improving image compression and analysis speed  
+  继续优化图片压缩和分析速度
+
+- Deploy a stable backend service  
+  部署稳定后端服务
+
+- Start the Android APK version  
+  开始 Android APK 版本
+
+- Future support for floating window and automatic screenshot analysis  
+  未来支持悬浮窗和自动截图分析
+
+## Status / 开发状态
+
+Web Demo v1 is mostly complete. The current focus is stability testing and deployment preparation.
+
+Web Demo v1 已基本完成，当前重点是稳定性测试和部署准备。
