@@ -21,6 +21,13 @@ const client = new OpenAI({
 });
 
 app.use(cors());
+app.get("/", (req, res) => {
+  res.json({
+    ok: true,
+    name: "Floating Guess Backend",
+    message: "Backend is running"
+  });
+});
 app.use(express.json({ limit: "12mb" }));
 
 app.get("/", (req, res) => {
