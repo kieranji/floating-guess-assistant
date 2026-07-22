@@ -49,6 +49,18 @@ import java.io.IOException
 import kotlin.math.max
 import kotlin.math.roundToInt
 
+data class AiCandidate(
+    val word: String,
+    val confidence: Int,
+    val reason: String,
+    val keywords: List<String>
+)
+
+data class AiParsedResult(
+    val aiText: String,
+    val candidates: List<AiCandidate>
+)
+
 class MainActivity : ComponentActivity() {
     private val backendUrl = "https://floating-guess-backend.onrender.com"
     private val client = OkHttpClient()
@@ -62,6 +74,7 @@ class MainActivity : ComponentActivity() {
                 var selectedUri by remember { mutableStateOf<Uri?>(null) }
                 var selectedBitmap by remember { mutableStateOf<Bitmap?>(null) }
                 var aiResult by remember { mutableStateOf("暂无 AI 分析结果。") }
+                var candidates by remember { mutableStateOf<List<AiCandidate>>(emptyList()) }
                 var statusText by remember { mutableStateOf("请选择一张直播截图。") }
                 var isAnalyzing by remember { mutableStateOf(false) }
 
@@ -72,6 +85,7 @@ class MainActivity : ComponentActivity() {
                         selectedUri = uri
                         selectedBitmap = loadBitmapFromUri(uri)
                         aiResult = "暂无 AI 分析结果。"
+                        candidates = emptyList()
                         statusText = "图片已选择，可以开始分析。"
                     }
                 }
@@ -126,7 +140,8 @@ class MainActivity : ComponentActivity() {
                                     uri = uri,
                                     onSuccess = { result ->
                                         runOnUiThread {
-                                            aiResult = result
+                                            aiResult = result.aiText
+                                            candidates = result.candidates
                                             statusText = "分析完成。"
                                             isAnalyzing = false
                                         }
@@ -151,6 +166,7 @@ class MainActivity : ComponentActivity() {
                             selectedUri = null
                             selectedBitmap = null
                             aiResult = "暂无 AI 分析结果。"
+                            candidates = emptyList()
                             statusText = "已清空，可以开始下一题。"
                         }
                     ) {
@@ -177,6 +193,49 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
+                    if (candidates.isNotEmpty()) {
+                        Text(
+                            text = "AI 候选答案",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+
+                        candidates.forEachIndexed { index, candidate ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(14.dp),
+                                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Text(
+                                        text = "${index + 1}. ${candidate.word}",
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+
+                                    Text(
+                                        text = "置信度：${candidate.confidence}%",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+
+                                    if (candidate.keywords.isNotEmpty()) {
+                                        Text(
+                                            text = "关键词：${candidate.keywords.joinToString("、")}",
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+                                    }
+
+                                    if (candidate.reason.isNotBlank()) {
+                                        Text(
+                                            text = candidate.reason,
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     OutlinedTextField(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -194,7 +253,7 @@ class MainActivity : ComponentActivity() {
 
     private fun analyzeImage(
         uri: Uri,
-        onSuccess: (String) -> Unit,
+        onSuccess: (AiParsedResult) -> Unit,
         onError: (String) -> Unit
     ) {
         try {
@@ -226,11 +285,15 @@ class MainActivity : ComponentActivity() {
                         }
 
                         try {
-                            val responseJson = JSONObject(bodyText)
-                            val aiText = responseJson.optString("aiText", bodyText)
-                            onSuccess(aiText.ifBlank { bodyText })
+                            val parsedResult = parseAnalyzeImageResponse(bodyText)
+                            onSuccess(parsedResult)
                         } catch (error: Exception) {
-                            onSuccess(bodyText)
+                            onSuccess(
+                                AiParsedResult(
+                                    aiText = bodyText,
+                                    candidates = emptyList()
+                                )
+                            )
                         }
                     }
                 }
@@ -248,6 +311,48 @@ class MainActivity : ComponentActivity() {
         } catch (error: Exception) {
             null
         }
+    }
+
+    private fun parseAnalyzeImageResponse(bodyText: String): AiParsedResult {
+        val responseJson = JSONObject(bodyText)
+
+        val aiText = responseJson.optString("aiText", bodyText)
+        val aiJson = responseJson.optJSONObject("aiJson")
+
+        val candidatesJsonArray = aiJson?.optJSONArray("candidates")
+        val candidateList = mutableListOf<AiCandidate>()
+
+        if (candidatesJsonArray != null) {
+            for (index in 0 until candidatesJsonArray.length()) {
+                val item = candidatesJsonArray.optJSONObject(index) ?: continue
+
+                val keywordsJsonArray = item.optJSONArray("keywords")
+                val keywords = mutableListOf<String>()
+
+                if (keywordsJsonArray != null) {
+                    for (keywordIndex in 0 until keywordsJsonArray.length()) {
+                        val keyword = keywordsJsonArray.optString(keywordIndex)
+                        if (keyword.isNotBlank()) {
+                            keywords.add(keyword)
+                        }
+                    }
+                }
+
+                candidateList.add(
+                    AiCandidate(
+                        word = item.optString("word", "未知候选词"),
+                        confidence = item.optInt("confidence", 0),
+                        reason = item.optString("reason", ""),
+                        keywords = keywords
+                    )
+                )
+            }
+        }
+
+        return AiParsedResult(
+            aiText = aiText.ifBlank { bodyText },
+            candidates = candidateList
+        )
     }
 
     private fun compressImageToDataUrl(
