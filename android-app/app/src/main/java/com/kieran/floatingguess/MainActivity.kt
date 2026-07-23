@@ -134,6 +134,11 @@ class MainActivity : ComponentActivity() {
                         style = MaterialTheme.typography.bodyMedium
                     )
 
+                    Text(
+                        text = "后端：Render 在线服务。第一次请求可能需要等待 30–60 秒。",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -180,8 +185,20 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onError = { error ->
                                         runOnUiThread {
-                                            aiResult = "分析失败：$error"
-                                            statusText = "分析失败。"
+                                            aiResult = """
+                                    分析失败。
+
+                                    错误信息：
+                                    $error
+
+                                    你可以：
+                                    1. 等 30 秒后重新点击“分析截图”
+                                    2. 检查 Render 后端是否休眠
+                                    3. 检查图片是否太大或太模糊
+                                    4. 检查后端 API key 是否正常
+                                            """.trimIndent()
+
+                                            statusText = "分析失败，可以重新点击“分析截图”重试。"
                                             isAnalyzing = false
                                         }
                                     }
@@ -377,8 +394,20 @@ class MainActivity : ComponentActivity() {
                                         },
                                         onError = { error ->
                                             runOnUiThread {
-                                                aiResult = "补充分析失败：$error"
-                                                statusText = "补充分析失败。"
+                                                aiResult = """
+                                        补充分析失败。
+
+                                        错误信息：
+                                        $error
+
+                                        你可以：
+                                        1. 检查新线索是否为空
+                                        2. 检查高分词和相似度是否一起填写
+                                        3. 等 30 秒后重新点击“补充信息再分析”
+                                        4. 检查 Render 后端是否正常
+                                                """.trimIndent()
+
+                                                statusText = "补充分析失败，可以修改信息后重试。"
                                                 isRefining = false
                                             }
                                         }
