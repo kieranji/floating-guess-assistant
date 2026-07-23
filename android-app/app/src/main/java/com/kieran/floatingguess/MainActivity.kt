@@ -403,7 +403,7 @@ class MainActivity : ComponentActivity() {
                             ) {
                                 Column(
                                     modifier = Modifier.padding(14.dp),
-                                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     Text(
                                         text = "${index + 1}. ${candidate.word}",
@@ -428,10 +428,40 @@ class MainActivity : ComponentActivity() {
                                             style = MaterialTheme.typography.bodyMedium
                                         )
                                     }
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                    ) {
+                                        OutlinedButton(
+                                            modifier = Modifier.weight(1f),
+                                            enabled = !isAnalyzing && !isRefining,
+                                            onClick = {
+                                                supplementGuessWord = candidate.word
+                                                supplementGuessScore = ""
+                                                statusText = "已填入候选词：${candidate.word}，请输入相似度。"
+                                            }
+                                        ) {
+                                            Text("作为高分词")
+                                        }
+
+                                        Button(
+                                            modifier = Modifier.weight(1f),
+                                            enabled = !isAnalyzing && !isRefining,
+                                            onClick = {
+                                                clueMemory = mergeUniqueLines(
+                                                    clueMemory,
+                                                    "重点考虑候选词：${candidate.word}"
+                                                )
+                                                statusText = "已把 ${candidate.word} 加入当前题目信息。"
+                                            }
+                                        ) {
+                                            Text("重点考虑")
+                                        }
+                                    }
                                 }
                             }
                         }
-                    }
 
                     OutlinedTextField(
                         modifier = Modifier
