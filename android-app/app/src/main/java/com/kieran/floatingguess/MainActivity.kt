@@ -135,7 +135,7 @@ class MainActivity : ComponentActivity() {
                     )
 
                     Text(
-                        text = "原生 Android v0.1：选择截图、AI 分析、补充线索再分析。",
+                        text = "原生 Android v0.1.0：选择截图、AI 分析、补充线索再分析。",
                         style = MaterialTheme.typography.bodyMedium
                     )
 
