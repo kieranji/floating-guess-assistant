@@ -98,7 +98,7 @@ class MainActivity : ComponentActivity() {
 
                 val imagePicker = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.GetContent()
-                ) { uri ->
+                ) { uri: Uri? ->
                     if (uri != null) {
                         selectedUri = uri
                         selectedBitmap = loadBitmapFromUri(uri)
@@ -170,32 +170,32 @@ class MainActivity : ComponentActivity() {
 
                                 analyzeImage(
                                     uri = uri,
-                                    onSuccess = { result ->
+                                    onSuccess = { result: AiParsedResult ->
                                         runOnUiThread {
                                             aiResult = result.aiText
                                             candidates = result.candidates
                                             clueMemory = result.topicClues.joinToString("\n")
-                                            guessMemory = result.guesses.joinToString("\n") {
-                                                "${it.word} ${formatScore(it.score)}"
+                                            guessMemory = result.guesses.joinToString("\n") { guess ->
+                                                "${guess.word} ${formatScore(guess.score)}"
                                             }
 
                                             statusText = "分析完成。"
                                             isAnalyzing = false
                                         }
                                     },
-                                    onError = { error ->
+                                    onError = { error: String ->
                                         runOnUiThread {
                                             aiResult = """
-                                    分析失败。
+分析失败。
 
-                                    错误信息：
-                                    $error
+错误信息：
+$error
 
-                                    你可以：
-                                    1. 等 30 秒后重新点击“分析截图”
-                                    2. 检查 Render 后端是否休眠
-                                    3. 检查图片是否太大或太模糊
-                                    4. 检查后端 API key 是否正常
+你可以：
+1. 等 30 秒后重新点击“分析截图”
+2. 检查 Render 后端是否休眠
+3. 检查图片是否太大或太模糊
+4. 检查后端 API key 是否正常
                                             """.trimIndent()
 
                                             statusText = "分析失败，可以重新点击“分析截图”重试。"
@@ -363,7 +363,7 @@ class MainActivity : ComponentActivity() {
                                     analyzeText(
                                         clues = clueMemory,
                                         guessText = guessMemory,
-                                        onSuccess = { result ->
+                                        onSuccess = { result: AiParsedResult ->
                                             runOnUiThread {
                                                 aiResult = result.aiText
                                                 candidates = result.candidates
@@ -378,8 +378,8 @@ class MainActivity : ComponentActivity() {
                                                 if (result.guesses.isNotEmpty()) {
                                                     guessMemory = mergeUniqueLines(
                                                         guessMemory,
-                                                        result.guesses.joinToString("\n") {
-                                                            "${it.word} ${formatScore(it.score)}"
+                                                        result.guesses.joinToString("\n") { guess ->
+                                                            "${guess.word} ${formatScore(guess.score)}"
                                                         }
                                                     )
                                                 }
@@ -392,19 +392,19 @@ class MainActivity : ComponentActivity() {
                                                 isRefining = false
                                             }
                                         },
-                                        onError = { error ->
+                                        onError = { error: String ->
                                             runOnUiThread {
                                                 aiResult = """
-                                        补充分析失败。
+补充分析失败。
 
-                                        错误信息：
-                                        $error
+错误信息：
+$error
 
-                                        你可以：
-                                        1. 检查新线索是否为空
-                                        2. 检查高分词和相似度是否一起填写
-                                        3. 等 30 秒后重新点击“补充信息再分析”
-                                        4. 检查 Render 后端是否正常
+你可以：
+1. 检查新线索是否为空
+2. 检查高分词和相似度是否一起填写
+3. 等 30 秒后重新点击“补充信息再分析”
+4. 检查 Render 后端是否正常
                                                 """.trimIndent()
 
                                                 statusText = "补充分析失败，可以修改信息后重试。"
@@ -491,6 +491,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         }
+                    }
 
                     OutlinedTextField(
                         modifier = Modifier
