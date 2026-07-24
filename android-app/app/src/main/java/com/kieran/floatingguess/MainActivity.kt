@@ -49,6 +49,11 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import kotlin.math.max
 import kotlin.math.roundToInt
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.widget.Toast
 
 data class AiCandidate(
     val word: String,
@@ -493,6 +498,31 @@ $error
                         }
                     }
 
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        OutlinedButton(
+                            modifier = Modifier.weight(1f),
+                            enabled = aiResult.isNotBlank() && aiResult != "暂无 AI 分析结果。",
+                            onClick = {
+                                copyTextToClipboard(aiResult)
+                            }
+                        ) {
+                            Text("复制结果")
+                        }
+
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            enabled = aiResult.isNotBlank() && aiResult != "暂无 AI 分析结果。",
+                            onClick = {
+                                shareText(aiResult)
+                            }
+                        ) {
+                            Text("分享结果")
+                        }
+                    }
+
                     OutlinedTextField(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -711,6 +741,24 @@ $error
             }
 
         return array
+    }
+
+    private fun copyTextToClipboard(text: String) {
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("AI Analysis Result", text)
+        clipboard.setPrimaryClip(clip)
+
+        Toast.makeText(this, "AI 结果已复制", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun shareText(text: String) {
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, "Floating Guess Assistant Result")
+            putExtra(Intent.EXTRA_TEXT, text)
+        }
+
+        startActivity(Intent.createChooser(intent, "分享 AI 结果"))
     }
 
     private fun loadBitmapFromUri(uri: Uri): Bitmap? {
