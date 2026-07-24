@@ -54,6 +54,8 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
+import android.content.SharedPreferences
+import androidx.compose.runtime.LaunchedEffect
 
 data class AiCandidate(
     val word: String,
@@ -77,29 +79,74 @@ data class AiParsedResult(
 class MainActivity : ComponentActivity() {
     private val backendUrl = "https://floating-guess-backend.onrender.com"
     private val client = OkHttpClient()
+    private val preferencesName = "floating_guess_android_state"
+
+    private lateinit var preferences: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        preferences = getSharedPreferences(preferencesName, Context.MODE_PRIVATE)
 
         setContent {
             FloatingGuessAssistantTheme {
                 var selectedUri by remember { mutableStateOf<Uri?>(null) }
                 var selectedBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
-                var aiResult by remember { mutableStateOf("暂无 AI 分析结果。") }
+
+                var aiResult by remember {
+                    mutableStateOf(preferences.getString("aiResult", "暂无 AI 分析结果。") ?: "暂无 AI 分析结果。")
+                }
+
                 var candidates by remember { mutableStateOf<List<AiCandidate>>(emptyList()) }
 
-                var clueMemory by remember { mutableStateOf("") }
-                var guessMemory by remember { mutableStateOf("") }
+                var clueMemory by remember {
+                    mutableStateOf(preferences.getString("clueMemory", "") ?: "")
+                }
 
-                var supplementClue by remember { mutableStateOf("") }
-                var supplementGuessWord by remember { mutableStateOf("") }
-                var supplementGuessScore by remember { mutableStateOf("") }
+                var guessMemory by remember {
+                    mutableStateOf(preferences.getString("guessMemory", "") ?: "")
+                }
 
-                var statusText by remember { mutableStateOf("请选择一张直播截图。") }
+                var supplementClue by remember {
+                    mutableStateOf(preferences.getString("supplementClue", "") ?: "")
+                }
+
+                var supplementGuessWord by remember {
+                    mutableStateOf(preferences.getString("supplementGuessWord", "") ?: "")
+                }
+
+                var supplementGuessScore by remember {
+                    mutableStateOf(preferences.getString("supplementGuessScore", "") ?: "")
+                }
+
+                var statusText by remember {
+                    mutableStateOf(preferences.getString("statusText", "请选择一张直播截图。") ?: "请选择一张直播截图。")
+                }
+
                 var isAnalyzing by remember { mutableStateOf(false) }
                 var isRefining by remember { mutableStateOf(false) }
+
+                LaunchedEffect(
+                    aiResult,
+                    clueMemory,
+                    guessMemory,
+                    supplementClue,
+                    supplementGuessWord,
+                    supplementGuessScore,
+                    statusText
+                ) {
+                    preferences.edit()
+                        .putString("aiResult", aiResult)
+                        .putString("clueMemory", clueMemory)
+                        .putString("guessMemory", guessMemory)
+                        .putString("supplementClue", supplementClue)
+                        .putString("supplementGuessWord", supplementGuessWord)
+                        .putString("supplementGuessScore", supplementGuessScore)
+                        .putString("statusText", statusText)
+                        .apply()
+                }
 
                 val imagePicker = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.GetContent()
@@ -228,6 +275,7 @@ $error
                             supplementGuessWord = ""
                             supplementGuessScore = ""
                             statusText = "已清空，可以开始下一题。"
+                            preferences.edit().clear().apply()
                         }
                     ) {
                         Text("清空，准备下一题")
