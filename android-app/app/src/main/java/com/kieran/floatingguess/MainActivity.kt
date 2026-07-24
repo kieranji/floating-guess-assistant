@@ -99,7 +99,13 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf(preferences.getString("aiResult", "暂无 AI 分析结果。") ?: "暂无 AI 分析结果。")
                 }
 
-                var candidates by remember { mutableStateOf<List<AiCandidate>>(emptyList()) }
+                var candidates by remember {
+                    mutableStateOf(
+                        candidatesFromJsonString(
+                            preferences.getString("candidates", "[]") ?: "[]"
+                        )
+                    )
+                }
 
                 var clueMemory by remember {
                     mutableStateOf(preferences.getString("clueMemory", "") ?: "")
@@ -130,6 +136,7 @@ class MainActivity : ComponentActivity() {
 
                 LaunchedEffect(
                     aiResult,
+                    candidates,
                     clueMemory,
                     guessMemory,
                     supplementClue,
@@ -139,6 +146,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     preferences.edit()
                         .putString("aiResult", aiResult)
+                        .putString("candidates", candidatesToJsonString(candidates))
                         .putString("clueMemory", clueMemory)
                         .putString("guessMemory", guessMemory)
                         .putString("supplementClue", supplementClue)
@@ -880,6 +888,63 @@ $error
         }
 
         return result.joinToString("\n")
+    }
+
+    private fun candidatesToJsonString(candidates: List<AiCandidate>): String {
+        val array = JSONArray()
+
+        candidates.forEach { candidate ->
+            val item = JSONObject()
+            item.put("word", candidate.word)
+            item.put("confidence", candidate.confidence)
+            item.put("reason", candidate.reason)
+
+            val keywordsArray = JSONArray()
+            candidate.keywords.forEach { keyword ->
+                keywordsArray.put(keyword)
+            }
+
+            item.put("keywords", keywordsArray)
+            array.put(item)
+        }
+
+        return array.toString()
+    }
+
+    private fun candidatesFromJsonString(text: String): List<AiCandidate> {
+        return try {
+            val array = JSONArray(text)
+            val result = mutableListOf<AiCandidate>()
+
+            for (index in 0 until array.length()) {
+                val item = array.optJSONObject(index) ?: continue
+
+                val keywordsArray = item.optJSONArray("keywords")
+                val keywords = mutableListOf<String>()
+
+                if (keywordsArray != null) {
+                    for (keywordIndex in 0 until keywordsArray.length()) {
+                        val keyword = keywordsArray.optString(keywordIndex)
+                        if (keyword.isNotBlank()) {
+                            keywords.add(keyword)
+                        }
+                    }
+                }
+
+                result.add(
+                    AiCandidate(
+                        word = item.optString("word", "未知候选词"),
+                        confidence = item.optInt("confidence", 0),
+                        reason = item.optString("reason", ""),
+                        keywords = keywords
+                    )
+                )
+            }
+
+            result
+        } catch (error: Exception) {
+            emptyList()
+        }
     }
 
     private fun formatScore(score: Double): String {
