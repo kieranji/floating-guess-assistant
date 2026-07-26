@@ -56,6 +56,8 @@ import android.content.Intent
 import android.widget.Toast
 import android.content.SharedPreferences
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.runtime.Composable
 
 data class AiCandidate(
     val word: String,
@@ -75,6 +77,30 @@ data class AiParsedResult(
     val topicClues: List<String>,
     val guesses: List<AiGuess>
 )
+
+@Composable
+fun SectionCard(
+    title: String,
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            content()
+        }
+    }
+}
 
 class MainActivity : ComponentActivity() {
     private val backendUrl = "https://floating-guess-backend.onrender.com"
@@ -310,18 +336,7 @@ $error
                     }
 
                     if (clueMemory.isNotBlank() || guessMemory.isNotBlank()) {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(14.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Text(
-                                    text = "当前题目信息",
-                                    style = MaterialTheme.typography.titleMedium
-                                )
+                        SectionCard(title = "当前题目信息") {
 
                                 if (clueMemory.isNotBlank()) {
                                     Text(
@@ -336,22 +351,11 @@ $error
                                         style = MaterialTheme.typography.bodySmall
                                     )
                                 }
-                            }
+
                         }
                     }
 
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(14.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            Text(
-                                text = "补充新信息后重新分析",
-                                style = MaterialTheme.typography.titleMedium
-                            )
+                    SectionCard(title = "补充新信息后重新分析") {
 
                             OutlinedTextField(
                                 modifier = Modifier.fillMaxWidth(),
@@ -476,7 +480,7 @@ $error
                                 }
                             ) {
                                 Text(if (isRefining) "补充分析中..." else "补充信息再分析")
-                            }
+
                         }
                     }
 
