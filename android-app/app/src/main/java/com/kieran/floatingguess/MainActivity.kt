@@ -61,6 +61,7 @@ import androidx.compose.runtime.Composable
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 data class AiCandidate(
     val word: String,
@@ -116,7 +117,12 @@ fun SectionCard(
 
 class MainActivity : ComponentActivity() {
     private val backendUrl = "https://floating-guess-backend.onrender.com"
-    private val client = OkHttpClient()
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(90, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
+        .callTimeout(120, TimeUnit.SECONDS)
+        .build()
     private val preferencesName = "floating_guess_android_state"
 
     private lateinit var preferences: SharedPreferences
@@ -795,7 +801,9 @@ $error
 
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                onError(e.message ?: "网络请求失败")
+                onError(
+                    e.message ?: "网络请求失败。可能是 Render 后端正在休眠或网络连接不稳定，请稍后重试。"
+                )
             }
 
             override fun onResponse(call: Call, response: Response) {
