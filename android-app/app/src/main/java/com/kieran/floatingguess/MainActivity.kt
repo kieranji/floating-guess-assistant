@@ -225,53 +225,54 @@ class MainActivity : ComponentActivity() {
                         style = MaterialTheme.typography.bodySmall
                     )
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        OutlinedButton(
-                            modifier = Modifier.weight(1f),
-                            enabled = !isAnalyzing && !isRefining,
-                            onClick = {
-                                imagePicker.launch("image/*")
-                            }
+                    SectionCard(title = "截图分析") {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Text("选择截图")
-                        }
-
-                        Button(
-                            modifier = Modifier.weight(1f),
-                            enabled = selectedUri != null && !isAnalyzing && !isRefining,
-                            onClick = {
-                                val uri = selectedUri
-                                if (uri == null) {
-                                    statusText = "请先选择图片。"
-                                    return@Button
+                            OutlinedButton(
+                                modifier = Modifier.weight(1f),
+                                enabled = !isAnalyzing && !isRefining,
+                                onClick = {
+                                    imagePicker.launch("image/*")
                                 }
+                            ) {
+                                Text("选择截图")
+                            }
 
-                                isAnalyzing = true
-                                statusText = "正在压缩并上传图片..."
-                                aiResult = "分析中，请稍等..."
-                                candidates = emptyList()
+                            Button(
+                                modifier = Modifier.weight(1f),
+                                enabled = selectedUri != null && !isAnalyzing && !isRefining,
+                                onClick = {
+                                    val uri = selectedUri
+                                    if (uri == null) {
+                                        statusText = "请先选择图片。"
+                                        return@Button
+                                    }
 
-                                analyzeImage(
-                                    uri = uri,
-                                    onSuccess = { result: AiParsedResult ->
-                                        runOnUiThread {
-                                            aiResult = result.aiText
-                                            candidates = result.candidates
-                                            clueMemory = result.topicClues.joinToString("\n")
-                                            guessMemory = result.guesses.joinToString("\n") { guess ->
-                                                "${guess.word} ${formatScore(guess.score)}"
+                                    isAnalyzing = true
+                                    statusText = "正在压缩并上传图片..."
+                                    aiResult = "分析中，请稍等..."
+                                    candidates = emptyList()
+
+                                    analyzeImage(
+                                        uri = uri,
+                                        onSuccess = { result: AiParsedResult ->
+                                            runOnUiThread {
+                                                aiResult = result.aiText
+                                                candidates = result.candidates
+                                                clueMemory = result.topicClues.joinToString("\n")
+                                                guessMemory = result.guesses.joinToString("\n") { guess ->
+                                                    "${guess.word} ${formatScore(guess.score)}"
+                                                }
+
+                                                statusText = "分析完成。"
+                                                isAnalyzing = false
                                             }
-
-                                            statusText = "分析完成。"
-                                            isAnalyzing = false
-                                        }
-                                    },
-                                    onError = { error: String ->
-                                        runOnUiThread {
-                                            aiResult = """
+                                        },
+                                        onError = { error: String ->
+                                            runOnUiThread {
+                                                aiResult = """
 分析失败。
 
 错误信息：
@@ -282,56 +283,57 @@ $error
 2. 检查 Render 后端是否休眠
 3. 检查图片是否太大或太模糊
 4. 检查后端 API key 是否正常
-                                            """.trimIndent()
+                            """.trimIndent()
 
-                                            statusText = "分析失败，可以重新点击“分析截图”重试。"
-                                            isAnalyzing = false
+                                                statusText = "分析失败，可以重新点击“分析截图”重试。"
+                                                isAnalyzing = false
+                                            }
                                         }
-                                    }
-                                )
+                                    )
+                                }
+                            ) {
+                                Text(if (isAnalyzing) "分析中..." else "分析截图")
+                            }
+                        }
+
+                        Button(
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !isAnalyzing && !isRefining,
+                            onClick = {
+                                selectedUri = null
+                                selectedBitmap = null
+                                aiResult = "暂无 AI 分析结果。"
+                                candidates = emptyList()
+                                clueMemory = ""
+                                guessMemory = ""
+                                supplementClue = ""
+                                supplementGuessWord = ""
+                                supplementGuessScore = ""
+                                statusText = "已清空，可以开始下一题。"
+                                preferences.edit().clear().apply()
                             }
                         ) {
-                            Text(if (isAnalyzing) "分析中..." else "分析截图")
+                            Text("清空，准备下一题")
                         }
-                    }
 
-                    Button(
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = !isAnalyzing && !isRefining,
-                        onClick = {
-                            selectedUri = null
-                            selectedBitmap = null
-                            aiResult = "暂无 AI 分析结果。"
-                            candidates = emptyList()
-                            clueMemory = ""
-                            guessMemory = ""
-                            supplementClue = ""
-                            supplementGuessWord = ""
-                            supplementGuessScore = ""
-                            statusText = "已清空，可以开始下一题。"
-                            preferences.edit().clear().apply()
-                        }
-                    ) {
-                        Text("清空，准备下一题")
-                    }
+                        Text(
+                            text = statusText,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
 
-                    Text(
-                        text = statusText,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-
-                    selectedBitmap?.let { bitmap ->
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                        ) {
-                            Image(
-                                bitmap = bitmap.asImageBitmap(),
-                                contentDescription = "Selected screenshot",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(10.dp)
-                            )
+                        selectedBitmap?.let { bitmap ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                            ) {
+                                Image(
+                                    bitmap = bitmap.asImageBitmap(),
+                                    contentDescription = "Selected screenshot",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(10.dp)
+                                )
+                            }
                         }
                     }
 
