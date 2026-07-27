@@ -265,6 +265,29 @@ class MainActivity : ComponentActivity() {
                                 text = "后端：Render 在线服务。第一次请求可能需要等待 30–60 秒。",
                                 style = MaterialTheme.typography.bodySmall
                             )
+
+                            OutlinedButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = !isAnalyzing && !isRefining,
+                                onClick = {
+                                    statusText = "正在检查后端状态..."
+
+                                    checkBackendHealth(
+                                        onSuccess = { message: String ->
+                                            runOnUiThread {
+                                                statusText = message
+                                            }
+                                        },
+                                        onError = { error: String ->
+                                            runOnUiThread {
+                                                statusText = "后端检查失败：$error"
+                                            }
+                                        }
+                                    )
+                                }
+                            ) {
+                                Text("检查后端状态")
+                            }
                         }
                     }
 
@@ -783,6 +806,49 @@ $error
         } catch (error: Exception) {
             onError(error.message ?: "未知错误")
         }
+    }
+
+    private fun checkBackendHealth(
+        onSuccess: (String) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val request = Request.Builder()
+            .url(backendUrl)
+            .get()
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                onError(
+                    e.message ?: "网络请求失败，可能是 Render 后端正在休眠。"
+                )
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    val bodyText = it.body?.string() ?: ""
+
+                    if (!it.isSuccessful) {
+                        onError("HTTP ${it.code}: $bodyText")
+                        return
+                    }
+
+                    try {
+                        val json = JSONObject(bodyText)
+                        val ok = json.optBoolean("ok", false)
+                        val message = json.optString("message", "")
+
+                        if (ok) {
+                            onSuccess("后端正常运行：$message")
+                        } else {
+                            onSuccess("后端已响应，但状态未知。")
+                        }
+                    } catch (error: Exception) {
+                        onSuccess("后端已响应。")
+                    }
+                }
+            }
+        })
     }
 
     private fun postJson(
