@@ -58,6 +58,9 @@ import android.content.SharedPreferences
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 data class AiCandidate(
     val word: String,
@@ -76,6 +79,15 @@ data class AiParsedResult(
     val candidates: List<AiCandidate>,
     val topicClues: List<String>,
     val guesses: List<AiGuess>
+)
+
+data class HistoryItem(
+    val time: String,
+    val title: String,
+    val aiText: String,
+    val candidates: List<AiCandidate>,
+    val clueMemory: String,
+    val guessMemory: String
 )
 
 @Composable
@@ -157,6 +169,14 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf(preferences.getString("statusText", "请选择一张直播截图。") ?: "请选择一张直播截图。")
                 }
 
+                var historyList by remember {
+                    mutableStateOf(
+                        historyFromJsonString(
+                            preferences.getString("historyList", "[]") ?: "[]"
+                        )
+                    )
+                }
+
                 var isAnalyzing by remember { mutableStateOf(false) }
                 var isRefining by remember { mutableStateOf(false) }
 
@@ -168,7 +188,8 @@ class MainActivity : ComponentActivity() {
                     supplementClue,
                     supplementGuessWord,
                     supplementGuessScore,
-                    statusText
+                    statusText,
+                    historyList
                 ) {
                     preferences.edit()
                         .putString("aiResult", aiResult)
@@ -179,6 +200,7 @@ class MainActivity : ComponentActivity() {
                         .putString("supplementGuessWord", supplementGuessWord)
                         .putString("supplementGuessScore", supplementGuessScore)
                         .putString("statusText", statusText)
+                        .putString("historyList", historyToJsonString(historyList))
                         .apply()
                 }
 
@@ -280,6 +302,14 @@ class MainActivity : ComponentActivity() {
                                                 guessMemory = result.guesses.joinToString("\n") { guess ->
                                                     "${guess.word} ${formatScore(guess.score)}"
                                                 }
+
+                                                historyList = addHistoryItem(
+                                                    historyList = historyList,
+                                                    aiText = result.aiText,
+                                                    candidates = result.candidates,
+                                                    clueMemory = clueMemory,
+                                                    guessMemory = guessMemory
+                                                )
 
                                                 statusText = "分析完成。"
                                                 isAnalyzing = false
@@ -466,6 +496,14 @@ $error
                                                     )
                                                 }
 
+                                                historyList = addHistoryItem(
+                                                    historyList = historyList,
+                                                    aiText = result.aiText,
+                                                    candidates = result.candidates,
+                                                    clueMemory = clueMemory,
+                                                    guessMemory = guessMemory
+                                                )
+
                                                 supplementClue = ""
                                                 supplementGuessWord = ""
                                                 supplementGuessScore = ""
@@ -620,6 +658,73 @@ $error
                                 Text("AI 原文分析结果")
                             }
                         )
+                    }
+                    if (historyList.isNotEmpty()) {
+                        SectionCard(title = "历史记录") {
+                            historyList.forEachIndexed { index, item ->
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(12.dp),
+                                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        Text(
+                                            text = "${index + 1}. ${item.title}",
+                                            style = MaterialTheme.typography.titleMedium
+                                        )
+
+                                        Text(
+                                            text = item.time,
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+
+                                        Text(
+                                            text = "候选答案：${item.candidates.take(3).joinToString("、") { it.word }}",
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                        ) {
+                                            OutlinedButton(
+                                                modifier = Modifier.weight(1f),
+                                                onClick = {
+                                                    aiResult = item.aiText
+                                                    candidates = item.candidates
+                                                    clueMemory = item.clueMemory
+                                                    guessMemory = item.guessMemory
+                                                    statusText = "已恢复历史记录：${item.title}"
+                                                }
+                                            ) {
+                                                Text("恢复")
+                                            }
+
+                                            Button(
+                                                modifier = Modifier.weight(1f),
+                                                onClick = {
+                                                    shareText(item.aiText)
+                                                }
+                                            ) {
+                                                Text("分享")
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            OutlinedButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = {
+                                    historyList = emptyList()
+                                    statusText = "历史记录已清空。"
+                                }
+                            ) {
+                                Text("清空历史记录")
+                            }
+                        }
                     }
                 }
             }
@@ -969,6 +1074,73 @@ $error
                         confidence = item.optInt("confidence", 0),
                         reason = item.optString("reason", ""),
                         keywords = keywords
+                    )
+                )
+            }
+
+            result
+        } catch (error: Exception) {
+            emptyList()
+        }
+    }
+
+    private fun addHistoryItem(
+        historyList: List<HistoryItem>,
+        aiText: String,
+        candidates: List<AiCandidate>,
+        clueMemory: String,
+        guessMemory: String
+    ): List<HistoryItem> {
+        val time = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date())
+        val title = candidates.firstOrNull()?.word ?: "AI 分析结果"
+
+        val newItem = HistoryItem(
+            time = time,
+            title = title,
+            aiText = aiText,
+            candidates = candidates,
+            clueMemory = clueMemory,
+            guessMemory = guessMemory
+        )
+
+        return listOf(newItem) + historyList.take(9)
+    }
+
+    private fun historyToJsonString(historyList: List<HistoryItem>): String {
+        val array = JSONArray()
+
+        historyList.forEach { item ->
+            val obj = JSONObject()
+            obj.put("time", item.time)
+            obj.put("title", item.title)
+            obj.put("aiText", item.aiText)
+            obj.put("candidates", JSONArray(candidatesToJsonString(item.candidates)))
+            obj.put("clueMemory", item.clueMemory)
+            obj.put("guessMemory", item.guessMemory)
+            array.put(obj)
+        }
+
+        return array.toString()
+    }
+
+    private fun historyFromJsonString(text: String): List<HistoryItem> {
+        return try {
+            val array = JSONArray(text)
+            val result = mutableListOf<HistoryItem>()
+
+            for (index in 0 until array.length()) {
+                val obj = array.optJSONObject(index) ?: continue
+
+                result.add(
+                    HistoryItem(
+                        time = obj.optString("time", ""),
+                        title = obj.optString("title", "AI 分析结果"),
+                        aiText = obj.optString("aiText", ""),
+                        candidates = candidatesFromJsonString(
+                            obj.optJSONArray("candidates")?.toString() ?: "[]"
+                        ),
+                        clueMemory = obj.optString("clueMemory", ""),
+                        guessMemory = obj.optString("guessMemory", "")
                     )
                 )
             }
