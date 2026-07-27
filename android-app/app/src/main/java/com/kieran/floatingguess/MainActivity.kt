@@ -210,20 +210,35 @@ class MainActivity : ComponentActivity() {
                 ) {
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Text(
-                        text = "Floating Guess Assistant",
-                        style = MaterialTheme.typography.headlineMedium
-                    )
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "Floating Guess Assistant",
+                                style = MaterialTheme.typography.headlineMedium
+                            )
 
-                    Text(
-                        text = "原生 Android v0.1.0：选择截图、AI 分析、补充线索再分析。",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                            Text(
+                                text = "Android Native v0.1.0",
+                                style = MaterialTheme.typography.titleMedium
+                            )
 
-                    Text(
-                        text = "后端：Render 在线服务。第一次请求可能需要等待 30–60 秒。",
-                        style = MaterialTheme.typography.bodySmall
-                    )
+                            Text(
+                                text = "选择截图、AI 分析、补充线索再分析。",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+
+                            Text(
+                                text = "后端：Render 在线服务。第一次请求可能需要等待 30–60 秒。",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
 
                     SectionCard(title = "截图分析") {
                         Row(
