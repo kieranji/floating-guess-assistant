@@ -485,72 +485,69 @@ $error
                     }
 
                     if (candidates.isNotEmpty()) {
-                        Text(
-                            text = "AI 候选答案",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-
-                        candidates.forEachIndexed { index, candidate ->
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                            ) {
-                                Column(
-                                    modifier = Modifier.padding(14.dp),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                        SectionCard(title = "AI 候选答案") {
+                            candidates.forEachIndexed { index, candidate ->
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                                 ) {
-                                    Text(
-                                        text = "${index + 1}. ${candidate.word}",
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-
-                                    Text(
-                                        text = "置信度：${candidate.confidence}%",
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-
-                                    if (candidate.keywords.isNotEmpty()) {
+                                    Column(
+                                        modifier = Modifier.padding(14.dp),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
                                         Text(
-                                            text = "关键词：${candidate.keywords.joinToString("、")}",
-                                            style = MaterialTheme.typography.bodySmall
+                                            text = "${index + 1}. ${candidate.word}",
+                                            style = MaterialTheme.typography.titleMedium
                                         )
-                                    }
 
-                                    if (candidate.reason.isNotBlank()) {
                                         Text(
-                                            text = candidate.reason,
+                                            text = "置信度：${candidate.confidence}%",
                                             style = MaterialTheme.typography.bodyMedium
                                         )
-                                    }
 
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                    ) {
-                                        OutlinedButton(
-                                            modifier = Modifier.weight(1f),
-                                            enabled = !isAnalyzing && !isRefining,
-                                            onClick = {
-                                                supplementGuessWord = candidate.word
-                                                supplementGuessScore = ""
-                                                statusText = "已填入候选词：${candidate.word}，请输入相似度。"
-                                            }
-                                        ) {
-                                            Text("作为高分词")
+                                        if (candidate.keywords.isNotEmpty()) {
+                                            Text(
+                                                text = "关键词：${candidate.keywords.joinToString("、")}",
+                                                style = MaterialTheme.typography.bodySmall
+                                            )
                                         }
 
-                                        Button(
-                                            modifier = Modifier.weight(1f),
-                                            enabled = !isAnalyzing && !isRefining,
-                                            onClick = {
-                                                clueMemory = mergeUniqueLines(
-                                                    clueMemory,
-                                                    "重点考虑候选词：${candidate.word}"
-                                                )
-                                                statusText = "已把 ${candidate.word} 加入当前题目信息。"
-                                            }
+                                        if (candidate.reason.isNotBlank()) {
+                                            Text(
+                                                text = candidate.reason,
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
+                                        }
+
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                                         ) {
-                                            Text("重点考虑")
+                                            OutlinedButton(
+                                                modifier = Modifier.weight(1f),
+                                                enabled = !isAnalyzing && !isRefining,
+                                                onClick = {
+                                                    supplementGuessWord = candidate.word
+                                                    supplementGuessScore = ""
+                                                    statusText = "已填入候选词：${candidate.word}，请输入相似度。"
+                                                }
+                                            ) {
+                                                Text("作为高分词")
+                                            }
+
+                                            Button(
+                                                modifier = Modifier.weight(1f),
+                                                enabled = !isAnalyzing && !isRefining,
+                                                onClick = {
+                                                    clueMemory = mergeUniqueLines(
+                                                        clueMemory,
+                                                        "重点考虑候选词：${candidate.word}"
+                                                    )
+                                                    statusText = "已把 ${candidate.word} 加入当前题目信息。"
+                                                }
+                                            ) {
+                                                Text("重点考虑")
+                                            }
                                         }
                                     }
                                 }
@@ -558,41 +555,55 @@ $error
                         }
                     }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
+                    SectionCard(title = "AI 原文分析结果") {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            OutlinedButton(
+                                modifier = Modifier.weight(1f),
+                                enabled = aiResult.isNotBlank() && aiResult != "暂无 AI 分析结果。",
+                                onClick = {
+                                    copyTextToClipboard(aiResult)
+                                }
+                            ) {
+                                Text("复制结果")
+                            }
+
+                            Button(
+                                modifier = Modifier.weight(1f),
+                                enabled = aiResult.isNotBlank() && aiResult != "暂无 AI 分析结果。",
+                                onClick = {
+                                    shareText(aiResult)
+                                }
+                            ) {
+                                Text("分享结果")
+                            }
+                        }
+
                         OutlinedButton(
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.fillMaxWidth(),
                             enabled = aiResult.isNotBlank() && aiResult != "暂无 AI 分析结果。",
                             onClick = {
-                                copyTextToClipboard(aiResult)
+                                aiResult = "暂无 AI 分析结果。"
+                                candidates = emptyList()
+                                statusText = "已清空 AI 结果，但保留当前截图和题目信息。"
                             }
                         ) {
-                            Text("复制结果")
+                            Text("只清空 AI 结果")
                         }
 
-                        Button(
-                            modifier = Modifier.weight(1f),
-                            enabled = aiResult.isNotBlank() && aiResult != "暂无 AI 分析结果。",
-                            onClick = {
-                                shareText(aiResult)
+                        OutlinedTextField(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(320.dp),
+                            value = aiResult,
+                            onValueChange = { aiResult = it },
+                            label = {
+                                Text("AI 原文分析结果")
                             }
-                        ) {
-                            Text("分享结果")
-                        }
+                        )
                     }
-
-                    OutlinedTextField(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(320.dp),
-                        value = aiResult,
-                        onValueChange = { aiResult = it },
-                        label = {
-                            Text("AI 原文分析结果")
-                        }
-                    )
                 }
             }
         }
