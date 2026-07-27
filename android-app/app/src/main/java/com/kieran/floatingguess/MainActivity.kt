@@ -116,7 +116,8 @@ fun SectionCard(
 }
 
 class MainActivity : ComponentActivity() {
-    private val backendUrl = "https://floating-guess-backend.onrender.com"
+    private val defaultBackendUrl = "https://floating-guess-backend.onrender.com"
+    private var backendUrl = defaultBackendUrl
     private val client = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(90, TimeUnit.SECONDS)
@@ -175,6 +176,12 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf(preferences.getString("statusText", "请选择一张直播截图。") ?: "请选择一张直播截图。")
                 }
 
+                var backendUrlInput by remember {
+                    mutableStateOf(preferences.getString("backendUrl", defaultBackendUrl) ?: defaultBackendUrl)
+                }
+
+                backendUrl = backendUrlInput.trim().removeSuffix("/")
+
                 var historyList by remember {
                     mutableStateOf(
                         historyFromJsonString(
@@ -195,7 +202,8 @@ class MainActivity : ComponentActivity() {
                     supplementGuessWord,
                     supplementGuessScore,
                     statusText,
-                    historyList
+                    historyList,
+                    backendUrlInput
                 ) {
                     preferences.edit()
                         .putString("aiResult", aiResult)
@@ -207,6 +215,7 @@ class MainActivity : ComponentActivity() {
                         .putString("supplementGuessScore", supplementGuessScore)
                         .putString("statusText", statusText)
                         .putString("historyList", historyToJsonString(historyList))
+                        .putString("backendUrl", backendUrlInput)
                         .apply()
                 }
 
@@ -265,6 +274,47 @@ class MainActivity : ComponentActivity() {
                                 text = "后端：Render 在线服务。第一次请求可能需要等待 30–60 秒。",
                                 style = MaterialTheme.typography.bodySmall
                             )
+
+                            SectionCard(title = "后端设置") {
+                                OutlinedTextField(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    value = backendUrlInput,
+                                    onValueChange = {
+                                        backendUrlInput = it
+                                        backendUrl = it.trim().removeSuffix("/")
+                                    },
+                                    label = { Text("后端地址") },
+                                    placeholder = { Text(defaultBackendUrl) }
+                                )
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    OutlinedButton(
+                                        modifier = Modifier.weight(1f),
+                                        enabled = !isAnalyzing && !isRefining,
+                                        onClick = {
+                                            backendUrlInput = defaultBackendUrl
+                                            backendUrl = defaultBackendUrl
+                                            statusText = "已恢复默认后端地址。"
+                                        }
+                                    ) {
+                                        Text("恢复默认")
+                                    }
+
+                                    Button(
+                                        modifier = Modifier.weight(1f),
+                                        enabled = !isAnalyzing && !isRefining,
+                                        onClick = {
+                                            backendUrl = backendUrlInput.trim().removeSuffix("/")
+                                            statusText = "后端地址已更新。"
+                                        }
+                                    ) {
+                                        Text("保存地址")
+                                    }
+                                }
+                            }
 
                             OutlinedButton(
                                 modifier = Modifier.fillMaxWidth(),
@@ -384,7 +434,16 @@ $error
                                 supplementGuessWord = ""
                                 supplementGuessScore = ""
                                 statusText = "已清空，可以开始下一题。"
-                                preferences.edit().clear().apply()
+                                preferences.edit()
+                                    .remove("aiResult")
+                                    .remove("candidates")
+                                    .remove("clueMemory")
+                                    .remove("guessMemory")
+                                    .remove("supplementClue")
+                                    .remove("supplementGuessWord")
+                                    .remove("supplementGuessScore")
+                                    .remove("statusText")
+                                    .apply()
                             }
                         ) {
                             Text("清空，准备下一题")
