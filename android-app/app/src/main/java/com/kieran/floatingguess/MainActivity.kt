@@ -776,6 +776,38 @@ $error
                             OutlinedButton(
                                 modifier = Modifier.fillMaxWidth(),
                                 onClick = {
+                                    val exportText = buildString {
+                                        appendLine("Floating Guess Android Debug Info")
+                                        appendLine("==============================")
+                                        appendLine("Status:")
+                                        appendLine(statusText)
+                                        appendLine()
+                                        appendLine("Backend URL:")
+                                        appendLine(backendUrl)
+                                        appendLine()
+                                        appendLine("Current Clues:")
+                                        appendLine(clueMemory.ifBlank { "无" })
+                                        appendLine()
+                                        appendLine("High Score Words:")
+                                        appendLine(guessMemory.ifBlank { "无" })
+                                        appendLine()
+                                        appendLine("AI Result:")
+                                        appendLine(aiResult.ifBlank { "无" })
+                                        appendLine()
+                                        appendLine("Debug Log:")
+                                        appendLine(debugLog.ifBlank { "无" })
+                                    }
+
+                                    copyTextToClipboard("Debug Info", exportText)
+                                    statusText = "调试信息已复制，可以直接发给我。"
+                                }
+                            ) {
+                                Text("复制完整调试信息")
+                            }
+
+                            OutlinedButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = {
                                     debugLog = ""
                                     statusText = "调试日志已清空。"
                                 }
