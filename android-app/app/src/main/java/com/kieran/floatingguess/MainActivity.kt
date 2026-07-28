@@ -798,7 +798,7 @@ $error
                                         appendLine(debugLog.ifBlank { "无" })
                                     }
 
-                                    copyTextToClipboard("Debug Info", exportText)
+                                    copyTextToClipboard(exportText)
                                     statusText = "调试信息已复制，可以直接发给我。"
                                 }
                             ) {
