@@ -176,6 +176,10 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf(preferences.getString("statusText", "请选择一张直播截图。") ?: "请选择一张直播截图。")
                 }
 
+                var debugLog by remember {
+                    mutableStateOf(preferences.getString("debugLog", "") ?: "")
+                }
+
                 var backendUrlInput by remember {
                     mutableStateOf(preferences.getString("backendUrl", defaultBackendUrl) ?: defaultBackendUrl)
                 }
@@ -203,7 +207,8 @@ class MainActivity : ComponentActivity() {
                     supplementGuessScore,
                     statusText,
                     historyList,
-                    backendUrlInput
+                    backendUrlInput,
+                    debugLog
                 ) {
                     preferences.edit()
                         .putString("aiResult", aiResult)
@@ -216,6 +221,7 @@ class MainActivity : ComponentActivity() {
                         .putString("statusText", statusText)
                         .putString("historyList", historyToJsonString(historyList))
                         .putString("backendUrl", backendUrlInput)
+                        .putString("debugLog", debugLog)
                         .apply()
                 }
 
@@ -370,6 +376,7 @@ class MainActivity : ComponentActivity() {
                                     statusText = "正在压缩并上传图片..."
                                     aiResult = "分析中，请稍等..."
                                     candidates = emptyList()
+                                    debugLog = appendDebugLog(debugLog, "开始截图分析请求：/api/analyze-image")
 
                                     analyzeImage(
                                         uri = uri,
@@ -390,6 +397,7 @@ class MainActivity : ComponentActivity() {
                                                     guessMemory = guessMemory
                                                 )
 
+                                                debugLog = appendDebugLog(debugLog, "截图分析成功，候选答案数量：${result.candidates.size}")
                                                 statusText = "分析完成。"
                                                 isAnalyzing = false
                                             }
@@ -409,6 +417,7 @@ $error
 4. 检查后端 API key 是否正常
                             """.trimIndent()
 
+                                                debugLog = appendDebugLog(debugLog, "截图分析失败：$error")
                                                 statusText = "分析失败，可以重新点击“分析截图”重试。"
                                                 isAnalyzing = false
                                             }
@@ -434,6 +443,7 @@ $error
                                 supplementGuessWord = ""
                                 supplementGuessScore = ""
                                 statusText = "已清空，可以开始下一题。"
+                                debugLog = ""
                                 preferences.edit()
                                     .remove("aiResult")
                                     .remove("candidates")
@@ -559,6 +569,7 @@ $error
                                     isRefining = true
                                     statusText = "正在结合补充信息重新分析..."
                                     aiResult = "补充分析中，请稍等..."
+                                    debugLog = appendDebugLog(debugLog, "开始补充分析请求：/api/analyze")
 
                                     analyzeText(
                                         clues = clueMemory,
@@ -596,6 +607,7 @@ $error
                                                 supplementGuessWord = ""
                                                 supplementGuessScore = ""
 
+                                                debugLog = appendDebugLog(debugLog, "补充分析成功，候选答案数量：${result.candidates.size}")
                                                 statusText = "补充分析完成。"
                                                 isRefining = false
                                             }
@@ -615,6 +627,7 @@ $error
 4. 检查 Render 后端是否正常
                                                 """.trimIndent()
 
+                                                debugLog = appendDebugLog(debugLog, "补充分析失败：$error")
                                                 statusText = "补充分析失败，可以修改信息后重试。"
                                                 isRefining = false
                                             }
@@ -746,6 +759,30 @@ $error
                                 Text("AI 原文分析结果")
                             }
                         )
+                    }
+                    if (debugLog.isNotBlank()) {
+                        SectionCard(title = "调试日志") {
+                            OutlinedTextField(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(220.dp),
+                                value = debugLog,
+                                onValueChange = { debugLog = it },
+                                label = {
+                                    Text("Debug Log")
+                                }
+                            )
+
+                            OutlinedButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = {
+                                    debugLog = ""
+                                    statusText = "调试日志已清空。"
+                                }
+                            ) {
+                                Text("清空调试日志")
+                            }
+                        }
                     }
                     if (historyList.isNotEmpty()) {
                         SectionCard(title = "历史记录") {
@@ -1281,6 +1318,17 @@ $error
             result
         } catch (error: Exception) {
             emptyList()
+        }
+    }
+
+    private fun appendDebugLog(currentLog: String, message: String): String {
+        val time = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
+        val newLine = "[$time] $message"
+
+        return if (currentLog.isBlank()) {
+            newLine
+        } else {
+            "$newLine\n$currentLog"
         }
     }
 
