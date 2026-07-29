@@ -267,7 +267,7 @@ class MainActivity : ComponentActivity() {
                             )
 
                             Text(
-                                text = "Android Native v0.1.0",
+                                text = "Android Native v0.2.0",
                                 style = MaterialTheme.typography.titleMedium
                             )
 
