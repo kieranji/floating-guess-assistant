@@ -711,6 +711,24 @@ $error
                                 }
                             }
 
+                            OutlinedButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = !isAnalyzing && !isRefining,
+                                onClick = {
+                                    val topThreeText = candidates
+                                        .take(3)
+                                        .mapIndexed { index, candidate ->
+                                            "${index + 1}. ${candidate.word} ${candidate.confidence}%"
+                                        }
+                                        .joinToString("\n")
+
+                                    copyTextToClipboard(topThreeText)
+                                    statusText = "已复制前三个候选答案。"
+                                }
+                            ) {
+                                Text("复制前三个候选答案")
+                            }
+
                             candidates.forEachIndexed { index, candidate ->
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
