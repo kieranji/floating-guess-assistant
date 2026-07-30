@@ -642,6 +642,75 @@ $error
 
                     if (candidates.isNotEmpty()) {
                         SectionCard(title = "AI 候选答案") {
+                            val topCandidate = candidates.first()
+
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    Text(
+                                        text = "最可能答案",
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+
+                                    Text(
+                                        text = topCandidate.word,
+                                        style = MaterialTheme.typography.headlineMedium
+                                    )
+
+                                    Text(
+                                        text = "置信度：${topCandidate.confidence}%",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+
+                                    if (topCandidate.keywords.isNotEmpty()) {
+                                        Text(
+                                            text = "关键词：${topCandidate.keywords.joinToString("、")}",
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+                                    }
+
+                                    if (topCandidate.reason.isNotBlank()) {
+                                        Text(
+                                            text = topCandidate.reason,
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                    }
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                    ) {
+                                        OutlinedButton(
+                                            modifier = Modifier.weight(1f),
+                                            enabled = !isAnalyzing && !isRefining,
+                                            onClick = {
+                                                copyTextToClipboard(topCandidate.word)
+                                                statusText = "已复制最可能答案：${topCandidate.word}"
+                                            }
+                                        ) {
+                                            Text("复制答案")
+                                        }
+
+                                        Button(
+                                            modifier = Modifier.weight(1f),
+                                            enabled = !isAnalyzing && !isRefining,
+                                            onClick = {
+                                                supplementGuessWord = topCandidate.word
+                                                supplementGuessScore = ""
+                                                statusText = "已填入最可能答案：${topCandidate.word}，请输入相似度。"
+                                            }
+                                        ) {
+                                            Text("作为高分词")
+                                        }
+                                    }
+                                }
+                            }
+
                             candidates.forEachIndexed { index, candidate ->
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
