@@ -196,6 +196,7 @@ class MainActivity : ComponentActivity() {
 
                 var isAnalyzing by remember { mutableStateOf(false) }
                 var isRefining by remember { mutableStateOf(false) }
+                var showRawAiResult by remember { mutableStateOf(false) }
 
                 LaunchedEffect(
                     aiResult,
@@ -807,46 +808,71 @@ $error
                                 modifier = Modifier.weight(1f),
                                 enabled = aiResult.isNotBlank() && aiResult != "暂无 AI 分析结果。",
                                 onClick = {
-                                    copyTextToClipboard(aiResult)
+                                    showRawAiResult = !showRawAiResult
                                 }
                             ) {
-                                Text("复制结果")
+                                Text(if (showRawAiResult) "隐藏原文" else "显示原文")
                             }
 
                             Button(
                                 modifier = Modifier.weight(1f),
                                 enabled = aiResult.isNotBlank() && aiResult != "暂无 AI 分析结果。",
                                 onClick = {
+                                    copyTextToClipboard(aiResult)
+                                    statusText = "AI 原文结果已复制。"
+                                }
+                            ) {
+                                Text("复制原文")
+                            }
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            OutlinedButton(
+                                modifier = Modifier.weight(1f),
+                                enabled = aiResult.isNotBlank() && aiResult != "暂无 AI 分析结果。",
+                                onClick = {
                                     shareText(aiResult)
                                 }
                             ) {
-                                Text("分享结果")
+                                Text("分享原文")
+                            }
+
+                            OutlinedButton(
+                                modifier = Modifier.weight(1f),
+                                enabled = aiResult.isNotBlank() && aiResult != "暂无 AI 分析结果。",
+                                onClick = {
+                                    aiResult = "暂无 AI 分析结果。"
+                                    candidates = emptyList()
+                                    showRawAiResult = false
+                                    statusText = "已清空 AI 结果，但保留当前截图和题目信息。"
+                                }
+                            ) {
+                                Text("清空结果")
                             }
                         }
 
-                        OutlinedButton(
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = aiResult.isNotBlank() && aiResult != "暂无 AI 分析结果。",
-                            onClick = {
-                                aiResult = "暂无 AI 分析结果。"
-                                candidates = emptyList()
-                                statusText = "已清空 AI 结果，但保留当前截图和题目信息。"
-                            }
-                        ) {
-                            Text("只清空 AI 结果")
+                        if (showRawAiResult) {
+                            OutlinedTextField(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(320.dp),
+                                value = aiResult,
+                                onValueChange = { aiResult = it },
+                                label = {
+                                    Text("AI 原文分析结果")
+                                }
+                            )
+                        } else {
+                            Text(
+                                text = "原文已折叠。需要查看完整 AI 输出时，点击“显示原文”。",
+                                style = MaterialTheme.typography.bodySmall
+                            )
                         }
-
-                        OutlinedTextField(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(320.dp),
-                            value = aiResult,
-                            onValueChange = { aiResult = it },
-                            label = {
-                                Text("AI 原文分析结果")
-                            }
-                        )
                     }
+
                     if (debugLog.isNotBlank()) {
                         SectionCard(title = "调试日志") {
                             OutlinedTextField(
