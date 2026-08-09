@@ -196,6 +196,7 @@ class MainActivity : ComponentActivity() {
 
                 var isAnalyzing by remember { mutableStateOf(false) }
                 var isRefining by remember { mutableStateOf(false) }
+                var showRawAiResult by remember { mutableStateOf(false) }
 
                 LaunchedEffect(
                     aiResult,
@@ -642,6 +643,93 @@ $error
 
                     if (candidates.isNotEmpty()) {
                         SectionCard(title = "AI 候选答案") {
+                            val topCandidate = candidates.first()
+
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    Text(
+                                        text = "最可能答案",
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+
+                                    Text(
+                                        text = topCandidate.word,
+                                        style = MaterialTheme.typography.headlineMedium
+                                    )
+
+                                    Text(
+                                        text = "置信度：${topCandidate.confidence}%",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+
+                                    if (topCandidate.keywords.isNotEmpty()) {
+                                        Text(
+                                            text = "关键词：${topCandidate.keywords.joinToString("、")}",
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+                                    }
+
+                                    if (topCandidate.reason.isNotBlank()) {
+                                        Text(
+                                            text = topCandidate.reason,
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                    }
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                    ) {
+                                        OutlinedButton(
+                                            modifier = Modifier.weight(1f),
+                                            enabled = !isAnalyzing && !isRefining,
+                                            onClick = {
+                                                copyTextToClipboard(topCandidate.word)
+                                                statusText = "已复制最可能答案：${topCandidate.word}"
+                                            }
+                                        ) {
+                                            Text("复制答案")
+                                        }
+
+                                        Button(
+                                            modifier = Modifier.weight(1f),
+                                            enabled = !isAnalyzing && !isRefining,
+                                            onClick = {
+                                                supplementGuessWord = topCandidate.word
+                                                supplementGuessScore = ""
+                                                statusText = "已填入最可能答案：${topCandidate.word}，请输入相似度。"
+                                            }
+                                        ) {
+                                            Text("作为高分词")
+                                        }
+                                    }
+                                }
+                            }
+
+                            OutlinedButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = !isAnalyzing && !isRefining,
+                                onClick = {
+                                    val topThreeText = candidates
+                                        .take(3)
+                                        .mapIndexed { index, candidate ->
+                                            "${index + 1}. ${candidate.word} ${candidate.confidence}%"
+                                        }
+                                        .joinToString("\n")
+
+                                    copyTextToClipboard(topThreeText)
+                                    statusText = "已复制前三个候选答案。"
+                                }
+                            ) {
+                                Text("复制前三个候选答案")
+                            }
+
                             candidates.forEachIndexed { index, candidate ->
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
@@ -720,46 +808,71 @@ $error
                                 modifier = Modifier.weight(1f),
                                 enabled = aiResult.isNotBlank() && aiResult != "暂无 AI 分析结果。",
                                 onClick = {
-                                    copyTextToClipboard(aiResult)
+                                    showRawAiResult = !showRawAiResult
                                 }
                             ) {
-                                Text("复制结果")
+                                Text(if (showRawAiResult) "隐藏原文" else "显示原文")
                             }
 
                             Button(
                                 modifier = Modifier.weight(1f),
                                 enabled = aiResult.isNotBlank() && aiResult != "暂无 AI 分析结果。",
                                 onClick = {
+                                    copyTextToClipboard(aiResult)
+                                    statusText = "AI 原文结果已复制。"
+                                }
+                            ) {
+                                Text("复制原文")
+                            }
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            OutlinedButton(
+                                modifier = Modifier.weight(1f),
+                                enabled = aiResult.isNotBlank() && aiResult != "暂无 AI 分析结果。",
+                                onClick = {
                                     shareText(aiResult)
                                 }
                             ) {
-                                Text("分享结果")
+                                Text("分享原文")
+                            }
+
+                            OutlinedButton(
+                                modifier = Modifier.weight(1f),
+                                enabled = aiResult.isNotBlank() && aiResult != "暂无 AI 分析结果。",
+                                onClick = {
+                                    aiResult = "暂无 AI 分析结果。"
+                                    candidates = emptyList()
+                                    showRawAiResult = false
+                                    statusText = "已清空 AI 结果，但保留当前截图和题目信息。"
+                                }
+                            ) {
+                                Text("清空结果")
                             }
                         }
 
-                        OutlinedButton(
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = aiResult.isNotBlank() && aiResult != "暂无 AI 分析结果。",
-                            onClick = {
-                                aiResult = "暂无 AI 分析结果。"
-                                candidates = emptyList()
-                                statusText = "已清空 AI 结果，但保留当前截图和题目信息。"
-                            }
-                        ) {
-                            Text("只清空 AI 结果")
+                        if (showRawAiResult) {
+                            OutlinedTextField(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(320.dp),
+                                value = aiResult,
+                                onValueChange = { aiResult = it },
+                                label = {
+                                    Text("AI 原文分析结果")
+                                }
+                            )
+                        } else {
+                            Text(
+                                text = "原文已折叠。需要查看完整 AI 输出时，点击“显示原文”。",
+                                style = MaterialTheme.typography.bodySmall
+                            )
                         }
-
-                        OutlinedTextField(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(320.dp),
-                            value = aiResult,
-                            onValueChange = { aiResult = it },
-                            label = {
-                                Text("AI 原文分析结果")
-                            }
-                        )
                     }
+
                     if (debugLog.isNotBlank()) {
                         SectionCard(title = "调试日志") {
                             OutlinedTextField(
