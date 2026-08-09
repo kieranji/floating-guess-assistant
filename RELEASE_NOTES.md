@@ -50,8 +50,17 @@ First Android debug APK for real-device testing.
 - Render free backend may sleep before first request
 - UI is still debug-oriented
 
-### Next Planned Version
-Android v0.3.0:
+## Android v0.3.0 Debug
+
+### Main Changes
+- Added top candidate card for faster mobile reading
+- Added copy top three candidates action
+- Collapsed raw AI result by default
+- Collapsed debug log by default
+- Fixed Android Manifest XML version issue
+
+### Status
+Ready for debug APK testing.
 - Improve result layout
 - Add better error messages
 - Add floating window entry preparation
