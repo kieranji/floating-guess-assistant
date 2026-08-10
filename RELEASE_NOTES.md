@@ -1,3 +1,45 @@
+## Android v0.4.0 Floating Window Preview
+
+### Status
+In development. Basic floating button prototype is ready for real-device testing.
+
+### Main Changes
+- Added overlay window permission
+- Added overlay permission settings action
+- Added floating button service
+- Made floating button draggable
+- Persisted floating button position
+- Added long-press action to close floating button
+- Added double-tap action to open app and close floating button
+- Improved floating button appearance
+- Made floating button semi-transparent
+- Added edge snapping
+- Improved floating button text styling
+- Added protection against duplicate floating button startup
+
+### Testing Checklist
+- Install the debug APK on a real Android phone
+- Open the app
+- Tap "检查 / 开启悬浮窗权限"
+- Enable overlay permission in Android settings
+- Return to the app
+- Tap "启动悬浮按钮"
+- Confirm the floating FG button appears
+- Drag the floating button
+- Confirm it snaps to the left or right screen edge
+- Close and restart the floating button
+- Confirm it remembers the previous position
+- Tap the floating button and confirm it opens the app
+- Double-tap the floating button and confirm it opens the app and closes itself
+- Long-press the floating button and confirm it closes
+- Tap "关闭悬浮按钮" from inside the app
+
+### Known Limitations
+- Floating button does not analyze screenshots yet
+- No automatic screenshot capture yet
+- Floating button only opens the main app
+- MediaProjection permission is not implemented yet
+- Real-device behavior may differ from emulator behavior
 # Floating Guess Assistant - Release Notes
 
 ## Android v0.2.0 Debug
