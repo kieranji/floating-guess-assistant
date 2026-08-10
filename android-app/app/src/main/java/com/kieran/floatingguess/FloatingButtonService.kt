@@ -14,6 +14,7 @@ import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.widget.Toast
 import android.content.res.Resources
+import android.graphics.Typeface
 
 class FloatingButtonService : Service() {
     private var windowManager: WindowManager? = null
@@ -39,7 +40,8 @@ class FloatingButtonService : Service() {
 
         floatingButton = TextView(this).apply {
             text = "FG"
-            textSize = 14f
+            textSize = 15f
+            typeface = Typeface.DEFAULT_BOLD
             setTextColor(Color.WHITE)
             gravity = Gravity.CENTER
             elevation = 8f
@@ -49,7 +51,11 @@ class FloatingButtonService : Service() {
                 setColor(Color.argb(190, 45, 90, 220))
             }
             setOnLongClickListener {
-                Toast.makeText(this@FloatingButtonService, "悬浮按钮已关闭", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this@FloatingButtonService,
+                    "悬浮按钮已关闭。轻点打开 App，拖动移动位置。",
+                    Toast.LENGTH_SHORT
+                ).show()
                 stopSelf()
                 true
             }
