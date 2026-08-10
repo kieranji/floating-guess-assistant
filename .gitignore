@@ -3,3 +3,5 @@ node_modules/
 backend/.env
 .DS_Store
 android-app/.idea/
+*.apk
+release-apks/
