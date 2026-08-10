@@ -33,8 +33,16 @@ class FloatingButtonService : Service() {
         return null
     }
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        return START_STICKY
+    }
+
     override fun onCreate() {
         super.onCreate()
+
+        if (floatingButton != null) {
+            return
+        }
 
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
 
