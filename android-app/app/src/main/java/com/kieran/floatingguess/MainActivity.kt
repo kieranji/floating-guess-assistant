@@ -62,6 +62,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import android.provider.Settings
+import androidx.core.net.toUri
 
 data class AiCandidate(
     val word: String,
@@ -344,6 +346,20 @@ class MainActivity : ComponentActivity() {
                                 }
                             ) {
                                 Text("检查后端状态")
+                            }
+                            OutlinedButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = !isAnalyzing && !isRefining,
+                                onClick = {
+                                    if (hasOverlayPermission()) {
+                                        statusText = "悬浮窗权限已开启。"
+                                    } else {
+                                        statusText = "正在打开悬浮窗权限设置，请手动允许。"
+                                        openOverlayPermissionSettings()
+                                    }
+                                }
+                            ) {
+                                Text("检查 / 开启悬浮窗权限")
                             }
                         }
                     }
@@ -1047,6 +1063,18 @@ $error
         } catch (error: Exception) {
             onError(error.message ?: "未知错误")
         }
+    }
+
+    private fun hasOverlayPermission(): Boolean {
+        return Settings.canDrawOverlays(this)
+    }
+
+    private fun openOverlayPermissionSettings() {
+        val intent = Intent(
+            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+            "package:$packageName".toUri()
+        )
+        startActivity(intent)
     }
 
     private fun checkBackendHealth(
