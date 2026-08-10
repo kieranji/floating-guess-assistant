@@ -12,6 +12,7 @@ import kotlin.math.abs
 import android.widget.TextView
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.widget.Toast
 
 class FloatingButtonService : Service() {
     private var windowManager: WindowManager? = null
@@ -40,10 +41,11 @@ class FloatingButtonService : Service() {
             textSize = 14f
             setTextColor(Color.WHITE)
             gravity = Gravity.CENTER
+            elevation = 8f
 
             background = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
-                setColor(Color.rgb(45, 90, 220))
+                setColor(Color.argb(190, 45, 90, 220))
             }
             setOnLongClickListener {
                 Toast.makeText(this@FloatingButtonService, "悬浮按钮已关闭", Toast.LENGTH_SHORT).show()
