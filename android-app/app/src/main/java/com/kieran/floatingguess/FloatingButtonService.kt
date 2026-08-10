@@ -9,11 +9,13 @@ import android.view.MotionEvent
 import android.view.WindowManager
 import android.widget.Button
 import kotlin.math.abs
-import android.widget.Toast
+import android.widget.TextView
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 
 class FloatingButtonService : Service() {
     private var windowManager: WindowManager? = null
-    private var floatingButton: Button? = null
+    private var floatingButton: TextView? = null
     private var layoutParams: WindowManager.LayoutParams? = null
 
     private var initialX = 0
@@ -33,9 +35,16 @@ class FloatingButtonService : Service() {
 
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
 
-        floatingButton = Button(this).apply {
+        floatingButton = TextView(this).apply {
             text = "FG"
             textSize = 14f
+            setTextColor(Color.WHITE)
+            gravity = Gravity.CENTER
+
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(Color.rgb(45, 90, 220))
+            }
             setOnLongClickListener {
                 Toast.makeText(this@FloatingButtonService, "悬浮按钮已关闭", Toast.LENGTH_SHORT).show()
                 stopSelf()
@@ -109,8 +118,8 @@ class FloatingButtonService : Service() {
         val savedY = preferences.getInt("y", 200)
 
         layoutParams = WindowManager.LayoutParams(
-            150,
-            150,
+            120,
+            120,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
