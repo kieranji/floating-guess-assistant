@@ -360,6 +360,37 @@ class MainActivity : ComponentActivity() {
                                 }
                             ) {
                                 Text("检查 / 开启悬浮窗权限")
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    Button(
+                                        modifier = Modifier.weight(1f),
+                                        enabled = !isAnalyzing && !isRefining,
+                                        onClick = {
+                                            if (hasOverlayPermission()) {
+                                                startFloatingButtonService()
+                                                statusText = "悬浮按钮已启动。"
+                                            } else {
+                                                statusText = "请先开启悬浮窗权限。"
+                                                openOverlayPermissionSettings()
+                                            }
+                                        }
+                                    ) {
+                                        Text("启动悬浮按钮")
+                                    }
+
+                                    OutlinedButton(
+                                        modifier = Modifier.weight(1f),
+                                        enabled = !isAnalyzing && !isRefining,
+                                        onClick = {
+                                            stopFloatingButtonService()
+                                            statusText = "悬浮按钮已关闭。"
+                                        }
+                                    ) {
+                                        Text("关闭悬浮按钮")
+                                    }
+                                }
                             }
                         }
                     }
@@ -1037,6 +1068,21 @@ $error
         } catch (error: Exception) {
             onError(error.message ?: "未知错误")
         }
+    }
+
+    private fun startFloatingButtonService() {
+        if (!hasOverlayPermission()) {
+            openOverlayPermissionSettings()
+            return
+        }
+
+        val intent = Intent(this, FloatingButtonService::class.java)
+        startService(intent)
+    }
+
+    private fun stopFloatingButtonService() {
+        val intent = Intent(this, FloatingButtonService::class.java)
+        stopService(intent)
     }
 
     private fun analyzeText(
