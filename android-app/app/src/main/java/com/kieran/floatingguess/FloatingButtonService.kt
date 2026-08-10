@@ -21,6 +21,7 @@ class FloatingButtonService : Service() {
     private var initialTouchX = 0f
     private var initialTouchY = 0f
     private var isDragging = false
+    private var lastTapTime = 0L
     private val preferencesName = "floating_button_position"
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -80,10 +81,19 @@ class FloatingButtonService : Service() {
                         }
 
                         if (!isDragging) {
+                            val now = System.currentTimeMillis()
+                            val isDoubleTap = now - lastTapTime < 350
+                            lastTapTime = now
+
                             val launchIntent = Intent(this@FloatingButtonService, MainActivity::class.java).apply {
                                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             }
                             startActivity(launchIntent)
+
+                            if (isDoubleTap) {
+                                Toast.makeText(this@FloatingButtonService, "已打开 App 并关闭悬浮按钮", Toast.LENGTH_SHORT).show()
+                                stopSelf()
+                            }
                         }
 
                         true
