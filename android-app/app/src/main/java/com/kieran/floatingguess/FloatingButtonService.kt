@@ -20,6 +20,7 @@ class FloatingButtonService : Service() {
     private var initialTouchX = 0f
     private var initialTouchY = 0f
     private var isDragging = false
+    private val preferencesName = "floating_button_position"
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -35,7 +36,7 @@ class FloatingButtonService : Service() {
             textSize = 14f
 
             setOnTouchListener { _, event ->
-                val params = layoutParams ?: return@setOnTouchListener false
+                val params = this@FloatingButtonService.layoutParams ?: return@setOnTouchListener false
 
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
@@ -62,12 +63,23 @@ class FloatingButtonService : Service() {
                     }
 
                     MotionEvent.ACTION_UP -> {
+                        val finalParams = this@FloatingButtonService.layoutParams
+
+                        if (finalParams != null) {
+                            getSharedPreferences(preferencesName, MODE_PRIVATE)
+                                .edit()
+                                .putInt("x", finalParams.x)
+                                .putInt("y", finalParams.y)
+                                .apply()
+                        }
+
                         if (!isDragging) {
                             val launchIntent = Intent(this@FloatingButtonService, MainActivity::class.java).apply {
                                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             }
                             startActivity(launchIntent)
                         }
+
                         true
                     }
 
@@ -75,6 +87,10 @@ class FloatingButtonService : Service() {
                 }
             }
         }
+
+        val preferences = getSharedPreferences(preferencesName, MODE_PRIVATE)
+        val savedX = preferences.getInt("x", 40)
+        val savedY = preferences.getInt("y", 200)
 
         layoutParams = WindowManager.LayoutParams(
             150,
@@ -84,8 +100,8 @@ class FloatingButtonService : Service() {
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
-            x = 40
-            y = 200
+            x = savedX
+            y = savedY
         }
 
         windowManager?.addView(floatingButton, layoutParams)
