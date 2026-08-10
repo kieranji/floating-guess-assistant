@@ -9,6 +9,7 @@ import android.view.MotionEvent
 import android.view.WindowManager
 import android.widget.Button
 import kotlin.math.abs
+import android.widget.Toast
 
 class FloatingButtonService : Service() {
     private var windowManager: WindowManager? = null
@@ -34,6 +35,11 @@ class FloatingButtonService : Service() {
         floatingButton = Button(this).apply {
             text = "FG"
             textSize = 14f
+            setOnLongClickListener {
+                Toast.makeText(this@FloatingButtonService, "悬浮按钮已关闭", Toast.LENGTH_SHORT).show()
+                stopSelf()
+                true
+            }
 
             setOnTouchListener { _, event ->
                 val params = this@FloatingButtonService.layoutParams ?: return@setOnTouchListener false
