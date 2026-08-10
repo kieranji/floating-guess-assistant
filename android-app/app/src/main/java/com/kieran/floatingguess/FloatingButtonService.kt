@@ -13,6 +13,7 @@ import android.widget.TextView
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.widget.Toast
+import android.content.res.Resources
 
 class FloatingButtonService : Service() {
     private var windowManager: WindowManager? = null
@@ -81,14 +82,18 @@ class FloatingButtonService : Service() {
                     }
 
                     MotionEvent.ACTION_UP -> {
-                        val finalParams = this@FloatingButtonService.layoutParams
+                        if (isDragging) {
+                            snapToScreenEdge()
+                        } else {
+                            val finalParams = this@FloatingButtonService.layoutParams
 
-                        if (finalParams != null) {
-                            getSharedPreferences(preferencesName, MODE_PRIVATE)
-                                .edit()
-                                .putInt("x", finalParams.x)
-                                .putInt("y", finalParams.y)
-                                .apply()
+                            if (finalParams != null) {
+                                getSharedPreferences(preferencesName, MODE_PRIVATE)
+                                    .edit()
+                                    .putInt("x", finalParams.x)
+                                    .putInt("y", finalParams.y)
+                                    .apply()
+                            }
                         }
 
                         if (!isDragging) {
@@ -132,6 +137,28 @@ class FloatingButtonService : Service() {
         }
 
         windowManager?.addView(floatingButton, layoutParams)
+    }
+
+    private fun snapToScreenEdge() {
+        val params = this@FloatingButtonService.layoutParams ?: return
+        val button = floatingButton ?: return
+
+        val screenWidth = Resources.getSystem().displayMetrics.widthPixels
+        val buttonWidth = button.width.takeIf { it > 0 } ?: 120
+
+        params.x = if (params.x + buttonWidth / 2 < screenWidth / 2) {
+            20
+        } else {
+            screenWidth - buttonWidth - 20
+        }
+
+        windowManager?.updateViewLayout(button, params)
+
+        getSharedPreferences(preferencesName, MODE_PRIVATE)
+            .edit()
+            .putInt("x", params.x)
+            .putInt("y", params.y)
+            .apply()
     }
 
     override fun onDestroy() {
