@@ -398,9 +398,11 @@ class MainActivity : ComponentActivity() {
                                         if (hasOverlayPermission()) {
                                             floatingStatus = "悬浮窗权限：已开启"
                                             statusText = "悬浮窗权限已开启。"
+                                            debugLog = appendDebugLog(debugLog, "悬浮窗权限检查：已开启")
                                         } else {
                                             floatingStatus = "悬浮窗权限：未开启"
                                             statusText = "正在打开悬浮窗权限设置，请手动允许。"
+                                            debugLog = appendDebugLog(debugLog, "悬浮窗权限检查：未开启，打开系统设置")
                                             openOverlayPermissionSettings()
                                         }
                                     }
@@ -420,9 +422,11 @@ class MainActivity : ComponentActivity() {
                                                 startFloatingButtonService()
                                                 floatingStatus = "悬浮按钮状态：已启动"
                                                 statusText = "悬浮按钮已启动。"
+                                                debugLog = appendDebugLog(debugLog, "悬浮按钮 Service 已启动")
                                             } else {
                                                 floatingStatus = "悬浮按钮状态：等待授权"
                                                 statusText = "请先开启悬浮窗权限。"
+                                                debugLog = appendDebugLog(debugLog, "尝试启动悬浮按钮失败：未开启悬浮窗权限")
                                                 openOverlayPermissionSettings()
                                             }
                                         }
@@ -437,6 +441,7 @@ class MainActivity : ComponentActivity() {
                                             stopFloatingButtonService()
                                             floatingStatus = "悬浮按钮状态：已关闭"
                                             statusText = "悬浮按钮已关闭。"
+                                            debugLog = appendDebugLog(debugLog, "悬浮按钮 Service 已关闭")
                                         }
                                     ) {
                                         Text("关闭悬浮按钮")
