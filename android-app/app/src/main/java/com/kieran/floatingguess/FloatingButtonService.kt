@@ -2,19 +2,18 @@ package com.kieran.floatingguess
 
 import android.app.Service
 import android.content.Intent
+import android.content.res.Resources
+import android.graphics.Color
 import android.graphics.PixelFormat
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.os.IBinder
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.WindowManager
-import android.widget.Button
-import kotlin.math.abs
 import android.widget.TextView
-import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.widget.Toast
-import android.content.res.Resources
-import android.graphics.Typeface
+import kotlin.math.abs
 
 class FloatingButtonService : Service() {
     private var windowManager: WindowManager? = null
@@ -58,6 +57,7 @@ class FloatingButtonService : Service() {
                 shape = GradientDrawable.OVAL
                 setColor(Color.argb(190, 45, 90, 220))
             }
+
             setOnLongClickListener {
                 Toast.makeText(
                     this@FloatingButtonService,
@@ -69,7 +69,8 @@ class FloatingButtonService : Service() {
             }
 
             setOnTouchListener { _, event ->
-                val params = this@FloatingButtonService.layoutParams ?: return@setOnTouchListener false
+                val params = this@FloatingButtonService.layoutParams
+                    ?: return@setOnTouchListener false
 
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
@@ -99,29 +100,19 @@ class FloatingButtonService : Service() {
                         if (isDragging) {
                             snapToScreenEdge()
                         } else {
-                            val finalParams = this@FloatingButtonService.layoutParams
+                            saveCurrentPosition()
+                            openMainActivity()
 
-                            if (finalParams != null) {
-                                getSharedPreferences(preferencesName, MODE_PRIVATE)
-                                    .edit()
-                                    .putInt("x", finalParams.x)
-                                    .putInt("y", finalParams.y)
-                                    .apply()
-                            }
-                        }
-
-                        if (!isDragging) {
                             val now = System.currentTimeMillis()
                             val isDoubleTap = now - lastTapTime < 350
                             lastTapTime = now
 
-                            val launchIntent = Intent(this@FloatingButtonService, MainActivity::class.java).apply {
-                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            }
-                            startActivity(launchIntent)
-
                             if (isDoubleTap) {
-                                Toast.makeText(this@FloatingButtonService, "已打开 App 并关闭悬浮按钮", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    this@FloatingButtonService,
+                                    "已打开 App 并关闭悬浮按钮",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                                 stopSelf()
                             }
                         }
@@ -153,6 +144,25 @@ class FloatingButtonService : Service() {
         windowManager?.addView(floatingButton, layoutParams)
     }
 
+    private fun openMainActivity() {
+        val launchIntent = Intent(this@FloatingButtonService, MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        }
+        startActivity(launchIntent)
+    }
+
+    private fun saveCurrentPosition() {
+        val params = this@FloatingButtonService.layoutParams ?: return
+
+        getSharedPreferences(preferencesName, MODE_PRIVATE)
+            .edit()
+            .putInt("x", params.x)
+            .putInt("y", params.y)
+            .apply()
+    }
+
     private fun snapToScreenEdge() {
         val params = this@FloatingButtonService.layoutParams ?: return
         val button = floatingButton ?: return
@@ -167,19 +177,17 @@ class FloatingButtonService : Service() {
         }
 
         windowManager?.updateViewLayout(button, params)
-
-        getSharedPreferences(preferencesName, MODE_PRIVATE)
-            .edit()
-            .putInt("x", params.x)
-            .putInt("y", params.y)
-            .apply()
+        saveCurrentPosition()
     }
 
     override fun onDestroy() {
         super.onDestroy()
 
         floatingButton?.let { button ->
-            windowManager?.removeView(button)
+            try {
+                windowManager?.removeView(button)
+            } catch (_: Exception) {
+            }
         }
 
         floatingButton = null
