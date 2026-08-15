@@ -64,6 +64,10 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 import android.provider.Settings
 import androidx.core.net.toUri
+import androidx.compose.runtime.DisposableEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 
 data class AiCandidate(
     val word: String,
@@ -203,6 +207,34 @@ class MainActivity : ComponentActivity() {
 
                 var floatingStatus by remember {
                     mutableStateOf("悬浮按钮状态：未启动")
+                }
+
+                var refreshOverlayStatusTrigger by remember {
+                    mutableStateOf(0)
+                }
+
+                LaunchedEffect(refreshOverlayStatusTrigger) {
+                    floatingStatus = if (hasOverlayPermission()) {
+                        "悬浮窗权限：已开启"
+                    } else {
+                        "悬浮窗权限：未开启"
+                    }
+                }
+
+                val lifecycleOwner = LocalLifecycleOwner.current
+
+                DisposableEffect(lifecycleOwner) {
+                    val observer = LifecycleEventObserver { _, event ->
+                        if (event == Lifecycle.Event.ON_RESUME) {
+                            refreshOverlayStatusTrigger++
+                        }
+                    }
+
+                    lifecycleOwner.lifecycle.addObserver(observer)
+
+                    onDispose {
+                        lifecycleOwner.lifecycle.removeObserver(observer)
+                    }
                 }
 
                 LaunchedEffect(
