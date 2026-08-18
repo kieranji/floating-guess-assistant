@@ -68,6 +68,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import android.app.Activity
+import android.media.projection.MediaProjectionManager
 
 data class AiCandidate(
     val word: String,
@@ -209,6 +211,10 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf("悬浮按钮状态：未启动")
                 }
 
+                var screenCaptureStatus by remember {
+                    mutableStateOf("屏幕捕获权限：未申请")
+                }
+
                 var refreshOverlayStatusTrigger by remember {
                     mutableStateOf(0)
                 }
@@ -263,6 +269,20 @@ class MainActivity : ComponentActivity() {
                         .putString("backendUrl", backendUrlInput)
                         .putString("debugLog", debugLog)
                         .apply()
+                }
+
+                val screenCapturePermissionLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.StartActivityForResult()
+                ) { result ->
+                    if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+                        screenCaptureStatus = "屏幕捕获权限：已授权"
+                        statusText = "屏幕捕获权限已授权，下一步可以接入单次截图。"
+                        debugLog = appendDebugLog(debugLog, "MediaProjection 权限授权成功")
+                    } else {
+                        screenCaptureStatus = "屏幕捕获权限：未授权"
+                        statusText = "屏幕捕获权限未授权。"
+                        debugLog = appendDebugLog(debugLog, "MediaProjection 权限授权失败或取消")
+                    }
                 }
 
                 val imagePicker = rememberLauncherForActivityResult(
@@ -454,6 +474,32 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                         }
+                    }
+
+                    SectionCard(title = "屏幕捕获准备") {
+                        Text(
+                            text = screenCaptureStatus,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+
+                        Button(
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !isAnalyzing && !isRefining,
+                            onClick = {
+                                screenCaptureStatus = "屏幕捕获权限：正在申请"
+                                statusText = "正在申请屏幕捕获权限..."
+                                debugLog = appendDebugLog(debugLog, "开始申请 MediaProjection 权限")
+
+                                screenCapturePermissionLauncher.launch(createScreenCaptureIntent())
+                            }
+                        ) {
+                            Text("申请屏幕捕获权限")
+                        }
+
+                        Text(
+                            text = "v0.5 只做手动触发截屏准备，不做连续自动截图。",
+                            style = MaterialTheme.typography.bodySmall
+                        )
                     }
 
                     SectionCard(title = "截图分析") {
@@ -1193,6 +1239,11 @@ $error
         } catch (error: Exception) {
             onError(error.message ?: "未知错误")
         }
+    }
+
+    private fun createScreenCaptureIntent(): Intent {
+        val manager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        return manager.createScreenCaptureIntent()
     }
 
     private fun hasOverlayPermission(): Boolean {
