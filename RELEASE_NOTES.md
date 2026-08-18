@@ -1,3 +1,32 @@
+## Android v0.5.0 Manual Capture Plan
+
+### Goal
+Add manual screen capture triggered by the floating window.
+
+### Design Decision
+The app will not continuously capture the screen automatically.
+
+Instead, screen capture should only happen after explicit user action:
+
+1. User opens the floating window
+2. User taps "Capture & Analyze"
+3. App captures the current screen once
+4. Screenshot is compressed
+5. Screenshot is sent to the backend
+6. AI result is displayed in the app or a floating result panel
+
+### Planned Features
+- Add MediaProjection screen capture permission flow
+- Add capture permission button in the main app
+- Add "Capture & Analyze" action to the floating window
+- Capture one screenshot per user tap
+- Reuse the existing image compression and AI analysis logic
+- Show result after capture
+
+### Not Planned
+- No continuous automatic screenshot capture
+- No background screen monitoring
+- No repeated capture loop
 ## Android v0.4.0 Floating Window Preview
 
 ### Status
