@@ -62,6 +62,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import android.provider.Settings
+import androidx.core.net.toUri
+import androidx.compose.runtime.DisposableEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 
 data class AiCandidate(
     val word: String,
@@ -197,6 +203,39 @@ class MainActivity : ComponentActivity() {
                 var isAnalyzing by remember { mutableStateOf(false) }
                 var isRefining by remember { mutableStateOf(false) }
                 var showRawAiResult by remember { mutableStateOf(false) }
+                var showDebugLog by remember { mutableStateOf(false) }
+
+                var floatingStatus by remember {
+                    mutableStateOf("悬浮按钮状态：未启动")
+                }
+
+                var refreshOverlayStatusTrigger by remember {
+                    mutableStateOf(0)
+                }
+
+                LaunchedEffect(refreshOverlayStatusTrigger) {
+                    floatingStatus = if (hasOverlayPermission()) {
+                        "悬浮窗权限：已开启"
+                    } else {
+                        "悬浮窗权限：未开启"
+                    }
+                }
+
+                val lifecycleOwner = LocalLifecycleOwner.current
+
+                DisposableEffect(lifecycleOwner) {
+                    val observer = LifecycleEventObserver { _, event ->
+                        if (event == Lifecycle.Event.ON_RESUME) {
+                            refreshOverlayStatusTrigger++
+                        }
+                    }
+
+                    lifecycleOwner.lifecycle.addObserver(observer)
+
+                    onDispose {
+                        lifecycleOwner.lifecycle.removeObserver(observer)
+                    }
+                }
 
                 LaunchedEffect(
                     aiResult,
@@ -268,7 +307,7 @@ class MainActivity : ComponentActivity() {
                             )
 
                             Text(
-                                text = "Android Native v0.3.0",
+                                text = "Android Native v0.4.0",
                                 style = MaterialTheme.typography.titleMedium
                             )
 
@@ -344,6 +383,75 @@ class MainActivity : ComponentActivity() {
                                 }
                             ) {
                                 Text("检查后端状态")
+                            }
+
+                            SectionCard(title = "悬浮窗控制") {
+                                Text(
+                                    text = floatingStatus,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+
+                                OutlinedButton(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    enabled = !isAnalyzing && !isRefining,
+                                    onClick = {
+                                        if (hasOverlayPermission()) {
+                                            floatingStatus = "悬浮窗权限：已开启"
+                                            statusText = "悬浮窗权限已开启。"
+                                            debugLog = appendDebugLog(debugLog, "悬浮窗权限检查：已开启")
+                                        } else {
+                                            floatingStatus = "悬浮窗权限：未开启"
+                                            statusText = "正在打开悬浮窗权限设置，请手动允许。"
+                                            debugLog = appendDebugLog(debugLog, "悬浮窗权限检查：未开启，打开系统设置")
+                                            openOverlayPermissionSettings()
+                                        }
+                                    }
+                                ) {
+                                    Text("检查 / 开启悬浮窗权限")
+                                }
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    Button(
+                                        modifier = Modifier.weight(1f),
+                                        enabled = !isAnalyzing && !isRefining,
+                                        onClick = {
+                                            if (hasOverlayPermission()) {
+                                                startFloatingButtonService()
+                                                floatingStatus = "悬浮按钮状态：已启动"
+                                                statusText = "悬浮按钮已启动。"
+                                                debugLog = appendDebugLog(debugLog, "悬浮按钮 Service 已启动")
+                                            } else {
+                                                floatingStatus = "悬浮按钮状态：等待授权"
+                                                statusText = "请先开启悬浮窗权限。"
+                                                debugLog = appendDebugLog(debugLog, "尝试启动悬浮按钮失败：未开启悬浮窗权限")
+                                                openOverlayPermissionSettings()
+                                            }
+                                        }
+                                    ) {
+                                        Text("启动悬浮按钮")
+                                    }
+
+                                    OutlinedButton(
+                                        modifier = Modifier.weight(1f),
+                                        enabled = !isAnalyzing && !isRefining,
+                                        onClick = {
+                                            stopFloatingButtonService()
+                                            floatingStatus = "悬浮按钮状态：已关闭"
+                                            statusText = "悬浮按钮已关闭。"
+                                            debugLog = appendDebugLog(debugLog, "悬浮按钮 Service 已关闭")
+                                        }
+                                    ) {
+                                        Text("关闭悬浮按钮")
+                                    }
+                                }
+
+                                Text(
+                                    text = "轻点 FG：打开 App；拖动 FG：移动位置；长按 FG：关闭；双击 FG：打开 App 并关闭悬浮按钮。",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
                             }
                         }
                     }
@@ -875,53 +983,75 @@ $error
 
                     if (debugLog.isNotBlank()) {
                         SectionCard(title = "调试日志") {
-                            OutlinedTextField(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(220.dp),
-                                value = debugLog,
-                                onValueChange = { debugLog = it },
-                                label = {
-                                    Text("Debug Log")
-                                }
-                            )
-
-                            OutlinedButton(
+                            Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                onClick = {
-                                    val exportText = buildString {
-                                        appendLine("Floating Guess Android Debug Info")
-                                        appendLine("==============================")
-                                        appendLine("Status:")
-                                        appendLine(statusText)
-                                        appendLine()
-                                        appendLine("Backend URL:")
-                                        appendLine(backendUrl)
-                                        appendLine()
-                                        appendLine("Current Clues:")
-                                        appendLine(clueMemory.ifBlank { "无" })
-                                        appendLine()
-                                        appendLine("High Score Words:")
-                                        appendLine(guessMemory.ifBlank { "无" })
-                                        appendLine()
-                                        appendLine("AI Result:")
-                                        appendLine(aiResult.ifBlank { "无" })
-                                        appendLine()
-                                        appendLine("Debug Log:")
-                                        appendLine(debugLog.ifBlank { "无" })
-                                    }
-
-                                    copyTextToClipboard(exportText)
-                                    statusText = "调试信息已复制，可以直接发给我。"
-                                }
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                Text("复制完整调试信息")
+                                OutlinedButton(
+                                    modifier = Modifier.weight(1f),
+                                    onClick = {
+                                        showDebugLog = !showDebugLog
+                                    }
+                                ) {
+                                    Text(if (showDebugLog) "隐藏日志" else "显示日志")
+                                }
+
+                                Button(
+                                    modifier = Modifier.weight(1f),
+                                    onClick = {
+                                        val exportText = buildString {
+                                            appendLine("Floating Guess Android Debug Info")
+                                            appendLine("==============================")
+                                            appendLine("Status:")
+                                            appendLine(statusText)
+                                            appendLine()
+                                            appendLine("Backend URL:")
+                                            appendLine(backendUrl)
+                                            appendLine()
+                                            appendLine("Current Clues:")
+                                            appendLine(clueMemory.ifBlank { "无" })
+                                            appendLine()
+                                            appendLine("High Score Words:")
+                                            appendLine(guessMemory.ifBlank { "无" })
+                                            appendLine()
+                                            appendLine("AI Result:")
+                                            appendLine(aiResult.ifBlank { "无" })
+                                            appendLine()
+                                            appendLine("Debug Log:")
+                                            appendLine(debugLog.ifBlank { "无" })
+                                        }
+
+                                        copyTextToClipboard(exportText)
+                                        statusText = "调试信息已复制，可以直接发给我。"
+                                    }
+                                ) {
+                                    Text("复制调试信息")
+                                }
+                            }
+
+                            if (showDebugLog) {
+                                OutlinedTextField(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(220.dp),
+                                    value = debugLog,
+                                    onValueChange = { debugLog = it },
+                                    label = {
+                                        Text("Debug Log")
+                                    }
+                                )
+                            } else {
+                                Text(
+                                    text = "日志已折叠。出错时点击“显示日志”查看详情。",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
                             }
 
                             OutlinedButton(
                                 modifier = Modifier.fillMaxWidth(),
                                 onClick = {
                                     debugLog = ""
+                                    showDebugLog = false
                                     statusText = "调试日志已清空。"
                                 }
                             ) {
@@ -929,6 +1059,7 @@ $error
                             }
                         }
                     }
+
                     if (historyList.isNotEmpty()) {
                         SectionCard(title = "历史记录") {
                             historyList.forEachIndexed { index, item ->
@@ -1023,6 +1154,21 @@ $error
         }
     }
 
+    private fun startFloatingButtonService() {
+        if (!hasOverlayPermission()) {
+            openOverlayPermissionSettings()
+            return
+        }
+
+        val intent = Intent(this, FloatingButtonService::class.java)
+        startService(intent)
+    }
+
+    private fun stopFloatingButtonService() {
+        val intent = Intent(this, FloatingButtonService::class.java)
+        stopService(intent)
+    }
+
     private fun analyzeText(
         clues: String,
         guessText: String,
@@ -1047,6 +1193,18 @@ $error
         } catch (error: Exception) {
             onError(error.message ?: "未知错误")
         }
+    }
+
+    private fun hasOverlayPermission(): Boolean {
+        return Settings.canDrawOverlays(this)
+    }
+
+    private fun openOverlayPermissionSettings() {
+        val intent = Intent(
+            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+            "package:$packageName".toUri()
+        )
+        startActivity(intent)
     }
 
     private fun checkBackendHealth(
