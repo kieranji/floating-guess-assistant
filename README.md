@@ -1,345 +1,547 @@
-# Floating Guess Assistant / 悬浮猜词助手
+# Floating Guess Assistant
 
-Floating Guess Assistant is an AI assistant for livestream guessing games.  
-用户上传直播截图后，系统会使用视觉 AI 自动读取题目线索、历史猜测和相似度，并给出候选答案。
+An AI-powered assistant for live word-guessing and semantic similarity games.
 
-The user uploads a livestream screenshot, and the system uses Vision AI to extract clues, previous guesses, similarity scores, and suggest possible answers.  
-适合直播猜词、相似度猜词、截图分析等场景。
+Floating Guess Assistant analyzes screenshots, clues, previous guesses, and similarity scores to suggest likely answers. The Android version is designed around a lightweight floating-window workflow so users can request an analysis without repeatedly switching away from the game or livestream.
 
-## Current Version / 当前版本
+## Current Version
 
-Web Demo v1
+**Android v0.7.0 — Floating Analysis & Quick Refine**
 
-## Features / 核心功能
+Current development status:
 
-- Upload a livestream screenshot and analyze it with one click  
-  上传直播截图并一键读图分析
+* Web prototype: functional
+* Backend API: deployed
+* Native Android app: functional
+* Floating overlay: implemented
+* Manual screen capture: implemented
+* Floating result panel: implemented
+* Floating supplemental analysis: implemented
+* Release hardening and wider device testing: in progress
 
-- Vision AI extracts clues, previous guesses, and similarity scores  
-  视觉 AI 自动识别题目线索、历史猜测和相似度
+> The app does **not** continuously capture the screen. A screenshot is read only after explicit user action.
 
-- AI returns candidate answer cards  
-  AI 返回候选答案卡片
+---
 
-- Automatically filters out words that have already been guessed  
-  自动排除已经猜过的词
-
-- Refine analysis with new clues  
-  支持补充新线索后重新分析
-
-- Refine analysis with high-score guesses and similarity scores  
-  支持补充高分词和相似度后重新分析
-
-- Temporary memory for supplemental information during the current round  
-  补充信息会在当前题目中临时记忆
-
-- Clear all current-round data with one click  
-  支持一键清空，进入下一题
-
-- Chinese / English language toggle  
-  支持中文 / English 页面切换
-
-- Local autosave and restore  
-  本地自动保存和恢复输入状态
-
-- Advanced OCR backup mode  
-  高级备用 OCR 功能
-
-- Manual input and local analysis mode  
-  高级手动输入 / 本地分析功能
-
-## How to Use / 使用流程
-
-### English
-
-1. Open the Web Demo page.
-2. Click **Choose screenshot**.
-3. Upload the current livestream guessing screenshot.
-4. Click **Analyze screenshot**.
-5. Review the AI candidate answers.
-6. If new clues or high-score guesses appear:
-   - Enter the new clue.
-   - Enter the high-score guess and similarity score.
-   - Click **Refine analysis**.
-7. Click **Clear for next round** when starting a new question.
-
-### 中文
-
-1. 打开 Web Demo 页面。
-2. 点击 **选择直播截图**。
-3. 上传当前直播猜词截图。
-4. 点击 **一键读图猜答案**。
-5. 查看 AI 候选答案。
-6. 如果有新线索或高分词：
-   - 输入新线索。
-   - 输入高分词和相似度。
-   - 点击 **补充信息再分析**。
-7. 进入下一题时，点击 **清空，准备下一题**。
-
-## Project Structure / 项目结构
+## Core Workflow
 
 ```text
-web-demo/
-  index.html
-  style.css
-  app.js
-  data/
-    wordBank.json
-  js/
-    ai.js
-    config.js
-    dom.js
-    events.js
-    i18n.js
-    localAnalysis.js
-    main.js
-    ocr.js
-    ocrCrop.js
-    ocrReport.js
-    parser.js
-    render.js
-    scoring.js
-    state.js
-    storage.js
-    ui.js
-    wordBank.js
-
-backend/
-  server.js
-  package.json
-  .env.example
+Open Floating Guess Assistant
+        ↓
+Enable floating-window permission
+        ↓
+Authorize screen capture
+        ↓
+Enter the game / livestream
+        ↓
+Tap the FG floating button
+        ↓
+Capture one screen frame
+        ↓
+Compress screenshot
+        ↓
+Send image to AI backend
+        ↓
+Receive candidate answers
+        ↓
+Show Top 3 in floating result panel
+        ↓
+Add new clue / high-score word / similarity
+        ↓
+Run supplemental analysis
 ```
 
-## Frontend / 前端说明
+The goal is to keep the interaction short enough to be useful during a live guessing game.
 
-The frontend is located in:
+---
 
-前端位于：
+# Features
+
+## Screenshot Analysis
+
+The Android app can:
+
+* Select an existing screenshot from the device
+* Preview the screenshot
+* Compress the image before upload
+* Send it to the backend for AI analysis
+* Parse structured candidate answers
+* Display confidence scores
+* Display keywords and reasoning
+* Store extracted clues and previous guesses
+
+---
+
+## AI Candidate Ranking
+
+Analysis results include:
+
+* Most likely answer
+* Ranked candidate list
+* Confidence percentage
+* Relevant keywords
+* Short reasoning
+* Top-three candidate quick copy
+
+The highest-ranked candidate is emphasized for faster reading on mobile.
+
+---
+
+## Supplemental Analysis
+
+When new information appears during the game, the user can provide:
 
 ```text
-web-demo/
+New clue
+High-score guessed word
+Similarity score
 ```
 
-Main entry files:
+The assistant combines this information with previous clues and guesses and runs another analysis.
 
-主要入口文件：
+This avoids restarting the entire guessing process every time new information appears.
+
+---
+
+# Floating Window
+
+The Android version includes a draggable `FG` floating button.
+
+Current interactions:
 
 ```text
-web-demo/index.html
-web-demo/app.js
+Tap
+→ Capture the current screen once and analyze it
+
+Double tap
+→ Open the full Android app
+
+Drag
+→ Move the floating button
+
+Long press
+→ Close the floating session
 ```
 
-The frontend handles:
+The floating button:
 
-前端主要负责：
+* Can be moved around the screen
+* Remembers its previous position
+* Snaps toward the screen edge
+* Uses a compact semi-transparent design
+* Runs through an Android foreground service
 
-- Page UI  
-  页面 UI
+---
 
-- Chinese / English language toggle  
-  中文 / English 语言切换
+# Manual Screen Capture
 
-- Image upload and compression  
-  图片上传和压缩
+Screen capture is implemented using Android MediaProjection.
 
-- Calling the backend Vision AI API  
-  调用后端视觉 AI 接口
+The design intentionally avoids continuous screen monitoring.
 
-- Rendering AI candidate answer cards  
-  显示 AI 候选答案卡片
-
-- Supplemental refinement analysis  
-  补充信息再分析
-
-- Local autosave and restore  
-  本地保存和恢复输入状态
-
-- Advanced OCR backup tools  
-  高级 OCR 备用功能
-
-- Manual input and local analysis tools  
-  高级手动输入功能
-
-## Backend / 后端说明
-
-The backend is located in:
-
-后端位于：
+Instead:
 
 ```text
-backend/
+User taps FG
+→ one frame is captured
+→ the frame is analyzed
+→ capture waits for the next user action
 ```
 
-Main API endpoints:
+This reduces unnecessary processing, network requests, and accidental captures.
 
-主要接口：
+The MediaProjection session remains available while authorized, but analysis only starts after an explicit user action.
+
+---
+
+# Floating Result Panel — v0.6
+
+v0.6 introduced an overlay result panel so analysis results no longer require immediately returning to the main app.
+
+The floating panel can display:
+
+* Most likely answer
+* Confidence
+* Top candidate answers
+* Short reasoning
+* Re-capture action
+* Copy-answer action
+* Open-full-app action
+* Close-result action
+
+The panel itself can also be moved around the screen.
+
+Before taking a new screenshot, floating UI elements are temporarily hidden so they are less likely to appear in the captured image.
+
+---
+
+# Floating Quick Refine — v0.7
+
+v0.7 extends the result panel with direct supplemental analysis.
+
+From the floating result panel, the user can enter:
+
+```text
+New clue
+High-score word
+Similarity %
+```
+
+Then run:
+
+```text
+Supplemental Analysis
+```
+
+without returning to the main app.
+
+The new information is combined with the existing clue and guess history, and the floating candidate results are updated in place.
+
+Selecting a candidate can also pre-fill it as a high-score guess, allowing the user to enter only the observed similarity score.
+
+---
+
+# Main Android App
+
+The full Android interface still provides more detailed controls.
+
+Available functionality includes:
+
+* Screenshot picker
+* Screenshot preview
+* AI image analysis
+* Candidate cards
+* Current clue memory
+* Guess and similarity memory
+* Supplemental analysis
+* Raw AI output
+* Copy and share actions
+* Recent analysis history
+* Restore previous results
+* Debug log
+* Backend health check
+* Configurable backend URL
+* Floating-window controls
+* Screen-capture controls
+
+---
+
+# Local State
+
+The app stores useful state locally using Android `SharedPreferences`.
+
+Examples include:
+
+* Current AI result
+* Candidate list
+* Clues
+* Guess history
+* Supplemental inputs
+* Recent analysis history
+* Backend URL
+* Floating button position
+* Recent floating-analysis result
+
+This allows the app to preserve useful context between sessions.
+
+---
+
+# Backend
+
+Default backend:
+
+```text
+https://floating-guess-backend.onrender.com
+```
+
+Main endpoints:
 
 ```text
 POST /api/analyze-image
 POST /api/analyze
 ```
 
-### POST /api/analyze-image
+### `/api/analyze-image`
 
-This endpoint receives a screenshot and uses a vision model to analyze the image.
+Used for screenshot-based analysis.
 
-该接口用于上传截图并调用视觉模型分析图片。
-
-It is responsible for:
-
-主要负责：
-
-- Receiving the compressed image from the frontend  
-  接收前端压缩后的图片
-
-- Calling the vision model  
-  调用视觉模型
-
-- Extracting clues, previous guesses, and candidate answers  
-  提取题目线索、历史猜测和候选答案
-
-- Filtering out already-guessed candidate words  
-  过滤已经猜过的候选词
-
-### POST /api/analyze
-
-This endpoint analyzes text clues, previous guesses, and supplemental information.
-
-该接口用于根据文本线索、历史猜测和补充信息重新分析。
-
-It is responsible for:
-
-主要负责：
-
-- Receiving clues and previous guesses  
-  接收线索和历史猜测
-
-- Calling the text model  
-  调用文本模型
-
-- Returning new candidate answers  
-  返回新的候选答案
-
-- Filtering out already-guessed words  
-  过滤已经猜过的词
-
-## Environment Variables / 环境变量
-
-The backend requires a `.env` file inside the `backend/` folder.
-
-后端需要在 `backend/.env` 中配置：
-
-```env
-DEEPSEEK_API_KEY=your_deepseek_api_key_here
-DEEPSEEK_MODEL=deepseek-chat
-
-ZHIPU_API_KEY=your_zhipu_api_key_here
-ZHIPU_BASE_URL=https://open.bigmodel.cn/api/paas/v4/
-ZHIPU_VISION_MODEL=glm-4v-flash
-
-PORT=3000
-```
-
-Do not commit your real `.env` file to GitHub.  
-不要把真实 `.env` 提交到 GitHub。
-
-## Local Development / 本地运行
-
-Start the backend:
-
-启动后端：
-
-```bash
-cd backend
-npm install
-npm run dev
-```
-
-Open the frontend directly:
-
-前端可以直接打开：
+Input:
 
 ```text
-web-demo/index.html
+Screenshot
 ```
 
-Or deploy the frontend to GitHub Pages.
+Output includes structured AI analysis such as candidate answers, extracted clues, and guesses.
 
-也可以把前端部署到 GitHub Pages。
+### `/api/analyze`
 
-## Backend URL / 前端后端连接
+Used for supplemental semantic analysis.
 
-The frontend backend URL is configured in:
-
-前端后端地址配置在：
+Input can include:
 
 ```text
-web-demo/js/config.js
+Clues
+Previous guesses
+Similarity scores
+Additional user information
 ```
 
-Example:
+---
 
-示例：
+# Android Architecture
 
-```javascript
-export const APP_CONFIG = {
-  backendUrl: "https://your-backend-url.example.com"
-};
+Current Android implementation uses:
+
+```text
+Kotlin
+Jetpack Compose
+OkHttp
+Android MediaProjection
+WindowManager overlays
+Foreground Service
+SharedPreferences
+JSON
 ```
 
-For local development:
+Main components currently include:
 
-本地开发时可以使用：
+```text
+MainActivity
+├── Compose UI
+├── screenshot selection
+├── manual image analysis
+├── supplemental analysis
+├── history
+├── debug tools
+└── floating / capture controls
 
-```javascript
-export const APP_CONFIG = {
-  backendUrl: "http://localhost:3000"
-};
+FloatingButtonService
+├── floating FG button
+├── MediaProjection session
+├── single-frame capture
+├── screenshot compression
+├── backend requests
+├── floating result panel
+├── quick refine UI
+└── foreground-service lifecycle
 ```
 
-When using Codespaces or online deployment, replace it with the corresponding backend URL.
+A future refactor may split networking, state management, capture handling, and UI into separate components.
 
-使用 Codespaces 或线上部署时，需要换成对应的后端地址。
+---
 
-## Limitations / 当前限制
+# Android Permissions
 
-- The Web version cannot automatically capture the livestream app screen. Users need to upload screenshots manually.  
-  Web 版不能自动截取直播 App 画面，需要用户手动截图并上传。
+The current floating-analysis workflow requires:
 
-- Vision AI analysis speed depends on image size and model response time.  
-  视觉 AI 分析速度取决于图片大小和模型响应速度。
+```text
+INTERNET
+SYSTEM_ALERT_WINDOW
+FOREGROUND_SERVICE
+FOREGROUND_SERVICE_MEDIA_PROJECTION
+```
 
-- If the livestream screenshot is blurry, the model may misread the content.  
-  直播截图太模糊时，模型可能识别错误。
+MediaProjection itself requires explicit screen-capture authorization from the user.
 
-- OCR is only a backup option. The recommended main workflow is Vision AI.  
-  OCR 功能只是备用方案，主流程推荐使用视觉 AI。
+---
 
-- The current version is a Web Demo, not an Android floating-window app.  
-  当前版本是 Web Demo，不是 Android 悬浮窗版本。
+# Build
 
-## Roadmap / 下一阶段计划
+Open:
 
-- Test with more real livestream screenshots  
-  测试更多真实直播截图
+```text
+android-app/
+```
 
-- Continue optimizing the vision prompt  
-  继续优化视觉提示词
+in Android Studio.
 
-- Continue improving image compression and analysis speed  
-  继续优化图片压缩和分析速度
+Or build from the command line:
 
-- Deploy a stable backend service  
-  部署稳定后端服务
+```powershell
+cd android-app
+.\gradlew.bat clean :app:assembleDebug
+```
 
-- Start the Android APK version  
-  开始 Android APK 版本
+Debug APK output:
 
-- Future support for floating window and automatic screenshot analysis  
-  未来支持悬浮窗和自动截图分析
+```text
+android-app/app/build/outputs/apk/debug/app-debug.apk
+```
 
-## Status / 开发状态
+Current development version:
 
-Web Demo v1 is mostly complete. The current focus is stability testing and deployment preparation.
+```text
+0.7.0
+```
 
-Web Demo v1 已基本完成，当前重点是稳定性测试和部署准备。
+---
+
+# Testing Flow
+
+Recommended v0.7 test:
+
+```text
+1. Install the APK
+2. Open Floating Guess Assistant
+3. Enable floating-window permission
+4. Authorize screen capture
+5. Open a guessing game or test screen
+6. Tap FG
+7. Confirm that one screenshot is analyzed
+8. Confirm floating Top 3 results appear
+9. Select a candidate
+10. Enter its similarity score
+11. Run supplemental analysis
+12. Confirm floating results update
+13. Add a new clue
+14. Analyze again
+15. Re-capture the screen
+16. Double tap FG to open the full app
+17. Long press FG to end the floating session
+```
+
+---
+
+# Version History
+
+## v0.3
+
+Native Android analysis workflow.
+
+Major additions:
+
+* Screenshot selection
+* AI image analysis
+* Candidate cards
+* Supplemental analysis
+* History
+* Debug tools
+* Improved mobile result layout
+
+## v0.4
+
+Floating-window prototype.
+
+Major additions:
+
+* Overlay permission
+* Floating service
+* Draggable FG button
+* Edge snapping
+* Position persistence
+* Floating interaction controls
+
+## v0.5
+
+Manual floating screen capture.
+
+Major additions:
+
+* MediaProjection integration
+* User-authorized screen-capture session
+* Single-frame capture
+* Floating-triggered AI image analysis
+* Foreground capture service
+
+## v0.6
+
+Floating result panel.
+
+Major additions:
+
+* Floating Top 3 candidates
+* Most-likely-answer display
+* Re-capture
+* Copy answer
+* Open full result
+* Movable result card
+
+## v0.7
+
+Floating quick refinement.
+
+Major additions:
+
+* New clue input
+* High-score word input
+* Similarity input
+* Supplemental analysis directly from overlay
+* Candidate pre-fill
+* In-place floating-result update
+
+---
+
+# Next Milestones
+
+The core feature set is now largely implemented.
+
+Development after v0.7 will focus primarily on reliability and product polish rather than major new functionality.
+
+Planned areas:
+
+### v0.8 — Stability & Refactor
+
+* MediaProjection lifecycle hardening
+* Better failure recovery
+* Network retry behavior
+* Backend cold-start handling
+* Service-state synchronization
+* Orientation handling
+* Code separation and cleanup
+
+### v0.9 — Beta
+
+* Real-device testing
+* Android version compatibility testing
+* UI refinement
+* Signed APK
+* Bug fixes
+* Beta distribution
+
+### v1.0 — Stable Release
+
+Goal:
+
+```text
+Tap FG
+→ Capture
+→ Analyze
+→ See answer
+→ Add new information if needed
+→ Analyze again
+```
+
+with a stable and fast workflow suitable for real usage.
+
+---
+
+# Project Goal
+
+Floating Guess Assistant began as a simple AI helper for live guessing games.
+
+The project has gradually evolved from:
+
+```text
+Web prototype
+→ Native Android app
+→ Floating assistant
+→ Manual screen capture
+→ Floating AI result interface
+→ In-overlay supplemental analysis
+```
+
+The main design principle is simple:
+
+**reduce the number of actions required between seeing a new clue and getting a useful AI suggestion.**
+
+---
+
+## Status
+
+**Current development version: Android v0.7.0**
+
+Core functionality is implemented.
+
+Current focus:
+
+**testing, stability, lifecycle handling, and preparing the project for beta use.**
