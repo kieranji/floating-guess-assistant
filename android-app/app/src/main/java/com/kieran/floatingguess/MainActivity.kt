@@ -410,12 +410,12 @@ class MainActivity : ComponentActivity() {
                             )
 
                             Text(
-                                text = "Android Native v0.5.0 Manual Capture",
+                                text = "Android Native v0.7.0 Floating Workflow",
                                 style = MaterialTheme.typography.titleMedium
                             )
 
                             Text(
-                                text = "选择截图、AI 分析、补充线索再分析。",
+                                text = "轻点 FG 截屏分析；v0.6 悬浮结果卡片；v0.7 悬浮快速补充分析。",
                                 style = MaterialTheme.typography.bodyMedium
                             )
 
@@ -552,14 +552,14 @@ class MainActivity : ComponentActivity() {
                                 }
 
                                 Text(
-                                    text = "轻点 FG：截屏并分析；双击 FG：打开 App；拖动 FG：移动位置；长按 FG：关闭。",
+                                    text = "轻点 FG：截屏并分析；结果会显示在悬浮卡片；点击候选可快速补充；双击 FG 打开 App；拖动移动；长按关闭。",
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             }
                         }
                     }
 
-                    SectionCard(title = "手动悬浮截屏分析") {
+                    SectionCard(title = "v0.7 悬浮截屏与快速补充分析") {
                         Text(
                             text = screenCaptureStatus,
                             style = MaterialTheme.typography.bodySmall
@@ -610,8 +610,23 @@ class MainActivity : ComponentActivity() {
                             Text("停止悬浮截屏会话")
                         }
 
+                        OutlinedButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !isAnalyzing && !isRefining,
+                            onClick = {
+                                showLastFloatingResult()
+                                statusText = "正在显示最近一次悬浮分析结果。"
+                                debugLog = appendDebugLog(
+                                    debugLog,
+                                    "请求显示最近一次悬浮分析结果"
+                                )
+                            }
+                        ) {
+                            Text("显示最近悬浮结果")
+                        }
+
                         Text(
-                            text = "系统会保持一个屏幕捕获会话，但只有你轻点 FG 时，App 才读取一帧并上传分析；不会连续自动上传屏幕内容。",
+                            text = "系统只会在你轻点 FG 后读取一帧。分析完成后会显示 Top 3 悬浮结果卡片；点击“补充信息”可直接输入新线索、高分词和相似度。不会连续自动截图。",
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
@@ -1333,6 +1348,18 @@ $error
             putExtra(FloatingButtonService.EXTRA_RESULT_DATA, resultData)
         }
         ContextCompat.startForegroundService(this, intent)
+    }
+
+    private fun showLastFloatingResult() {
+        if (!hasOverlayPermission()) {
+            openOverlayPermissionSettings()
+            return
+        }
+
+        val intent = Intent(this, FloatingButtonService::class.java).apply {
+            action = FloatingButtonService.ACTION_SHOW_LAST_RESULT
+        }
+        startService(intent)
     }
 
     private fun stopFloatingButtonService() {
