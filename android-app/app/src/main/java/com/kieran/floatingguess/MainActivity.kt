@@ -68,6 +68,11 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import android.app.Activity
+import android.media.projection.MediaProjectionConfig
+import android.media.projection.MediaProjectionManager
+import android.os.Build
+import androidx.core.content.ContextCompat
 
 data class AiCandidate(
     val word: String,
@@ -209,6 +214,15 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf("悬浮按钮状态：未启动")
                 }
 
+                var screenCaptureStatus by remember {
+                    mutableStateOf(
+                        preferences.getString(
+                            FloatingButtonService.PREF_CAPTURE_STATUS,
+                            "屏幕捕获会话：未授权"
+                        ) ?: "屏幕捕获会话：未授权"
+                    )
+                }
+
                 var refreshOverlayStatusTrigger by remember {
                     mutableStateOf(0)
                 }
@@ -218,6 +232,61 @@ class MainActivity : ComponentActivity() {
                         "悬浮窗权限：已开启"
                     } else {
                         "悬浮窗权限：未开启"
+                    }
+
+                    screenCaptureStatus = preferences.getString(
+                        FloatingButtonService.PREF_CAPTURE_STATUS,
+                        "屏幕捕获会话：未授权"
+                    ) ?: "屏幕捕获会话：未授权"
+
+                    val pendingResponse = preferences.getString(
+                        FloatingButtonService.PREF_PENDING_CAPTURE_RESPONSE,
+                        null
+                    )
+                    val pendingMessage = preferences.getString(
+                        FloatingButtonService.PREF_PENDING_CAPTURE_MESSAGE,
+                        null
+                    )
+
+                    if (!pendingResponse.isNullOrBlank()) {
+                        try {
+                            val result = parseAiResponse(pendingResponse)
+                            aiResult = result.aiText
+                            candidates = result.candidates
+                            clueMemory = result.topicClues.joinToString("\n")
+                            guessMemory = result.guesses.joinToString("\n") { guess ->
+                                "${guess.word} ${formatScore(guess.score)}"
+                            }
+                            historyList = addHistoryItem(
+                                historyList = historyList,
+                                aiText = result.aiText,
+                                candidates = result.candidates,
+                                clueMemory = clueMemory,
+                                guessMemory = guessMemory
+                            )
+                            statusText = pendingMessage
+                                ?: "已载入最近一次悬浮截屏分析结果。"
+                            debugLog = appendDebugLog(
+                                debugLog,
+                                "已载入悬浮截屏分析结果，候选答案数量：${result.candidates.size}"
+                            )
+                        } catch (error: Exception) {
+                            statusText = "读取悬浮截屏结果失败：${error.message ?: "未知错误"}"
+                            debugLog = appendDebugLog(
+                                debugLog,
+                                "读取悬浮截屏结果失败：${error.message ?: "未知错误"}"
+                            )
+                        }
+
+                        preferences.edit()
+                            .remove(FloatingButtonService.PREF_PENDING_CAPTURE_RESPONSE)
+                            .remove(FloatingButtonService.PREF_PENDING_CAPTURE_MESSAGE)
+                            .apply()
+                    } else if (!pendingMessage.isNullOrBlank()) {
+                        statusText = pendingMessage
+                        preferences.edit()
+                            .remove(FloatingButtonService.PREF_PENDING_CAPTURE_MESSAGE)
+                            .apply()
                     }
                 }
 
@@ -265,6 +334,40 @@ class MainActivity : ComponentActivity() {
                         .apply()
                 }
 
+                val screenCapturePermissionLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.StartActivityForResult()
+                ) { result ->
+                    val resultData = result.data
+
+                    if (result.resultCode == Activity.RESULT_OK && resultData != null) {
+                        if (!hasOverlayPermission()) {
+                            screenCaptureStatus = "屏幕捕获会话：等待悬浮窗权限"
+                            statusText = "请先开启悬浮窗权限，然后重新申请屏幕捕获权限。"
+                            debugLog = appendDebugLog(
+                                debugLog,
+                                "MediaProjection 已授权，但悬浮窗权限缺失，未启动会话"
+                            )
+                            openOverlayPermissionSettings()
+                        } else {
+                            screenCaptureStatus = "屏幕捕获会话：正在初始化"
+                            floatingStatus = "悬浮按钮状态：正在启动"
+                            statusText = "正在启动手动截屏分析会话..."
+                            debugLog = appendDebugLog(
+                                debugLog,
+                                "MediaProjection 权限授权成功，启动前台捕获服务"
+                            )
+                            startScreenCaptureSession(result.resultCode, resultData)
+                        }
+                    } else {
+                        screenCaptureStatus = "屏幕捕获会话：未授权"
+                        statusText = "屏幕捕获权限未授权。"
+                        debugLog = appendDebugLog(
+                            debugLog,
+                            "MediaProjection 权限授权失败或被取消"
+                        )
+                    }
+                }
+
                 val imagePicker = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.GetContent()
                 ) { uri: Uri? ->
@@ -307,12 +410,12 @@ class MainActivity : ComponentActivity() {
                             )
 
                             Text(
-                                text = "Android Native v0.4.0",
+                                text = "Android Native v0.7.0 Floating Workflow",
                                 style = MaterialTheme.typography.titleMedium
                             )
 
                             Text(
-                                text = "选择截图、AI 分析、补充线索再分析。",
+                                text = "轻点 FG 截屏分析；v0.6 悬浮结果卡片；v0.7 悬浮快速补充分析。",
                                 style = MaterialTheme.typography.bodyMedium
                             )
 
@@ -449,11 +552,83 @@ class MainActivity : ComponentActivity() {
                                 }
 
                                 Text(
-                                    text = "轻点 FG：打开 App；拖动 FG：移动位置；长按 FG：关闭；双击 FG：打开 App 并关闭悬浮按钮。",
+                                    text = "轻点 FG：截屏并分析；结果会显示在悬浮卡片；点击候选可快速补充；双击 FG 打开 App；拖动移动；长按关闭。",
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             }
                         }
+                    }
+
+                    SectionCard(title = "v0.7 悬浮截屏与快速补充分析") {
+                        Text(
+                            text = screenCaptureStatus,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+
+                        Button(
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !isAnalyzing && !isRefining,
+                            onClick = {
+                                if (!hasOverlayPermission()) {
+                                    screenCaptureStatus = "屏幕捕获会话：等待悬浮窗权限"
+                                    statusText = "请先开启悬浮窗权限。"
+                                    debugLog = appendDebugLog(
+                                        debugLog,
+                                        "申请 MediaProjection 前发现悬浮窗权限未开启"
+                                    )
+                                    openOverlayPermissionSettings()
+                                } else {
+                                    screenCaptureStatus = "屏幕捕获会话：正在申请授权"
+                                    statusText = "正在申请屏幕捕获权限..."
+                                    debugLog = appendDebugLog(
+                                        debugLog,
+                                        "开始申请 MediaProjection 权限"
+                                    )
+                                    screenCapturePermissionLauncher.launch(
+                                        createScreenCaptureIntent()
+                                    )
+                                }
+                            }
+                        ) {
+                            Text("授权并启动悬浮截屏")
+                        }
+
+                        OutlinedButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !isAnalyzing && !isRefining,
+                            onClick = {
+                                stopFloatingButtonService()
+                                floatingStatus = "悬浮按钮状态：已关闭"
+                                screenCaptureStatus = "屏幕捕获会话：已停止"
+                                statusText = "悬浮截屏会话已停止。"
+                                debugLog = appendDebugLog(
+                                    debugLog,
+                                    "用户停止悬浮截屏会话"
+                                )
+                            }
+                        ) {
+                            Text("停止悬浮截屏会话")
+                        }
+
+                        OutlinedButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !isAnalyzing && !isRefining,
+                            onClick = {
+                                showLastFloatingResult()
+                                statusText = "正在显示最近一次悬浮分析结果。"
+                                debugLog = appendDebugLog(
+                                    debugLog,
+                                    "请求显示最近一次悬浮分析结果"
+                                )
+                            }
+                        ) {
+                            Text("显示最近悬浮结果")
+                        }
+
+                        Text(
+                            text = "系统只会在你轻点 FG 后读取一帧。分析完成后会显示 Top 3 悬浮结果卡片；点击“补充信息”可直接输入新线索、高分词和相似度。不会连续自动截图。",
+                            style = MaterialTheme.typography.bodySmall
+                        )
                     }
 
                     SectionCard(title = "截图分析") {
@@ -592,138 +767,138 @@ $error
                     if (clueMemory.isNotBlank() || guessMemory.isNotBlank()) {
                         SectionCard(title = "当前题目信息") {
 
-                                if (clueMemory.isNotBlank()) {
-                                    Text(
-                                        text = "线索：\n$clueMemory",
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                }
+                            if (clueMemory.isNotBlank()) {
+                                Text(
+                                    text = "线索：\n$clueMemory",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
 
-                                if (guessMemory.isNotBlank()) {
-                                    Text(
-                                        text = "历史猜测：\n$guessMemory",
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                }
+                            if (guessMemory.isNotBlank()) {
+                                Text(
+                                    text = "历史猜测：\n$guessMemory",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
 
                         }
                     }
 
                     SectionCard(title = "补充新信息后重新分析") {
 
+                        OutlinedTextField(
+                            modifier = Modifier.fillMaxWidth(),
+                            value = supplementClue,
+                            onValueChange = { supplementClue = it },
+                            label = { Text("新线索") },
+                            placeholder = { Text("例如：和声音有关 / 是一种休闲活动") }
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
                             OutlinedTextField(
-                                modifier = Modifier.fillMaxWidth(),
-                                value = supplementClue,
-                                onValueChange = { supplementClue = it },
-                                label = { Text("新线索") },
-                                placeholder = { Text("例如：和声音有关 / 是一种休闲活动") }
+                                modifier = Modifier.weight(1f),
+                                value = supplementGuessWord,
+                                onValueChange = { supplementGuessWord = it },
+                                label = { Text("高分词") },
+                                placeholder = { Text("例如：听雨") }
                             )
 
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                OutlinedTextField(
-                                    modifier = Modifier.weight(1f),
-                                    value = supplementGuessWord,
-                                    onValueChange = { supplementGuessWord = it },
-                                    label = { Text("高分词") },
-                                    placeholder = { Text("例如：听雨") }
-                                )
+                            OutlinedTextField(
+                                modifier = Modifier.weight(1f),
+                                value = supplementGuessScore,
+                                onValueChange = { supplementGuessScore = it },
+                                label = { Text("相似度") },
+                                placeholder = { Text("例如：44.9") }
+                            )
+                        }
 
-                                OutlinedTextField(
-                                    modifier = Modifier.weight(1f),
-                                    value = supplementGuessScore,
-                                    onValueChange = { supplementGuessScore = it },
-                                    label = { Text("相似度") },
-                                    placeholder = { Text("例如：44.9") }
-                                )
-                            }
+                        Button(
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !isAnalyzing && !isRefining,
+                            onClick = {
+                                val newClue = supplementClue.trim()
+                                val guessWord = supplementGuessWord.trim()
+                                val guessScoreText = supplementGuessScore.trim()
 
-                            Button(
-                                modifier = Modifier.fillMaxWidth(),
-                                enabled = !isAnalyzing && !isRefining,
-                                onClick = {
-                                    val newClue = supplementClue.trim()
-                                    val guessWord = supplementGuessWord.trim()
-                                    val guessScoreText = supplementGuessScore.trim()
+                                if (newClue.isBlank() && guessWord.isBlank() && guessScoreText.isBlank()) {
+                                    statusText = "请先输入新线索，或输入高分词和相似度。"
+                                    return@Button
+                                }
 
-                                    if (newClue.isBlank() && guessWord.isBlank() && guessScoreText.isBlank()) {
-                                        statusText = "请先输入新线索，或输入高分词和相似度。"
+                                if (guessWord.isNotBlank() || guessScoreText.isNotBlank()) {
+                                    if (guessWord.isBlank() || guessScoreText.isBlank()) {
+                                        statusText = "高分词和相似度需要一起填写。"
                                         return@Button
                                     }
 
-                                    if (guessWord.isNotBlank() || guessScoreText.isNotBlank()) {
-                                        if (guessWord.isBlank() || guessScoreText.isBlank()) {
-                                            statusText = "高分词和相似度需要一起填写。"
-                                            return@Button
-                                        }
-
-                                        val score = guessScoreText.toDoubleOrNull()
-                                        if (score == null || score < 0.0 || score > 100.0) {
-                                            statusText = "相似度必须是 0 到 100 之间的数字。"
-                                            return@Button
-                                        }
-
-                                        guessMemory = mergeUniqueLines(
-                                            guessMemory,
-                                            "$guessWord ${formatScore(score)}"
-                                        )
+                                    val score = guessScoreText.toDoubleOrNull()
+                                    if (score == null || score < 0.0 || score > 100.0) {
+                                        statusText = "相似度必须是 0 到 100 之间的数字。"
+                                        return@Button
                                     }
 
-                                    if (newClue.isNotBlank()) {
-                                        clueMemory = mergeUniqueLines(clueMemory, newClue)
-                                    }
+                                    guessMemory = mergeUniqueLines(
+                                        guessMemory,
+                                        "$guessWord ${formatScore(score)}"
+                                    )
+                                }
 
-                                    isRefining = true
-                                    statusText = "正在结合补充信息重新分析..."
-                                    aiResult = "补充分析中，请稍等..."
-                                    debugLog = appendDebugLog(debugLog, "开始补充分析请求：/api/analyze")
+                                if (newClue.isNotBlank()) {
+                                    clueMemory = mergeUniqueLines(clueMemory, newClue)
+                                }
 
-                                    analyzeText(
-                                        clues = clueMemory,
-                                        guessText = guessMemory,
-                                        onSuccess = { result: AiParsedResult ->
-                                            runOnUiThread {
-                                                aiResult = result.aiText
-                                                candidates = result.candidates
+                                isRefining = true
+                                statusText = "正在结合补充信息重新分析..."
+                                aiResult = "补充分析中，请稍等..."
+                                debugLog = appendDebugLog(debugLog, "开始补充分析请求：/api/analyze")
 
-                                                if (result.topicClues.isNotEmpty()) {
-                                                    clueMemory = mergeUniqueLines(
-                                                        clueMemory,
-                                                        result.topicClues.joinToString("\n")
-                                                    )
-                                                }
+                                analyzeText(
+                                    clues = clueMemory,
+                                    guessText = guessMemory,
+                                    onSuccess = { result: AiParsedResult ->
+                                        runOnUiThread {
+                                            aiResult = result.aiText
+                                            candidates = result.candidates
 
-                                                if (result.guesses.isNotEmpty()) {
-                                                    guessMemory = mergeUniqueLines(
-                                                        guessMemory,
-                                                        result.guesses.joinToString("\n") { guess ->
-                                                            "${guess.word} ${formatScore(guess.score)}"
-                                                        }
-                                                    )
-                                                }
-
-                                                historyList = addHistoryItem(
-                                                    historyList = historyList,
-                                                    aiText = result.aiText,
-                                                    candidates = result.candidates,
-                                                    clueMemory = clueMemory,
-                                                    guessMemory = guessMemory
+                                            if (result.topicClues.isNotEmpty()) {
+                                                clueMemory = mergeUniqueLines(
+                                                    clueMemory,
+                                                    result.topicClues.joinToString("\n")
                                                 )
-
-                                                supplementClue = ""
-                                                supplementGuessWord = ""
-                                                supplementGuessScore = ""
-
-                                                debugLog = appendDebugLog(debugLog, "补充分析成功，候选答案数量：${result.candidates.size}")
-                                                statusText = "补充分析完成。"
-                                                isRefining = false
                                             }
-                                        },
-                                        onError = { error: String ->
-                                            runOnUiThread {
-                                                aiResult = """
+
+                                            if (result.guesses.isNotEmpty()) {
+                                                guessMemory = mergeUniqueLines(
+                                                    guessMemory,
+                                                    result.guesses.joinToString("\n") { guess ->
+                                                        "${guess.word} ${formatScore(guess.score)}"
+                                                    }
+                                                )
+                                            }
+
+                                            historyList = addHistoryItem(
+                                                historyList = historyList,
+                                                aiText = result.aiText,
+                                                candidates = result.candidates,
+                                                clueMemory = clueMemory,
+                                                guessMemory = guessMemory
+                                            )
+
+                                            supplementClue = ""
+                                            supplementGuessWord = ""
+                                            supplementGuessScore = ""
+
+                                            debugLog = appendDebugLog(debugLog, "补充分析成功，候选答案数量：${result.candidates.size}")
+                                            statusText = "补充分析完成。"
+                                            isRefining = false
+                                        }
+                                    },
+                                    onError = { error: String ->
+                                        runOnUiThread {
+                                            aiResult = """
 补充分析失败。
 
 错误信息：
@@ -736,15 +911,15 @@ $error
 4. 检查 Render 后端是否正常
                                                 """.trimIndent()
 
-                                                debugLog = appendDebugLog(debugLog, "补充分析失败：$error")
-                                                statusText = "补充分析失败，可以修改信息后重试。"
-                                                isRefining = false
-                                            }
+                                            debugLog = appendDebugLog(debugLog, "补充分析失败：$error")
+                                            statusText = "补充分析失败，可以修改信息后重试。"
+                                            isRefining = false
                                         }
-                                    )
-                                }
-                            ) {
-                                Text(if (isRefining) "补充分析中..." else "补充信息再分析")
+                                    }
+                                )
+                            }
+                        ) {
+                            Text(if (isRefining) "补充分析中..." else "补充信息再分析")
 
                         }
                     }
@@ -1160,7 +1335,30 @@ $error
             return
         }
 
-        val intent = Intent(this, FloatingButtonService::class.java)
+        val intent = Intent(this, FloatingButtonService::class.java).apply {
+            action = FloatingButtonService.ACTION_SHOW_OVERLAY
+        }
+        startService(intent)
+    }
+
+    private fun startScreenCaptureSession(resultCode: Int, resultData: Intent) {
+        val intent = Intent(this, FloatingButtonService::class.java).apply {
+            action = FloatingButtonService.ACTION_START_CAPTURE_SESSION
+            putExtra(FloatingButtonService.EXTRA_RESULT_CODE, resultCode)
+            putExtra(FloatingButtonService.EXTRA_RESULT_DATA, resultData)
+        }
+        ContextCompat.startForegroundService(this, intent)
+    }
+
+    private fun showLastFloatingResult() {
+        if (!hasOverlayPermission()) {
+            openOverlayPermissionSettings()
+            return
+        }
+
+        val intent = Intent(this, FloatingButtonService::class.java).apply {
+            action = FloatingButtonService.ACTION_SHOW_LAST_RESULT
+        }
         startService(intent)
     }
 
@@ -1192,6 +1390,20 @@ $error
             )
         } catch (error: Exception) {
             onError(error.message ?: "未知错误")
+        }
+    }
+
+    private fun createScreenCaptureIntent(): Intent {
+        val manager = getSystemService(
+            Context.MEDIA_PROJECTION_SERVICE
+        ) as MediaProjectionManager
+
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            manager.createScreenCaptureIntent(
+                MediaProjectionConfig.createConfigForDefaultDisplay()
+            )
+        } else {
+            manager.createScreenCaptureIntent()
         }
     }
 
